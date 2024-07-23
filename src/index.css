@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.mini-sidebar [data-testid=flowbite-sidebar-item-content] {
+    display: none;
+}
+.mini-sidebar [data-testid=flowbite-sidebar-item-content]:has(.custom-icon) {
+    display: block;
+}
