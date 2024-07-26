@@ -1,20 +1,26 @@
 import { InputWithIcon, ComponentPropType } from "@/components/InputWithIcon"
 import { FaEnvelope, FaKey, FaEye, FaEyeSlash } from "react-icons/fa"
-import { useState, useRef, useEffect, SyntheticEvent, FormEvent } from "react"
+import { useState, useRef, useEffect, SyntheticEvent } from "react"
 import { gsap } from 'gsap'
 import { Bounce } from 'gsap/all'
 import { Button } from "@/components/Button"
 import { z } from "zod"
 import { ZodForm } from "@/components/ZodForm"
-
-const LoginFormSchema = z.object({
-    email: z.string({message: "harus berupa string"}).email({message: "harus berupa email valid"}).min(1, {message: 'tidak boleh kosong'}),
-    password: z.string({message: "harus berupa string"}).min(1 ,{message: "tidak boleh kosong"})
-})
-
-type LoginFormType = z.infer<typeof LoginFormSchema>
+import { useAuthStore } from '@/lib/stores/AuthStore'
+import { useNavigate } from "react-router-dom"
+import { Toast } from '@/lib/helpers/BaseAlert'
 
 export const LoginPage = () => {
+    const navigate = useNavigate()
+
+    const LoginFormSchema = z.object({
+        email: z.string({message: "harus berupa string"}).email({message: "harus berupa email valid"}).min(1, {message: 'tidak boleh kosong'}),
+        password: z.string({message: "harus berupa string"}).min(8 ,{message: "tidak boleh kurang dari 8 karakter"})
+    })
+    
+    type LoginFormType = z.infer<typeof LoginFormSchema>
+
+    const { setUser, setRole, setAuth } = useAuthStore()
 
     const illustrationRef = useRef(null)
     const cardRef = useRef(null)
@@ -24,7 +30,7 @@ export const LoginPage = () => {
         password: ""
     })
 
-    const [formErrorMsg, setFormErrorMsg] = useState({})
+    const [formErrorMsg, setFormErrorMsg] = useState<{[key: string]: string[]}>({})
 
     const handleInputChange = (e: SyntheticEvent<HTMLInputElement>) => {
         const { name, value } = e.target as HTMLInputElement;
@@ -35,7 +41,12 @@ export const LoginPage = () => {
     }
 
     const handleFormSubmit = () => {
-        console.log(formData)
+        setRole(["owner"])
+        setUser({email: formData.email})
+        setAuth(true)
+
+        Toast('success', 'Login berhasil')
+        navigate('/dashboard')
     }
 
     const [emailConfig] = useState<ComponentPropType>({
@@ -45,8 +56,9 @@ export const LoginPage = () => {
             name: "email",
             label: "Email",
             placeholder: "Masukkan Email",
-            icon: <FaEnvelope />,
-            onInputFn: handleInputChange
+            icon: FaEnvelope,
+            onInputFn: handleInputChange,
+            autofocus: true
         }
     })
 
@@ -57,11 +69,11 @@ export const LoginPage = () => {
             name: "password",
             label: "Kata Sandi",
             placeholder: "Masukkan Kata Sandi",
-            icon: <FaKey />,
+            icon: FaKey,
             onInputFn: handleInputChange
         }, rightButton: {
             show: true,
-            icon: <FaEye/>,
+            icon: FaEye,
             onclickFn: () => {
                 changeInputPasswordType()
             }
@@ -77,7 +89,7 @@ export const LoginPage = () => {
             },
             rightButton: {
                 ...prevState.rightButton!,
-                icon: prevState.settings.type === "password" ? <FaEyeSlash /> : <FaEye />,
+                icon: prevState.settings.type === "password" ? FaEyeSlash : FaEye,
             }
         }))
     }
@@ -118,7 +130,7 @@ export const LoginPage = () => {
                     </div>
                     <img src="/src/assets/illustrations/warehouse-02.svg" className="mt-3" width={300} alt="" ref={illustrationRef} />
                 </div>
-                <ZodForm formdata={formData} setFormdataFn={setFormData} setErrorMsg={setFormErrorMsg} onSuccessValidation={handleFormSubmit} schema={LoginFormSchema} className="flex-1 bg-white rounded-3xl flex flex-col items-stretch justify-between gap-6 p-6 md:pt-20" onSubmit={handleFormSubmit}>
+                <ZodForm formdata={formData} setFormdataFn={setFormData} setErrorMsg={setFormErrorMsg} onSuccessValidation={handleFormSubmit} schema={LoginFormSchema} className="flex-1 bg-white rounded-3xl flex flex-col items-stretch justify-between gap-6 p-6 md:pt-20">
                     <img src="/src/assets/logo-full.png" alt="Logo image" width={100} className="bg-white py-2 px-4 rounded-full self-center md:hidden"/>
                     <div className="flex flex-col gap-3">
                         <h3 className="font-bold text-xl text-center">Masuk</h3>

@@ -1,8 +1,17 @@
-import { FormEvent, useEffect } from "react"
-import { z } from "zod"
+import { FormEvent } from "react"
 import { FormatError } from "@/lib/helpers/ZodErrorFormater"
 
-export const ZodForm = ({formdata, setFormdataFn, schema, onSuccessValidation, setErrorMsg, ...props}) => {
+type TZodForm = {
+    formdata: {[key: string]: any},
+    setFormdataFn: any,
+    schema: any,
+    onSuccessValidation: any,
+    setErrorMsg: any,
+    className: any,
+    children: any
+}
+
+export const ZodForm = ({formdata, setFormdataFn, schema, onSuccessValidation, setErrorMsg, ...props}: TZodForm) => {
 
     const handlerSubmit = (e: FormEvent) => {
         e.preventDefault()
@@ -10,6 +19,7 @@ export const ZodForm = ({formdata, setFormdataFn, schema, onSuccessValidation, s
         if (!data.success) {
             setErrorMsg(FormatError(data.error.issues))
         } else {
+            setErrorMsg({})
             setFormdataFn(data.data)
             onSuccessValidation()
         }
