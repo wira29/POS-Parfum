@@ -1,4 +1,4 @@
-import { IoGrid } from 'react-icons/io5'
+import { IoGrid, IoCube, IoCreate, IoReceipt } from 'react-icons/io5'
 import { SidebarItem } from '@/components/SidebarItem'
 import { useEffect, useRef } from 'react'
 import { TSidebarItem } from '@/lib/interface/SidebarItemInterface'
@@ -12,17 +12,17 @@ const navList:TNavList = [
         url: '/dashboard'
     },
     {
-        icon: IoGrid,
+        icon: IoCube,
         title: 'Products',
         url: '/products'
     },
     {
-        icon: IoGrid,
+        icon: IoCreate,
         title: 'Restocking',
         url: '/restocking'
     },
     {
-        icon: IoGrid,
+        icon: IoReceipt,
         title: 'Adjust Stock',
         url: '/stock-adjustment'
     },

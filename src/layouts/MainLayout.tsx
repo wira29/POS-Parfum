@@ -5,7 +5,7 @@ import 'flowbite/dist/flowbite.min.js'
 
 export const MainLayout = () => {
     return (
-        <div className="flex w-full">
+        <div className="flex w-full items-stretch">
             <Sidebar />
             <div className="flex-1">
                 <Header/>

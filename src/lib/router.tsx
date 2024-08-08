@@ -7,6 +7,8 @@ import { MainLayout } from "@/layouts/MainLayout";
 import { ProductIndex } from "@/pages/user/products";
 import { RestockIndex } from "@/pages/user/restock";
 import { AdjustmentIndex } from "@/pages/user/adjusment";
+import { RestockTabIndex } from "@/pages/user/restock/tab";
+import { RestockTabHistory } from "@/pages/user/restock/tab/history";
 
 export const router = createBrowserRouter([
     {
@@ -14,21 +16,31 @@ export const router = createBrowserRouter([
         element: <LoginPage />
     }, {
         path: "",
-        element: <IsAuth guest={false} redirectOnError="/login" />,
+        element: <IsAuth guest={true} redirectOnError="/login" />,
         children: [
             {
                 path: "",
                 element: <MainLayout />,
                 children: [
                     {
-                        path: "/dashboard",
+                        path: "dashboard",
                         element: <Dashboard />,
                     }, {
-                        path: "/products",
+                        path: "products",
                         element: <ProductIndex />
                     }, {
-                        path: "/restocking",
-                        element: <RestockIndex />
+                        path: "restocking",
+                        element: <RestockIndex />,
+                        children: [
+                            {
+                                index: true,
+                                element: <RestockTabIndex />
+                            },
+                            {
+                                path: "history",
+                                element: <RestockTabHistory />
+                            }
+                        ]
                     }, {
                         path: "stock-adjustment",
                         element: <AdjustmentIndex />

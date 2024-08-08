@@ -8,3 +8,36 @@
 .mini-sidebar [data-testid=flowbite-sidebar-item-content]:has(.custom-icon) {
     display: block;
 }
+.dt-custom tr {
+    @apply border-b-2 border-dashed
+}
+.dt-custom th, .dt-custom td {
+    @apply py-2
+}
+.dt-custom th {
+    @apply text-subtitle
+}
+.dt-custom td {
+    @apply text-desc
+}
+.p-paginator {
+    @apply mt-3
+}
+.p-paginator.custom-paginator {
+    @apply flex
+}
+.custom-paginator > .p-paginator-current {
+    @apply mr-auto items-center text-desc min-h-[1rem] cursor-auto
+}
+.p-paginator.custom-paginator > *:not(.p-paginator-pages):not(.p-paginator-current), .custom-paginator .p-paginator-pages > * {
+    @apply border-desc text-desc border-[1px] p-2 h-[2rem] w-[2rem]
+}
+.p-paginator.custom-paginator .p-paginator-pages > .p-highlight {
+    @apply bg-primary-800 text-white
+}
+.p-paginator.custom-paginator > .p-paginator-first {
+    @apply rounded-s
+}
+.p-paginator.custom-paginator > *:last-child {
+    @apply rounded-e
+}

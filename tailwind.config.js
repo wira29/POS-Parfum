@@ -10,6 +10,7 @@ module.exports = {
     './src/**/*.{ts,tsx}',
     '**/*.html',
     "./node_modules/flowbite/**/*.js",
+    './node_modules/primereact/**/*.{js,jsx,ts,tsx}',
     flowbite.content()
   ],
   theme: {
@@ -18,7 +19,7 @@ module.exports = {
         primary: {
           50: '#f5f6fa',
           100: '#ebedf3',
-          200: '#d2s6e5',
+          200: '#d2d6e5',
           300: '#abb4ce',
           400: '#7d8bb3',
           500: '#5d6d9a',
@@ -29,9 +30,12 @@ module.exports = {
           950: '#202331',
         },
         danger: colors.red,
-        warning: colors.amber,
+        warning: colors.yellow,
         success: colors.emerald,
-        info: colors.indigo
+        info: colors.indigo,
+        subtitle: "#434343",
+        title: "#161616",
+        desc: "#8B8B8B"
       }
     }
   },
