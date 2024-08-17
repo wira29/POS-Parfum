@@ -9,7 +9,9 @@ export const SidebarItem = forwardRef<HTMLAnchorElement, TSidebarItem>(({icon: I
     const [classState, setClassState] = useState("")
 
     useEffect(() => {
-        setIsActive(location.pathname === url)
+        let path = location.pathname.split('/')
+
+        setIsActive('/'+path[1] === url)
         const default_class = "flex items-center p-2 rounded-lg group " 
         if(isActive) setClassState(default_class+"text-white dark:text-gray-900 bg-primary-800 dark:bg-white hover:bg-primary-900 dark:hover:bg-white-800")
         else setClassState(default_class+"text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700")

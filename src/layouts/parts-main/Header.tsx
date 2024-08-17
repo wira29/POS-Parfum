@@ -12,12 +12,12 @@ export const Header = () => {
             <div className="px-3 lg:px-5">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center justify-start">
-                        <button onClick={setNavOpen} type="button" className="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
+                        <button onClick={setNavOpen} type="button" className="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
                             <BsFilterLeft className='text-2xl'/>
                         </button>
-                        <Link to="/" className="flex ms-2 md:me-24 sm:hidden">
+                        <Link to="/" className="flex ms-2 md:me-24 md:hidden">
                             <img src="/src/assets/logo.png" className="h-8 me-3" alt="FlowBite Logo" />
-                            <span className="self-center text-xl font-semibold sm:text-2xl whitespace-nowrap dark:text-white">Pos Parfum</span>
+                            <span className="self-center text-xl font-semibold md:text-2xl whitespace-nowrap dark:text-white">Pos Parfum</span>
                         </Link>
                     </div>
                     <div className="flex items-center">

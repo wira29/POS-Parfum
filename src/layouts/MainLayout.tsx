@@ -5,14 +5,16 @@ import 'flowbite/dist/flowbite.min.js'
 
 export const MainLayout = () => {
     return (
-        <div className="flex w-full items-stretch">
-            <Sidebar />
-            <div className="flex-1">
-                <Header/>
-                <div className='p-6'>
-                    <Outlet />
+        <>
+        <Sidebar />
+            <div className="flex w-full items-stretch ps-0 md:ps-64">
+                <div className="flex-1">
+                    <Header/>
+                    <div className='p-6'>
+                        <Outlet />
+                    </div>
                 </div>
             </div>
-        </div>
+        </>
     )
 }

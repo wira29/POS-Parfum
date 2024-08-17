@@ -13,7 +13,7 @@ export const Sidebar = () => {
     }, [isNavOpen])
 
     return (
-        <aside onClick={setNavOpen} className={"h-full sm:w-64 self-stretch fixed sm:static z-40 w-screen backdrop-blur-sm bg-black/30 min-h-screen transition-transform sm:translate-x-0 dark:bg-gray-800 dark:border-gray-700 "+navClass}>
+        <aside onClick={setNavOpen} className={"h-full md:w-64 self-stretch fixed top-0 left-0 z-40 w-screen backdrop-blur-sm bg-black/30 min-h-screen transition-transform md:translate-x-0 dark:bg-gray-800 dark:border-gray-700 "+navClass}>
             <div className="h-full min-h-screen px-3 pb-4 overflow-y-auto bg-white dark:bg-gray-800 w-64">
                 <div className="h-[70px] flex justify-center items-center">
                     <Link to="/" className="flex">
