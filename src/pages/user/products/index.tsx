@@ -50,15 +50,10 @@ export const ProductIndex = () => {
             </div>
             <DataTable
                 value={product}
-                paginator rows={2} rowsPerPageOptions={[5, 10, 20, 100]}
+                paginator rows={10} rowsPerPageOptions={[5, 10, 20, 100]}
                 paginatorTemplate='CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink'
-                // paginatorTemplate={[
-                //     'CurrentPageReport',
-                //     {
-                //         elements: ['FirstPageLink', 'PrevPageLink', 'PageLinks', 'NextPageLink', 'LastPageLink']
-                //     }
-                // ]}
                 paginatorClassName="custom-paginator"
+                pageLinkSize={4}
                 currentPageReportTemplate="showing {first} to {last} of {totalRecords} entries"
                 tableClassName='w-full dt-custom' showGridlines stripedRows
                 sortField='name' sortOrder={-1}

@@ -136,7 +136,7 @@ export const LoginPage = () => {
                         <h3 className="font-bold text-xl text-center">Masuk</h3>
                         <InputWithIcon settings={emailConfig.settings} errors={formErrorMsg.email}/>
                         <InputWithIcon settings={passwordConfig.settings} rightButton={passwordConfig.rightButton} errors={formErrorMsg.password}/>
-                        <Button color="primary" type="submit" label="Masuk" />
+                        <Button color="primary" type="submit">Masuk</Button>
                     </div>
                     <div className="text-center">Developed By <a href="https://www.hummatech.com" target="_blank" className="text-blue-600 dark:text-blue-500 hover:underline">Hummatech</a></div>
                 </ZodForm>

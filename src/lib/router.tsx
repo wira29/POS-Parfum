@@ -16,7 +16,7 @@ export const router = createBrowserRouter([
         element: <LoginPage />
     }, {
         path: "",
-        element: <IsAuth guest={true} redirectOnError="/login" />,
+        element: <IsAuth guest={false} redirectOnError="/login" />,
         children: [
             {
                 path: "",
