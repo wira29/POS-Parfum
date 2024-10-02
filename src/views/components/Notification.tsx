@@ -65,7 +65,7 @@ export const Notification = () => {
                                         <p className="text-muted mb-0 text-clamp-2">{notif.notification?.message}</p>
                                     </div>
                                     <div className="col-3 d-flex justify-content-end">
-                                        <img src={notif.notification?.shop_photo ? storage+notif.notification.shop_photo : "/public/images/blog/blog-img1.jpg"} alt="notification image" className="object-fit-cover rounded" style={{width: "75px", height: '75px'}} />
+                                        <img src={notif.notification?.shop_photo ? storage+notif.notification.shop_photo : "/images/blog/blog-img1.jpg"} alt="notification image" className="object-fit-cover rounded" style={{width: "75px", height: '75px'}} />
                                     </div>
                                 </div>
                             </div>
