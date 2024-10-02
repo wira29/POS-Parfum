@@ -11,7 +11,9 @@ node_modules
 bun.lockb
 dist
 dist-ssr
+!src/assets/**
 *.local
+.env
 
 # Editor directories and files
 .vscode/*
