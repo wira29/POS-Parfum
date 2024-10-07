@@ -1,14 +1,15 @@
-import { InputWithIcon, ComponentPropType } from "@/components/InputWithIcon"
-import { FaEnvelope, FaKey, FaEye, FaEyeSlash } from "react-icons/fa"
-import { useState, useRef, useEffect, SyntheticEvent } from "react"
+import { Button } from "@/components/Button"
+import { ComponentPropType, InputWithIcon } from "@/components/InputWithIcon"
+import { ZodForm } from "@/components/ZodForm"
+import { users } from "@/lib/data/users"
+import { Toast } from '@/lib/helpers/BaseAlert'
+import { useAuthStore } from '@/lib/stores/AuthStore'
 import { gsap } from 'gsap'
 import { Bounce } from 'gsap/all'
-import { Button } from "@/components/Button"
-import { z } from "zod"
-import { ZodForm } from "@/components/ZodForm"
-import { useAuthStore } from '@/lib/stores/AuthStore'
+import { SyntheticEvent, useEffect, useRef, useState } from "react"
+import { FaEnvelope, FaEye, FaEyeSlash, FaKey } from "react-icons/fa"
 import { useNavigate } from "react-router-dom"
-import { Toast } from '@/lib/helpers/BaseAlert'
+import { z } from "zod"
 
 export const LoginPage = () => {
     const navigate = useNavigate()
@@ -41,12 +42,21 @@ export const LoginPage = () => {
     }
 
     const handleFormSubmit = () => {
-        setRole(["owner"])
-        setUser({email: formData.email})
-        setAuth(true)
+        const { email, password } = formData
 
-        Toast('success', 'Login berhasil')
-        navigate('/dashboard')
+        const user = users.find(user => user.email === email && user.password === password)
+
+        if (user) {
+            setRole([user.role])
+            setUser({email: user.email})
+            setAuth(true)
+    
+            Toast('success', 'Login berhasil')
+            return navigate('/dashboard')
+        }
+
+        Toast('error', 'Email atau password salah')
+
     }
 
     const [emailConfig] = useState<ComponentPropType>({

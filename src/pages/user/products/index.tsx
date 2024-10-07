@@ -1,15 +1,13 @@
-import { DataTable } from "primereact/datatable"
-import { Column } from "primereact/column"
-import { SyntheticEvent, useEffect, useState } from "react"
-import axios from 'axios'
+import { Button } from "@/components/Button"
 import { InputWithIcon } from "@/components/InputWithIcon"
-import { HiSearch } from 'react-icons/hi'
 import { product } from '@/lib/data/product'
 import { numberBodyTemplate } from '@/lib/helpers/TestHelper'
-import { Button } from "@/components/Button"
-import { HiEye } from 'react-icons/hi'
-import { FaHistory, FaImage } from 'react-icons/fa'
 import { Modal } from "flowbite-react"
+import { Column } from "primereact/column"
+import { DataTable } from "primereact/datatable"
+import { SyntheticEvent, useState } from "react"
+import { FaHistory, FaImage } from 'react-icons/fa'
+import { HiEye, HiSearch } from 'react-icons/hi'
 
 export const ProductIndex = () => {
 
@@ -38,7 +36,7 @@ export const ProductIndex = () => {
     return (
         <div className='bg-white p-6 rounded-lg'>
             <div className="flex justify-between items-center">
-                <div className='font-bold text-xl mb-3 text-title'>Produk</div>
+                <div className='font-bold text-2xl mb-3 text-title'>Produk</div>
                 <InputWithIcon settings={{
                     id: 'search',
                     type: 'text',
@@ -60,7 +58,8 @@ export const ProductIndex = () => {
             >
                 <Column field='no' header='No' body={numberBodyTemplate} />
                 <Column field='name' header='Nama' />
-                <Column field='stock' header='Stok' body={(rowData) => (<span className='bg-gray-300 rounded px-3 py-1 text-title text-sm'>{rowData.stock}</span>)} />
+                <Column field='stock' header='Stok' body={(rowData) => (<span className='bg-gray-300 rounded px-3 py-1 text-title text-sm font-bold'>{rowData.stock}</span>)} />
+                <Column field='edit_date' header='Terakhir Diubah' />
                 <Column field="" header="Aksi" body={actionBodyTemplate} />
             </DataTable>
 
