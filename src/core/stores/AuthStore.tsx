@@ -1,9 +1,9 @@
-import {create} from "zustand"
+import { create } from "zustand"
 
 type UserType = {[key:string]:any} | null
 
-type RoleList = "admin"|"owner"|"outlet"
-type RoleType = RoleList[]
+export type RoleList = "admin"|"owner"|"outlet"|"warehouse"
+export type RoleType = RoleList[]
 
 type AuthType = {
     isAuth: boolean,

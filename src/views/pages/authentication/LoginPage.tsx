@@ -40,12 +40,21 @@ export const LoginPage = () => {
     }
 
     const handleFormSubmit = () => {
-        setRole(["owner"])
-        setUser({email: formData.email})
-        setAuth(true)
+        const { email, password } = formData
 
-        Toast('success', 'Login berhasil')
-        navigate('/dashboard')
+        const user = users.find(user => user.email === email && user.password === password)
+
+        if (user) {
+            setRole([user.role])
+            setUser({email: user.email})
+            setAuth(true)
+    
+            Toast('success', 'Login berhasil')
+            return navigate('/dashboard')
+        }
+
+        Toast('error', 'Email atau password salah')
+
     }
 
     const [emailConfig] = useState<ComponentPropType>({

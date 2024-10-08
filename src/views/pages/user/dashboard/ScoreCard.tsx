@@ -1,22 +1,25 @@
-import { IoStorefront, IoCube } from 'react-icons/io5'
+import { gsap } from 'gsap'
 import { FaWarehouse } from 'react-icons/fa6'
+import { IoCube, IoStorefront } from 'react-icons/io5'
 
 export const ScoreCard = () => {
     return (
         <div className="flex gap-6 items-center justify-stretch">
-            <ScoreCardItem title='Jumlah Produk' value={12} color='danger' icon={IoCube} />
+            <ScoreCardItem title='Jumlah Produk' value={100} color='danger' icon={IoCube} />
             <ScoreCardItem title='Jumlah Outlet' value={12} color='warning' icon={IoStorefront} />
-            <ScoreCardItem title='Jumlah Gudang' value={12} color='success' icon={FaWarehouse} />
+            <ScoreCardItem title='Jumlah Gudang' value={2} color='success' icon={FaWarehouse} />
         </div>
     )
 }
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { IconType } from 'react-icons'
 
 const ScoreCardItem = ({title, value, color, icon: Icon}: {title:string, value:number, color:string, icon: IconType}) => {
     const [leftTipClass, setLeftTipClass] = useState('')
     const [iconClass, setIconClass] = useState('')
+    const counterRef = useRef(null)
+    const [count, setCount] = useState(0);
     
     const defaultLeftTipClass = "absolute min-h-16 w-2 left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full "
     const defaultIconClass = "absolute hidden lg:block -translate-x-1/2 -translate-y-1/2 text-5xl top-1/2 right-0 "
@@ -46,10 +49,22 @@ const ScoreCardItem = ({title, value, color, icon: Icon}: {title:string, value:n
         }
     }, [color])
 
+    useEffect(() => {
+        gsap.to(counterRef.current, {
+            duration: 0.8, // durasi total untuk menghitung dari 1 sampai 12
+            repeat: 0,
+            onUpdate: function() {
+                const progress = this.progress();
+                const currentValue = Math.ceil(progress * value);
+                setCount(currentValue);
+            }
+        });
+    }, []);
+
     return (
         <div className='bg-white shadow-md relative w-full rounded-lg p-4 min-h-30 overflow-hidden'>
             <div className='font-semibold'>{title}</div>
-            <div className='text-3xl font-bold text-subtitle'>{value}</div>
+            <div className='text-3xl font-bold text-subtitle'>{count}</div>
             <div className={leftTipClass}></div>
             <div className={iconClass}><Icon /></div>
         </div>

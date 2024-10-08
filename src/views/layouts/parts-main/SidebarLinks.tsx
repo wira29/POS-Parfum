@@ -1,11 +1,12 @@
-import { IoGrid, IoCube, IoCreate, IoReceipt } from 'react-icons/io5'
 import { SidebarItem } from '@/components/SidebarItem'
-import { useEffect, useRef } from 'react'
 import { TSidebarItem } from '@/lib/interface/SidebarItemInterface'
-import {gsap} from 'gsap'
+import { useAuthStore } from '@/lib/stores/AuthStore'
+import { gsap } from 'gsap'
+import { useEffect, useRef } from 'react'
+import { IoCreate, IoCube, IoGrid, IoReceipt } from 'react-icons/io5'
 
 type TNavList = TSidebarItem[]
-const navList:TNavList = [
+const warehouseNavList:TNavList = [
     {
         icon: IoGrid,
         title: 'Dashboard',
@@ -28,9 +29,71 @@ const navList:TNavList = [
     },
 ]
 
+const ownerNavList:TNavList = [
+    {
+        icon: IoGrid,
+        title: 'Dashboard',
+        url: '/dashboard'
+    },
+    {
+        icon: IoCube,
+        title: 'Pengguna',
+        url: '/users'
+    },
+    {
+        icon: IoCreate,
+        title: 'Auditor',
+        url: '/auditors'
+    },
+    {
+        icon: IoReceipt,
+        title: 'Outlet',
+        url: '/outlets'
+    },
+    {
+        icon: IoReceipt,
+        title: 'Gudang',
+        url: '/warehouses'
+    },
+    {
+        icon: IoReceipt,
+        title: 'Produk',
+        url: '/products'
+    },
+    {
+        icon: IoReceipt,
+        title: 'Laporan Penjualan',
+        url: '/sales-reports'
+    },
+    {
+        icon: IoReceipt,
+        title: 'Pengaturan Toko',
+        url: '/setting-outlet'
+    },
+    {
+        icon: IoReceipt,
+        title: 'Pengaturan Pajak',
+        url: '/setting-tax'
+    },
+    {
+        icon: IoReceipt,
+        title: 'Pengaturan Diskon',
+        url: '/setting-discount'
+    },
+]
+
 export const SidebarLinks = () => {
     const itemsRef = useRef<HTMLAnchorElement[]>([])
     const tesRef = useRef(null)
+
+    const {role} = useAuthStore()
+    let navList:TNavList = []
+
+    if (role.includes('warehouse')) {
+        navList = warehouseNavList
+    } else if (role.includes('owner')) {
+        navList = ownerNavList
+    }
 
     useEffect(() => {
         gsap.fromTo(itemsRef.current, {
