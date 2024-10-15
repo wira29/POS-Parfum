@@ -1,13 +1,14 @@
-import { InputWithIcon, ComponentPropType } from "@/views/components/InputWithIcon"
-import { FaEnvelope, FaKey, FaEye, FaEyeSlash } from "react-icons/fa"
-import { useState, useRef, useEffect, SyntheticEvent } from "react"
+import { users } from "@/core/data/users"
+import { Toast } from '@/core/helpers/BaseAlert'
+import { useAuthStore } from '@/core/stores/AuthStore'
+import { ComponentPropType, InputWithIcon } from "@/views/components/InputWithIcon"
+import { ZodForm } from "@/views/components/ZodForm"
 import { gsap } from 'gsap'
 import { Bounce } from 'gsap/all'
-import { z } from "zod"
-import { ZodForm } from "@/views/components/ZodForm"
-import { useAuthStore } from '@/core/stores/AuthStore'
+import { SyntheticEvent, useEffect, useRef, useState } from "react"
+import { FaEnvelope, FaEye, FaEyeSlash, FaKey } from "react-icons/fa"
 import { useNavigate } from "react-router-dom"
-import { Toast } from '@/core/helpers/BaseAlert'
+import { z } from "zod"
 
 export const LoginPage = () => {
     const navigate = useNavigate()
@@ -77,6 +78,7 @@ export const LoginPage = () => {
             name: "password",
             label: "Kata Sandi",
             placeholder: "Masukkan Kata Sandi",
+            autofocus: false,
             icon: FaKey,
             onInputFn: handleInputChange
         }, rightButton: {
@@ -125,7 +127,8 @@ export const LoginPage = () => {
     }, [])
 
     return (
-        <div style={{display: "grid", minHeight: "100dvh", overflow: "hidden", placeContent: 'center'}} >
+        <div className="card">
+            <div className="card-body" style={{display: "grid", minHeight: "100dvh", overflow: "hidden", placeContent: 'center'}} >
             <div
                 className="bg-primary d-flex w-100 d-flex rounded-5 shadow-xl m-6"
                 ref={cardRef}
@@ -154,6 +157,7 @@ export const LoginPage = () => {
                     <div className="text-center">Developed By <a href="https://www.hummatech.com" target="_blank" className="text-blue-600 dark:text-blue-500 hover:underline">Hummatech</a></div>
                 </ZodForm>
             </div>
+        </div>
         </div>
     )
 }

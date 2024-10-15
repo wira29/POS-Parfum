@@ -1,5 +1,5 @@
 import { TNavItem } from "@/core/interface/sidebar-interface"
-import { IoGrid, IoPeople, IoStorefront, IoReceipt, IoStatsChart, IoSettings, IoClipboard } from "react-icons/io5"
+import { IoClipboard, IoGrid, IoPeople, IoReceipt, IoSettings, IoStatsChart, IoStorefront } from "react-icons/io5"
 
 
 export const ownerMenu:TNavItem[] = [
@@ -16,9 +16,33 @@ export const ownerMenu:TNavItem[] = [
         title: 'Master Data',
         navItem: [
             {
-                label: 'Daftar Toko',
+                label: 'Produk',
                 icon: IoStorefront,
-                url: '/stores'
+                url: '/products',
+                children: [
+                    {
+                        label: 'Produk',
+                        url: '/products'
+                    },
+                    {
+                        label: 'Kategori',
+                        url: '/categories'
+                    },
+                    {
+                        label: 'Varian',
+                        url: '/variants'
+                    }
+                ]
+            },
+            {
+                label: 'Outlet',
+                icon: IoStorefront,
+                url: '/outlets'
+            },
+            {
+                label: 'Gudang',
+                icon: IoStorefront,
+                url: '/warehouses'
             },
             {
                 label: 'User',

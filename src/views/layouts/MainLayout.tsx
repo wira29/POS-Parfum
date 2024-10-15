@@ -1,8 +1,8 @@
-import { Outlet } from 'react-router-dom'
-import { Sidebar } from './parts-main/Sidebar'
-import { Header } from './parts-main/Header'
-import { useEffect, useState } from 'react'
 import { useLayoutStore } from '@/core/stores/LayoutStore'
+import { useEffect, useState } from 'react'
+import { Outlet } from 'react-router-dom'
+import { Header } from './parts-main/Header'
+import { Sidebar } from './parts-main/Sidebar'
 
 export const MainLayout = () => {
 

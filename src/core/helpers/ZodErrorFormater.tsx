@@ -1,4 +1,4 @@
-export const FormatError = (errors) => {
+export const FormatError = (errors: any) => {
     const reformatted = {};
     
     errors.forEach(error => {
