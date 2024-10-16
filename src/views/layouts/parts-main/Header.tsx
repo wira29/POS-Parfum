@@ -3,7 +3,6 @@ import { Toaster } from '@/core/helpers/BaseAlert'
 import { useAuthStore } from '@/core/stores/AuthStore'
 import { useLayoutStore } from '@/core/stores/LayoutStore'
 import { Notification } from '@/views/components/Notification'
-import { useEffect } from 'react'
 import { IoLogOut } from 'react-icons/io5'
 import { useNavigate } from 'react-router-dom'
 
