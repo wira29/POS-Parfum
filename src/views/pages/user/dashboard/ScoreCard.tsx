@@ -4,7 +4,7 @@ import { IoCube, IoStorefront } from 'react-icons/io5'
 
 export const ScoreCard = () => {
     return (
-        <div className="flex gap-6 items-center justify-stretch">
+        <div className="row justify-content-stretch">
             <ScoreCardItem title='Jumlah Produk' value={100} color='danger' icon={IoCube} />
             <ScoreCardItem title='Jumlah Outlet' value={12} color='warning' icon={IoStorefront} />
             <ScoreCardItem title='Jumlah Gudang' value={2} color='success' icon={FaWarehouse} />
@@ -20,31 +20,28 @@ const ScoreCardItem = ({title, value, color, icon: Icon}: {title:string, value:n
     const [iconClass, setIconClass] = useState('')
     const counterRef = useRef(null)
     const [count, setCount] = useState(0);
-    
-    const defaultLeftTipClass = "absolute min-h-16 w-2 left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full "
-    const defaultIconClass = "absolute hidden lg:block -translate-x-1/2 -translate-y-1/2 text-5xl top-1/2 right-0 "
 
     useEffect(() => {
         switch(color) {
             case 'success':
-                setLeftTipClass(defaultLeftTipClass+'bg-success-500')
-                setIconClass(defaultIconClass+'text-success-500')
+                setLeftTipClass('bg-success')
+                setIconClass('text-success')
                 break;
             case 'warning':
-                setLeftTipClass(defaultLeftTipClass+'bg-warning-500')
-                setIconClass(defaultIconClass+'text-warning-500')
+                setLeftTipClass('bg-warning')
+                setIconClass('text-warning')
                 break;
             case 'info':
-                setLeftTipClass(defaultLeftTipClass+'bg-info-500')
-                setIconClass(defaultIconClass+'text-info-500')
+                setLeftTipClass('bg-info')
+                setIconClass('text-info')
                 break;
             case 'danger':
-                setLeftTipClass(defaultLeftTipClass+'bg-danger-500')
-                setIconClass(defaultIconClass+'text-danger-500')
+                setLeftTipClass('bg-danger')
+                setIconClass('text-danger')
                 break;
             default:
-                setLeftTipClass(defaultLeftTipClass+'bg-primary-500')
-                setIconClass(defaultIconClass+'text-primary-500')
+                setLeftTipClass('bg-primary')
+                setIconClass('text-primary')
                 break;
         }
     }, [color])
@@ -62,11 +59,33 @@ const ScoreCardItem = ({title, value, color, icon: Icon}: {title:string, value:n
     }, []);
 
     return (
-        <div className='bg-white shadow-md relative w-full rounded-lg p-4 min-h-30 overflow-hidden'>
-            <div className='font-semibold'>{title}</div>
-            <div className='text-3xl font-bold text-subtitle'>{count}</div>
-            <div className={leftTipClass}></div>
-            <div className={iconClass}><Icon /></div>
+        <div className="col-12 col-md-4">
+            <div className="card shadow">
+                <div className="card-body p-2 position-relative w-full rounded-lg p-4 overflow-hidden">
+                    <div className='fw-semibold'>{title}</div>
+                    <div className='fs-10 fw-bolder'>{count}</div>
+                    <div 
+                        className={"position-absolute min-h-16 w-2 rounded "+leftTipClass}
+                        style={{
+                            minHeight: "100px",
+                            width: '10px',
+                            left: 0,
+                            top: '50%',
+                            transform: 'translateY(-50%)'
+                        }}
+                    ></div>
+                    <div 
+                        className={"position-absolute hidden lg:block fs-13 "+iconClass}
+                        style={{
+                            right: 0,
+                            top: "50%",
+                            transform: 'translate(-50%, -50%)'
+                        }}
+                    >
+                        <Icon />
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }

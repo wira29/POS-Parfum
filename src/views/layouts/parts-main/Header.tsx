@@ -1,16 +1,16 @@
-// import { useApiClient } from '@/core/helpers/ApiClient'
-// import { Toaster } from '@/core/helpers/BaseAlert'
+import { useApiClient } from '@/core/helpers/ApiClient'
+import { Toaster } from '@/core/helpers/BaseAlert'
 import { useAuthStore } from '@/core/stores/AuthStore'
-// import { useAuthStore } from '@/core/store/auth-store'
 import { useLayoutStore } from '@/core/stores/LayoutStore'
 import { Notification } from '@/views/components/Notification'
+import { useEffect } from 'react'
 import { IoLogOut } from 'react-icons/io5'
-// import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 export const Header = () => {
-    const {user, role} = useAuthStore()
+    const {user, role, setUserDefault} = useAuthStore()
     const {sidebar, setSidebar} = useLayoutStore()
-    // const apiClient = useApiClient()
+    const apiClient = useApiClient()
     const storage = import.meta.env.VITE_STORAGE_URL
 
     const handleSidebar = () => {
@@ -18,18 +18,17 @@ export const Header = () => {
         else setSidebar('full')
     }
 
-    // const navigate = useNavigate()
+    const navigate = useNavigate()
 
-    // const handleLogout = () => {
-    //     apiClient.post('/auth/logout')
-    //         .then(res => {
-    //             setUserDefault()
-    //             Toaster('success', res.data.meta.message)
-    //             navigate('/login')
-    //         }).catch(err => {
-    //             Toaster('error', err.response.data.meta.message)
-    //         })
-    // }
+    const handleLogout = () => {
+        apiClient.post('/logout').then(res => {
+            setUserDefault()
+            Toaster('success', res.data.meta.message)
+            navigate('/login')
+        }).catch(err => {
+            Toaster('error', err.response.data.meta.message)
+        })
+    }
 
     return (
         <header className="app-header">
@@ -110,7 +109,7 @@ export const Header = () => {
                                             </a>
                                         </div>
                                         <div className="message-body mx-7 mt-2">
-                                            <button className="py-8 d-flex align-items-center justify-content-center gap-3 w-100 btn btn-light text-muted">
+                                            <button type='button' onClick={handleLogout} className="py-8 d-flex align-items-center justify-content-center gap-3 w-100 btn btn-light text-muted">
                                                 <IoLogOut width={24} />
                                                 <h6 className="fw-semibold m-0 text-muted">Logout</h6>
                                             </button>

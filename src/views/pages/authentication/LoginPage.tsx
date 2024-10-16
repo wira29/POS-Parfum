@@ -1,5 +1,6 @@
-import { users } from "@/core/data/users"
-import { Toast } from '@/core/helpers/BaseAlert'
+import { useApiClient } from "@/core/helpers/ApiClient"
+import { Toaster } from '@/core/helpers/BaseAlert'
+import { setToken } from "@/core/helpers/TokenHandle"
 import { useAuthStore } from '@/core/stores/AuthStore'
 import { ComponentPropType, InputWithIcon } from "@/views/components/InputWithIcon"
 import { ZodForm } from "@/views/components/ZodForm"
@@ -12,6 +13,8 @@ import { z } from "zod"
 
 export const LoginPage = () => {
     const navigate = useNavigate()
+
+    const apiClient = useApiClient()
 
     const LoginFormSchema = z.object({
         email: z.string({message: "harus berupa string"}).email({message: "harus berupa email valid"}).min(1, {message: 'tidak boleh kosong'}),
@@ -41,21 +44,17 @@ export const LoginPage = () => {
     }
 
     const handleFormSubmit = () => {
-        const { email, password } = formData
-
-        const user = users.find(user => user.email === email && user.password === password)
-
-        if (user) {
-            setRole([user.role])
-            setUser({email: user.email})
+        apiClient.post("login", formData).then((res) => {
+            const role_lists = res.data.data.role.map((role:{[key:string]:any}) => role.name)
+            setRole(role_lists)
             setAuth(true)
-    
-            Toast('success', 'Login berhasil')
+            setUser(res.data.data)
+            Toaster('success', res.data.message)
+            setToken(res.data.data.token)
             return navigate('/dashboard')
-        }
-
-        Toast('error', 'Email atau password salah')
-
+        }).catch((err) => {
+            Toaster('error', err.response.data.message)
+        })
     }
 
     const [emailConfig] = useState<ComponentPropType>({
@@ -104,8 +103,6 @@ export const LoginPage = () => {
         }))
     }
 
-
-
     useEffect(() => {
         gsap.registerPlugin(Bounce)
     
@@ -127,37 +124,37 @@ export const LoginPage = () => {
     }, [])
 
     return (
-        <div className="card">
-            <div className="card-body" style={{display: "grid", minHeight: "100dvh", overflow: "hidden", placeContent: 'center'}} >
-            <div
-                className="bg-primary d-flex w-100 d-flex rounded-5 shadow-xl m-6"
-                ref={cardRef}
-                style={{
-                    height: "min(95dvh, 500px)",
-                    minHeight: "500px",
-                    width: "min(70vw, 600px)"
-                }}
-            >
-                <div className="d-md-flex flex-column justify-content-between align-items-center p-3 d-none">
-                    <img src="/images/logos/logo-full.png" alt="Logo image" width={120} className="bg-white py-1 px-3 rounded-pill"/>
-                    <div className="text-center">
-                        <h4 className="fs-7 text-white fw-bolder mt-3">Selamat Datang</h4>
-                        <p className="text-white lead">Web Admin Gudang dan Owner</p>
+        <>
+            <div style={{display: "grid", minHeight: "100dvh", overflow: "hidden", placeContent: 'center'}} >
+                <div
+                    className="bg-primary d-flex rounded-5 shadow-xl m-6"
+                    ref={cardRef}
+                    style={{
+                        height: "min(95dvh, 500px)",
+                        minHeight: "500px",
+                        width: "min(90vw, 800px)"
+                    }}
+                >
+                    <div className=" flex-1 d-md-flex flex-column justify-content-between align-items-center p-3 d-none">
+                        <img src="/images/logos/logo-full.png" alt="Logo image" width={120} className="bg-white py-1 px-3 rounded-pill"/>
+                        <div className="text-center">
+                            <h4 className="fs-7 text-white fw-bolder mt-3">Selamat Datang</h4>
+                            <p className="text-white lead">Web Admin Gudang dan Owner</p>
+                        </div>
+                        <img src="/images/illustrations/warehouse-02.svg" className="mt-3" width={300} alt="" ref={illustrationRef} />
                     </div>
-                    <img src="/images/illustrations/warehouse-02.svg" className="mt-3" width={300} alt="" ref={illustrationRef} />
+                    <ZodForm formdata={formData} setFormdataFn={setFormData} setErrorMsg={setFormErrorMsg} onSuccessValidation={handleFormSubmit} schema={LoginFormSchema} className="flex-1 bg-white rounded-5 d-flex flex-column align-items-stretch justify-content-between gap-3 p-4">
+                        <img src="/images/logos/logo-full.png" alt="Logo image" width={100} className="d-md-none" style={{alignSelf: "center"}}/>
+                        <div className="flex flex-col gap-3">
+                            <h3 className="font-bold text-xl text-center mb-5">Masuk</h3>
+                            <InputWithIcon settings={emailConfig.settings} errors={formErrorMsg.email}/>
+                            <InputWithIcon settings={passwordConfig.settings} rightButton={passwordConfig.rightButton} errors={formErrorMsg.password}/>
+                            <button className="btn btn-primary w-100" type="submit">Masuk</button>
+                        </div>
+                        <div className="text-center">Developed By <a href="https://www.hummatech.com" target="_blank" className="text-blue-600 dark:text-blue-500 hover:underline">Hummatech</a></div>
+                    </ZodForm>
                 </div>
-                <ZodForm formdata={formData} setFormdataFn={setFormData} setErrorMsg={setFormErrorMsg} onSuccessValidation={handleFormSubmit} schema={LoginFormSchema} className="flex-1 bg-white rounded-5 d-flex flex-column align-items-stretch justify-content-between gap-3 p-4">
-                    <img src="/images/logos/logo-full.png" alt="Logo image" width={100} className="d-md-none" style={{alignSelf: "center"}}/>
-                    <div className="flex flex-col gap-3">
-                        <h3 className="font-bold text-xl text-center mb-5">Masuk</h3>
-                        <InputWithIcon settings={emailConfig.settings} errors={formErrorMsg.email}/>
-                        <InputWithIcon settings={passwordConfig.settings} rightButton={passwordConfig.rightButton} errors={formErrorMsg.password}/>
-                        <button className="btn btn-primary w-100" type="submit">Masuk</button>
-                    </div>
-                    <div className="text-center">Developed By <a href="https://www.hummatech.com" target="_blank" className="text-blue-600 dark:text-blue-500 hover:underline">Hummatech</a></div>
-                </ZodForm>
             </div>
-        </div>
-        </div>
+        </>
     )
 }
