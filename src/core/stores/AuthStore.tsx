@@ -47,7 +47,7 @@ export const useAuthStore = create<AuthType>()((set, get) => ({
                 .then((res) => {
                     set(() => ({isAuth: true}))
                     set(() => ({user: res.data.data}))
-                    set(() => ({role: [res.data.data.role]}))
+                    set(() => ({role: res.data.data.role.map(((role:{[key:string]:any}) => role.name))}))
                 }).catch(() => {
                     get().setUserDefault()
                 })

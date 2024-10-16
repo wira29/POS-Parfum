@@ -9,7 +9,7 @@ export const ownerMenu:TNavItem[] = [
             {
                 label: 'Dashboard',
                 icon: IoGrid,
-                url: '/'
+                url: '/dashboard'
             },
         ]
     }, {

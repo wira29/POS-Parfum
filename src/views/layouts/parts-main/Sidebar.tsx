@@ -16,6 +16,8 @@ export const Sidebar = () => {
     useEffect(() => {
         if(isRoleCanAccess('owner')){
             setMenuList(ownerMenu)
+        } else {
+            // setMenuList(ownerMenu)
         }
     })
 
