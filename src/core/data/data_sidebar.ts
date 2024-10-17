@@ -16,6 +16,11 @@ export const ownerMenu:TNavItem[] = [
         title: 'Master Data',
         navItem: [
             {
+                label: 'Pengguna',
+                icon: IoPeople,
+                url: "/users"
+            },
+            {
                 label: 'Produk',
                 icon: IoStorefront,
                 url: '/products',
