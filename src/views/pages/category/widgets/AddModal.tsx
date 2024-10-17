@@ -1,23 +1,9 @@
+import { handleInputChange } from "@/core/helpers/HandleInputChange";
 import { useRef, useState } from "react";
-import { z, ZodFormattedError } from "zod";
+import { ZodFormattedError } from "zod";
+import { schema } from "../schema/schema";
 
 const AddModal = () => {
-    const schema = z.object({
-        name: z
-          .string()
-          .min(1, 'Nama kategori harus diisi'),
-      }) 
-
-    const handleChange = (e: any) => {
-        setErrors(undefined);
-
-        formRef.current[e.target.name] = e.target.value;
-
-        const result = schema.safeParse(formRef.current);
-        if (!result.success) {
-            setErrors(result.error.format())
-        }
-    }
 
     const formRef = useRef<any>({});
     const [errors, setErrors] = useState<ZodFormattedError<{name: string}, string>>();
@@ -36,7 +22,7 @@ const AddModal = () => {
                 <div className="modal-body">
                         <div className="form-group mb-3">
                             <label className="form-label">Nama Kategori</label>
-                            <input type="text" onChange={(e) => handleChange(e)} name="name" className={errors?.name?._errors.length ? "form-control is-invalid" : "form-control"} placeholder="Masukkan nama kategori" />
+                            <input type="text" onChange={(e) => handleInputChange(e, setErrors, schema, formRef)} name="name" className={errors?.name?._errors.length ? "form-control is-invalid" : "form-control"} placeholder="Masukkan nama kategori" />
                             {
                                 errors?.name?._errors.length && <small className="form-text text-danger">{ errors?.name?._errors[0]}</small>
                             }
@@ -47,7 +33,7 @@ const AddModal = () => {
                     Tambah
                     </button>
                     <button type="button" className="btn bg-danger-subtle text-danger  waves-effect" data-bs-dismiss="modal">
-                    Close
+                    Tutup
                     </button>
                 </div>
                 </form>
