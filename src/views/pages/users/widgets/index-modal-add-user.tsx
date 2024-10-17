@@ -1,25 +1,16 @@
-import { DataRole, DataRoleSelect } from "@/core/data/data_role"
+import { DataRoleSelect } from "@/core/data/data_role"
 import { useApiClient } from "@/core/helpers/ApiClient"
 import { Toaster } from "@/core/helpers/BaseAlert"
 import { TMultiSelect } from "@/core/interface/input-interface"
 import { InputMultiSelect, InputText } from "@/views/components/Input"
 import { ZodForm } from "@/views/components/ZodForm"
 import { SyntheticEvent, useEffect, useState } from "react"
-import { z } from "zod"
+import { addUserSchema, TAddUserSchema } from "../schema/add-user"
 
 export const ModalAddUser = ({onSuccessEditData}:{onSuccessEditData: () => void}) => {
-    const addUserSchema = z.object({
-        name: z.string().min(3, "minimal 3 karakter").max(255, "maksimal 255 karakter"),
-        email: z.string().email("harus berupa email").min(1, "tidak boleh kosong").max(255, "maksimal 255 karakter"),
-        password: z.string().min(8, "minimal 8 karakter").max(255, "maksimal 255 karakter"),
-        role: z.array(z.enum(DataRole)).min(1, 'harus memilih minimal 1')
-    })
-
     const apiClient = useApiClient()
 
-    type TUserSchema = z.infer<typeof addUserSchema>
-
-    const [userForm, setUserForm] = useState<TUserSchema>({
+    const [userForm, setUserForm] = useState<TAddUserSchema>({
         name: '',
         email: '',
         password: '',
