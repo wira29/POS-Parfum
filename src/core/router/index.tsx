@@ -1,7 +1,7 @@
 import { IsAuth } from "@/core/middlewares/is-auth";
 import { MainLayout } from "@/views/layouts/MainLayout";
 import { Home } from "@/views/pages/home";
-import { CategoryIndex, LoginPage, OutletIndex, ProductIndex, WarehouseIndex } from "@/views/pages/pages";
+import { CategoryIndex, LoginPage, OutletIndex, ProductIndex, WarehouseIndex, UserPage } from "@/views/pages/pages";
 import { AdjustmentIndex } from "@/views/pages/user/adjusment";
 import { Dashboard } from "@/views/pages/user/dashboard";
 import { RestockIndex } from "@/views/pages/user/restock";
@@ -53,6 +53,10 @@ export const router = createBrowserRouter([
                     }, {
                         path: "stock-adjustment",
                         element: <AdjustmentIndex />
+                    },
+                    {
+                        path: "users",
+                        element: <UserPage />
                     }
                 ]
             }
