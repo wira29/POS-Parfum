@@ -23,7 +23,7 @@ export const LoginPage = () => {
     
     type LoginFormType = z.infer<typeof LoginFormSchema>
 
-    const { setUser, setRole, setAuth } = useAuthStore()
+    const { setUser, setRole, setAuth, isLoading, setLoading } = useAuthStore()
 
     const illustrationRef = useRef(null)
     const cardRef = useRef(null)
@@ -44,7 +44,9 @@ export const LoginPage = () => {
     }
 
     const handleFormSubmit = () => {
+        setLoading(true)
         apiClient.post("login", formData).then((res) => {
+            setLoading(false)
             const role_lists = res.data.data.role.map((role:{[key:string]:any}) => role.name)
             setRole(role_lists)
             setAuth(true)
@@ -53,6 +55,7 @@ export const LoginPage = () => {
             setToken(res.data.data.token)
             return navigate('/dashboard')
         }).catch((err) => {
+            setLoading(false)
             Toaster('error', err.response.data.message)
         })
     }
@@ -149,7 +152,14 @@ export const LoginPage = () => {
                             <h3 className="font-bold text-xl text-center mb-5">Masuk</h3>
                             <InputWithIcon settings={emailConfig.settings} errors={formErrorMsg.email}/>
                             <InputWithIcon settings={passwordConfig.settings} rightButton={passwordConfig.rightButton} errors={formErrorMsg.password}/>
-                            <button className="btn btn-primary w-100" type="submit">Masuk</button>
+                            <button disabled={isLoading} className="btn btn-primary w-100" type="submit">
+                                {
+                                    isLoading && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                }
+                                {
+                                    isLoading ? "Loading..." : "Masuk"
+                                }
+                            </button>
                         </div>
                         <div className="text-center">Developed By <a href="https://www.hummatech.com" target="_blank" className="text-blue-600 dark:text-blue-500 hover:underline">Hummatech</a></div>
                     </ZodForm>
