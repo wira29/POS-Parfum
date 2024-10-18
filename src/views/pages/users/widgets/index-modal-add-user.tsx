@@ -53,7 +53,7 @@ export const ModalAddUser = ({onSuccessEditData}:{onSuccessEditData: () => void}
                 <ZodForm formdata={userForm} setFormdataFn={setUserForm} schema={addUserSchema} setErrorMsg={setErrorsMsg} onSuccessValidation={handleSubmit} className="modal-content">
                     <div className="modal-header">
                         <h5>Tambah Pengguna</h5>
-                        <button className="btn-close" data-bs-dismiss="modal"></button>
+                        <button type="button" className="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div className="modal-body">
                         <div className="mb-3">

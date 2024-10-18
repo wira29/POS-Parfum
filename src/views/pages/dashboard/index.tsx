@@ -1,5 +1,5 @@
-import { ScoreCard } from "@/views/pages/user/dashboard/ScoreCard"
-import { ProductTable } from '@/views/pages/user/dashboard/ProductTable'
+import { ScoreCard } from "@/views/pages/dashboard/ScoreCard"
+import { ProductTable } from '@/views/pages/dashboard/ProductTable'
 
 export const Dashboard = () => {
     return (

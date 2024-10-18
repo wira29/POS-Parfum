@@ -2,11 +2,11 @@ import { IsAuth } from "@/core/middlewares/is-auth";
 import { MainLayout } from "@/views/layouts/MainLayout";
 import { Home } from "@/views/pages/home";
 import { CategoryIndex, LoginPage, OutletIndex, ProductIndex, WarehouseIndex, UserPage } from "@/views/pages/pages";
-import { AdjustmentIndex } from "@/views/pages/user/adjusment";
-import { Dashboard } from "@/views/pages/user/dashboard";
-import { RestockIndex } from "@/views/pages/user/restock";
-import { RestockTabIndex } from "@/views/pages/user/restock/tab";
-import { RestockTabHistory } from "@/views/pages/user/restock/tab/history";
+import { AdjustmentIndex } from "@/views/pages/adjusment";
+import { Dashboard } from "@/views/pages/dashboard";
+import { RestockIndex } from "@/views/pages/restock";
+import { RestockTabIndex } from "@/views/pages/restock/tab";
+import { RestockTabHistory } from "@/views/pages/restock/tab/history";
 import { createBrowserRouter } from "react-router-dom";
 
 export const router = createBrowserRouter([
