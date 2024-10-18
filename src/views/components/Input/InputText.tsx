@@ -1,5 +1,6 @@
 import { InputPropType } from '@/core/interface/input-interface'
 import { useEffect, useState } from 'react'
+import Required from '../Required'
 
 export const InputText = ({settings, errors}:InputPropType) => {
     const {label, required, ...inputProp} = settings
@@ -12,7 +13,7 @@ export const InputText = ({settings, errors}:InputPropType) => {
     return (
         <>
             <div className="form-group">
-                <label>{label} {required && <span className="text-danger">*</span>}</label>
+                <label>{label} {required && <Required />}</label>
                 <input type="text" className={("form-control bg-white "+errorClass)} {...inputProp}/>
                 {
                     errors && errors.length &&

@@ -1,12 +1,7 @@
 import { IsAuth } from "@/core/middlewares/is-auth";
 import { MainLayout } from "@/views/layouts/MainLayout";
 import { Home } from "@/views/pages/home";
-import { CategoryIndex, LoginPage, OutletIndex, ProductIndex, WarehouseIndex, UserPage } from "@/views/pages/pages";
-import { AdjustmentIndex } from "@/views/pages/user/adjusment";
-import { Dashboard } from "@/views/pages/user/dashboard";
-import { RestockIndex } from "@/views/pages/user/restock";
-import { RestockTabIndex } from "@/views/pages/user/restock/tab";
-import { RestockTabHistory } from "@/views/pages/user/restock/tab/history";
+import { CategoryIndex, LoginPage, OutletIndex, ProductIndex, UserPage, WarehouseIndex } from "@/views/pages/pages";
 import { createBrowserRouter } from "react-router-dom";
 
 export const router = createBrowserRouter([
@@ -23,7 +18,7 @@ export const router = createBrowserRouter([
                 children: [
                     {
                         path: "dashboard",
-                        element: <Dashboard />,
+                        element: <ProductIndex />,
                     }, {
                         path: "products",
                         element: <ProductIndex />
@@ -37,23 +32,7 @@ export const router = createBrowserRouter([
                     }, {
                         path: "warehouses",
                         element: <WarehouseIndex />
-                    }, {
-                        path: "restocking",
-                        element: <RestockIndex />,
-                        children: [
-                            {
-                                index: true,
-                                element: <RestockTabIndex />
-                            },
-                            {
-                                path: "history",
-                                element: <RestockTabHistory />
-                            }
-                        ]
-                    }, {
-                        path: "stock-adjustment",
-                        element: <AdjustmentIndex />
-                    },
+                    }, 
                     {
                         path: "users",
                         element: <UserPage />

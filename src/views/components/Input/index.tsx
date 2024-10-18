@@ -1,2 +1,3 @@
-export {InputText} from './InputText'
-export {InputMultiSelect} from './InputMultiSelect'
+export { Dropdown } from './Dropdown'
+export { InputMultiSelect } from './InputMultiSelect'
+export { InputText } from './InputText'

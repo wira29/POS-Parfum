@@ -1,115 +1,78 @@
 import { DataRoleSelect } from "@/core/data/data_role"
-import { useApiClient } from "@/core/helpers/ApiClient"
 import { Toaster } from "@/core/helpers/BaseAlert"
-import { TMultiSelect } from "@/core/interface/input-interface"
-import { InputMultiSelect, InputText } from "@/views/components/Input"
-import { ZodForm } from "@/views/components/ZodForm"
-import { SyntheticEvent, useEffect, useState } from "react"
-import { addUserSchema, TAddUserSchema } from "../schema/add-user"
+import { useUserStore } from "@/core/stores/UserStore"
+import { ButtonWithLoading } from "@/views/components/Button/ButtonWithLoading"
+import { Dropdown } from "@/views/components/Input"
+import Textfield from "@/views/components/Input/Textfield"
+import React, { useRef, useState } from "react"
+import { ZodFormattedError } from "zod"
+import { addUserSchema } from "../schema/add-user"
 
 export const ModalAddUser = ({onSuccessEditData}:{onSuccessEditData: () => void}) => {
-    const apiClient = useApiClient()
 
-    const [userForm, setUserForm] = useState<TAddUserSchema>({
-        name: '',
-        email: '',
-        password: '',
-        role: []
-    })
+    const {createUser, isLoading, setLoading, failure} = useUserStore()
 
-    const [errorsMsg, setErrorsMsg] = useState<{[key:string]:string[]}>({})
+    const formRef = useRef({})
+    const [errors, setErrors] = useState<ZodFormattedError<{name: string}, string>>()
 
-    const handleSubmit = () => {
-        apiClient.post('users', userForm).then(res => {
-            Toaster('success', res.data.message)
-            onSuccessEditData()
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        setLoading(true)
+
+        console.log(formRef.current)
+
+        // validasi 
+        const result = addUserSchema.safeParse(formRef.current);
+        if (!result.success) {
+            setErrors(result.error.format())
+            setLoading(false)
+            return
+        }
+
+        await createUser(formRef)
+
+        if (!failure) {
+            Toaster('success', "Berhasil menambahkan user")
             $('#modalAddUser').modal('hide')
-        }).catch(err => {
-            Toaster('error', err.response.data.message)
-        })
+
+        } else {
+            Toaster('error', failure)
+        }
+
     }
-
-    const handleInputText = (e:SyntheticEvent<HTMLInputElement>) => {
-        const {name, value} = e.currentTarget
-        setUserForm((prevData) => ({
-            ...prevData,
-            [name]: value
-        }))
-    }
-
-    const [selectedRole, setSelectedRole] = useState<TMultiSelect>([])
-
-    useEffect(() => {
-        const formattedRole = selectedRole.map((role) => (role.value))
-        setUserForm((prevData) => ({
-            ...prevData,
-            role: formattedRole
-        }))
-    }, [selectedRole])
 
     return (
-        <div className="modal" id="modalAddUser" tabIndex={-1}>
-            <div className="modal-dialog">
-                <ZodForm formdata={userForm} setFormdataFn={setUserForm} schema={addUserSchema} setErrorMsg={setErrorsMsg} onSuccessValidation={handleSubmit} className="modal-content">
-                    <div className="modal-header">
-                        <h5>Tambah Pengguna</h5>
-                        <button className="btn-close" data-bs-dismiss="modal"></button>
+        <div id="modalAddUser" className="modal fade" tabIndex={-1} aria-labelledby="bs-example-modal-md" aria-hidden="true">
+            <div className="modal-dialog modal-lg">
+                <div className="modal-content">
+                <div className="modal-header d-flex align-items-start">
+                    <div>
+                    <h4 className="modal-title" id="myModalLabel">
+                    Tambah Pengguna
+                    </h4>
+                    <p>Isi form dibawah ini dengan benar.</p>
                     </div>
-                    <div className="modal-body">
-                        <div className="mb-3">
-                            <InputText
-                                settings={{
-                                    label: "Nama",
-                                    name: "name",
-                                    placeholder: "Nama",
-                                    required: true,
-                                    onInput: handleInputText
-                                }}
-                                errors={errorsMsg.name}
-                            />
-                        </div>
-                        <div className="mb-3">
-                            <InputText
-                                settings={{
-                                    label: "Email",
-                                    name: "email",
-                                    placeholder: "Email",
-                                    required: true,
-                                    onInput: handleInputText
-                                }}
-                                errors={errorsMsg.email}
-                            />
-                        </div>
-                        <div className="mb-3">
-                            <InputText
-                                settings={{
-                                    label: "Password",
-                                    name: "password",
-                                    placeholder: "Password",
-                                    type: "password",
-                                    required: true,
-                                    onInput: handleInputText
-                                }}
-                                errors={errorsMsg.password}
-                            />
-                        </div>
-                        <InputMultiSelect
-                            settings={{
-                                label: "Role",
-                                required: true,
-                                onChange:(selected:{value: string, label: string}[]) => setSelectedRole(selected)
-                            }}
-                            errors={errorsMsg.role}
-                            options={DataRoleSelect}
-                            selectedOptions={selectedRole}
-                        />
-                    </div>
-                    <div className="modal-footer">
-                        <button type="button" className="btn bg-danger-subtle text-danger  waves-effect" data-bs-dismiss="modal">Tutup</button>
-                        <button type="submit" className="btn bg-primary-subtle text-primary  waves-effect" >Tambah</button>
-                    </div>
-                </ZodForm>
+                    <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form onSubmit={handleSubmit}>
+                <div className="modal-body row">
+                    <Textfield col="col-md-6" title="Nama" name="name" setErrors={setErrors} schema={addUserSchema} formRef={formRef} errors={errors} placeholder="Masukkan nama"/>
+                    <Textfield inputType="email" col="col-md-6" title="Email" name="email" setErrors={setErrors} schema={addUserSchema} formRef={formRef} errors={errors} placeholder="Masukkan email"/>
+                    <Textfield inputType="password" col="col-md-6" title="Password" name="password" setErrors={setErrors} schema={addUserSchema} formRef={formRef} errors={errors} placeholder="Masukkan password"/>
+                    <Dropdown isMulti={true} name="role" col="col-md-6" errors={errors} title="Role" options={DataRoleSelect} schema={addUserSchema} formRef={formRef} setErrors={setErrors}/>
+                </div>
+                <div className="modal-footer">
+                    <ButtonWithLoading disabled={isLoading} type="submit" loading={isLoading} className="btn bg-primary-subtle text-primary  waves-effect" >Submit</ButtonWithLoading>
+                    <button type="button" className="btn bg-light-subtle text-muted  waves-effect" data-bs-dismiss="modal">
+                    Tutup
+                    </button>
+                </div>
+                </form>
+
+                </div>
+                {/* <!-- /.modal-content --> */}
             </div>
-        </div>
+            {/* <!-- /.modal-dialog --> */}
+            </div>
     )
 }
