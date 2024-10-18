@@ -17,7 +17,6 @@ export const IsAuth = ({guest = false, redirectOnError}: {guest: boolean, redire
 
     useEffect(() => {
         const token = getToken()
-        console.log({token, isAuth})
         if(token && !isAuth) {
             updateUser()
             apiClient.get('/me').catch(() => {
