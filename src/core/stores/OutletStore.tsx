@@ -1,12 +1,12 @@
 import { create } from "zustand"
 import { useApiClient } from "../helpers/ApiClient"
-import { TPaginationData } from "@/views/components/Pagination"
 import { Toaster } from "../helpers/BaseAlert"
+import { TPaginationData } from "@/views/components/Pagination"
 
 
-type UserStoreType = {
+type OutletStoreType = {
     isLoading: boolean,
-    users: any[],
+    outlets: any[],
     pagination: TPaginationData,
     isFailure: boolean,
     page: number,
@@ -14,19 +14,19 @@ type UserStoreType = {
     search: string,
 
     setLoading: (current_loading: boolean) => void,
-    createUser: (form: any) => Promise<void>,
-    getUsers: () => void,
+    createOutlet: (form: any) => Promise<void>,
+    getOutlets: () => void,
     setPage: (page:number) => void,
     setPerPage: (per_page:number) => void,
     setSearch: (search:string) => void,
-    firstGet: () => void,
+    firstGet: () => void
 }
 
 const apiClient = useApiClient()
 
-export const useUserStore = create<UserStoreType>()((set, get) => ({
+export const useOutletStore = create<OutletStoreType>()((set, get) => ({
     isLoading: false,
-    users: [],
+    outlets: [],
     pagination: undefined,
     isFailure: false,
     page: 1,
@@ -34,49 +34,51 @@ export const useUserStore = create<UserStoreType>()((set, get) => ({
     search: '',
 
     setLoading: (current_loading) => set(() => ({isLoading: current_loading})),
-    createUser: async (form) => {
+    setPage: (page) => {
+        set(() => ({page}))
+        get().getOutlets()
+    },
+    setPerPage: (per_page) => {
+        set(() => ({per_page}))
+        get().getOutlets()
+    },
+    setSearch: (search) => {
+        set(() => ({search}))
+        get().getOutlets()
+    },
+    createOutlet: async (form) => {
         set(() => ({isLoading: true, failure: null}))
         try {
-            const res:any = await apiClient.post('/users', form.current)
-            Toaster('success', res.data.message)
-            get().getUsers()
+            const response = await apiClient.post('/outlets', form.current)
+            get().getOutlets()
+            Toaster('success', response.data.message)
+            set(() => ({isFailure: false}))
         } catch (err:any) {
             set(() => ({isLoading: false, isFailure: true}))
             Toaster('error', err.response.data.message)
         }
     },
-    getUsers: () => {
+    getOutlets: () => {
         set(() => ({isLoading: true}))
-        apiClient.get(`/users?page=${get().page}&per_page=${get().per_page}&search=${get().search}`).then(res => {
+        apiClient.get(`/outlets?per_page=${get().per_page}&page=${get().page}&search=${get().search}`).then((res) => {
             set(() => ({isLoading: false}))
-            var users = res.data.data
+            var outlets = res.data.data
             var pagination = res.data.pagination
+
+            console.log({data: res.data})
 
             set(() => ({
                 isLoading: false, 
-                users: users,
-                pagination: pagination,
-                isFailure: false
+                outlets,
+                pagination: pagination
             }))
         }).catch(() => {
             set(() => ({
                 isLoading: false,
-                isFailure: true,
-                users: []
+                failure: "Gagal mendapatkan user",
+                outlets: []
             }))
         })
-    },
-    setPage: (page) => {
-        set(() => ({page}))
-        get().getUsers()
-    },
-    setPerPage: (per_page) => {
-        set(() => ({per_page}))
-        get().getUsers()
-    },
-    setSearch: (search) => {
-        set(() => ({search}))
-        get().getUsers()
     },
     firstGet: () => {
         set(() => ({
@@ -84,6 +86,7 @@ export const useUserStore = create<UserStoreType>()((set, get) => ({
             per_page: 10,
             search: ''
         }))
-        get().getUsers()
-    },
+
+        get().getOutlets()
+    }
 }))

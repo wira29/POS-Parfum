@@ -1,5 +1,4 @@
 import { DataRoleSelect } from "@/core/data/data_role"
-import { Toaster } from "@/core/helpers/BaseAlert"
 import { useUserStore } from "@/core/stores/UserStore"
 import { ButtonWithLoading } from "@/views/components/Button/ButtonWithLoading"
 import { Dropdown } from "@/views/components/Input"
@@ -8,9 +7,9 @@ import React, { useRef, useState } from "react"
 import { ZodFormattedError } from "zod"
 import { addUserSchema } from "../schema/add-user"
 
-export const ModalAddUser = ({onSuccessEditData}:{onSuccessEditData: () => void}) => {
+export const ModalAddUser = ({}:{}) => {
 
-    const {createUser, isLoading, setLoading, failure} = useUserStore()
+    const {createUser, isLoading, setLoading, isFailure} = useUserStore()
 
     const formRef = useRef({})
     const [errors, setErrors] = useState<ZodFormattedError<{name: string}, string>>()
@@ -18,8 +17,6 @@ export const ModalAddUser = ({onSuccessEditData}:{onSuccessEditData: () => void}
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         setLoading(true)
-
-        console.log(formRef.current)
 
         // validasi 
         const result = addUserSchema.safeParse(formRef.current);
@@ -31,14 +28,7 @@ export const ModalAddUser = ({onSuccessEditData}:{onSuccessEditData: () => void}
 
         await createUser(formRef)
 
-        if (!failure) {
-            Toaster('success', "Berhasil menambahkan user")
-            $('#modalAddUser').modal('hide')
-
-        } else {
-            Toaster('error', failure)
-        }
-
+        if (!isFailure) $('#modalAddUser').modal('hide')
     }
 
     return (

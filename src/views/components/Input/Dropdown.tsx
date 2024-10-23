@@ -18,7 +18,7 @@ type propType = {
 export const Dropdown = ({col, title, isRequired = true, options, name, errors, setErrors, schema, formRef, ...inputProp}: propType) => {
     return (
         <div className={"form-group mb-1 " + col}>
-            <label className="form-label">{title} {isRequired && <Required/>} </label>
+            <label className="form-label mb-0">{title} {isRequired && <Required/>} </label>
             <Select
                 options={options}
                 name={name} 
@@ -33,7 +33,7 @@ export const Dropdown = ({col, title, isRequired = true, options, name, errors, 
                     }
                 }}
                 styles={{
-                    control: (base, state) => ({
+                    control: (base) => ({
                         ...base,
                         borderColor: (errors?.[name]?._errors.length ? "var(--bs-danger)" : "var(--bs-border-color)"),
                     }),

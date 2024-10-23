@@ -1,23 +1,17 @@
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { ModalAddUser } from "./widgets/index-modal-add-user";
 import Swal from "sweetalert2";
 import { Toaster } from "@/core/helpers/BaseAlert";
-import { Pagination, TPaginationData } from "@/views/components/Pagination";
+import { Pagination } from "@/views/components/Pagination";
+import { useUserStore } from "@/core/stores/UserStore";
+import { SearchInput } from "@/views/components/SearchInput";
 
 export default function UserPage() {
     const apiClient = useApiClient();
-    const [users, setUsers] = useState<{[key:string]:any}[]>([])
-    const [dataPagination, setDataPagination] = useState<TPaginationData>()
-    const [page, setPage] = useState(1)
 
-    const getUsers = () => {
-        apiClient.get(`/users?page=${page}`).then(res => {
-            setUsers(res.data.data)
-            setDataPagination(res.data.pagination)
-        })
-    }
+    const {users, getUsers, pagination, firstGet, setPage, setSearch} = useUserStore()
 
     const deleteUser = (user_id:string) => {
         Swal.fire({
@@ -40,12 +34,12 @@ export default function UserPage() {
     }
 
     useEffect(() => {
-        getUsers()
-    }, [page])
+        firstGet()
+    }, [])
 
     return (
         <>
-            <ModalAddUser onSuccessEditData={getUsers} />
+            <ModalAddUser />
             <Breadcrumb title="Pengguna" desc="Daftar pengguna yang ada pada toko anda" button={
                 <button className="mt-2 btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddUser">
                     Tambah Pengguna
@@ -53,7 +47,7 @@ export default function UserPage() {
             } />
             <div className="row mb-2">
                 <div className="col-4">
-                    <input type="text" placeholder="cari..." className="form-control bg-white" />
+                    <SearchInput setSearch={setSearch} />
                 </div>
                 <div className="col"></div>
                 <div className="col-3">
@@ -124,7 +118,7 @@ export default function UserPage() {
                             </tbody>
                         </table>
                     </div>
-                    <Pagination paginationData={dataPagination} updatePage={setPage}/>
+                    <Pagination paginationData={pagination} updatePage={setPage}/>
                 </div>
             </div>
         </>

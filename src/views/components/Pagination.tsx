@@ -12,7 +12,9 @@ export type TPaginationData = {
     path: string;
 } | undefined;
 
-export const Pagination = ({ paginationData, updatePage }: { paginationData?: TPaginationData, updatePage: Dispatch<SetStateAction<number>> }) => {
+type TUpdatePage = Dispatch<SetStateAction<number>>|((page: number) => void);
+
+export const Pagination = ({ paginationData, updatePage }: { paginationData?: TPaginationData, updatePage: TUpdatePage}) => {
     const [paginationList, setPaginationList] = useState<
         { label: string; url: string | null; active?: boolean; disabled?: boolean, onClickFn: () => void }[]
     >([]);
