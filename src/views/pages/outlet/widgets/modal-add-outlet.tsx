@@ -10,7 +10,7 @@ export const ModalAddOutlet = () => {
     const formRef = useRef({})
     const apiClient = useApiClient()
     const [errors, setErrors] = useState<ZodFormattedError<{name: string}, string>>()
-    const {isLoading, isFailure, createOutlet, setLoading} = useOutletStore()
+    const {isLoading, isFailure, createOutlet, setLoading, outlets} = useOutletStore()
     const [users, setUsers] = useState<{[key:string]:any}[]>([])
 
     const getUsers = () => {
@@ -43,7 +43,7 @@ export const ModalAddOutlet = () => {
 
     useEffect(() => {
         getUsers()
-    }, [])
+    }, [outlets])
     
 
     return (

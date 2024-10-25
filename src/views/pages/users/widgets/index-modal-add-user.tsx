@@ -52,10 +52,10 @@ export const ModalAddUser = ({}:{}) => {
                     <Dropdown isMulti={true} name="role" col="col-md-6" errors={errors} title="Role" options={DataRoleSelect} schema={addUserSchema} formRef={formRef} setErrors={setErrors}/>
                 </div>
                 <div className="modal-footer">
-                    <ButtonWithLoading disabled={isLoading} type="submit" loading={isLoading} className="btn bg-primary-subtle text-primary  waves-effect" >Submit</ButtonWithLoading>
-                    <button type="button" className="btn bg-light-subtle text-muted  waves-effect" data-bs-dismiss="modal">
+                    <button type="button" className="btn btn-outline-muted" data-bs-dismiss="modal">
                     Tutup
                     </button>
+                    <ButtonWithLoading disabled={isLoading} type="submit" loading={isLoading} className="btn btn-primary">Submit</ButtonWithLoading>
                 </div>
                 </form>
 

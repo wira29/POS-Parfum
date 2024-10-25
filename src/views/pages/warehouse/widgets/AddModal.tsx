@@ -1,17 +1,55 @@
-import { handleInputChange } from "@/core/helpers/HandleInputChange";
-import Required from "@/views/components/Required";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ZodFormattedError } from "zod";
-import { schema } from "../schema/schema";
+import { addWarehouseSchema } from "../schema/schema";
+import Textfield from "@/views/components/Input/Textfield";
+import { Dropdown } from "@/views/components/Input";
+import { useApiClient } from "@/core/helpers/ApiClient";
+import { useWarehouseStore } from "@/core/stores/WarehouseStore";
+import { ButtonWithLoading } from "@/views/components/Button/ButtonWithLoading";
 
 const AddModal = () => {
 
+    const apiClient = useApiClient()
     const formRef = useRef<any>({});
     const [errors, setErrors] = useState<ZodFormattedError<{name: string, phone: string, address: string}, string>>();
+    const [users, setUsers] = useState<{[key:string]:any}[]>([])
+    const {isLoading, setLoading, createWarehouse, isFailure, warehouses} = useWarehouseStore()
+
+    const getUsers = () => {
+        apiClient.get('users/no-paginate?warehouse=false')
+        .then(res => {
+            const remap_users = res.data.data.map((user:any) => ({label: user.name, value: user.id}))
+            setUsers(remap_users)
+        }).catch(() => {
+            setUsers([])
+        })
+    }
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        setLoading(true)
+
+        // validasi 
+        const result = addWarehouseSchema.safeParse(formRef.current);
+        if (!result.success) {
+            setErrors(result.error.format())
+            setLoading(false)
+            return
+        }
+
+        await createWarehouse(formRef)
+
+        if (!isFailure) $('#modalAddUser').modal('hide')
+
+    }
+
+    useEffect(() => {
+        getUsers()
+    }, [warehouses])
     
     return (
-        <div id="bs-example-modal-md" className="modal fade" tabIndex={-1} aria-labelledby="bs-example-modal-md" aria-hidden="true">
-            <div className="modal-dialog modal-dialog-scrollable modal-lg">
+        <div id="add-warehouse-modal" className="modal modal-lg fade" tabIndex={-1} aria-labelledby="add-warehouse-modal" aria-hidden="true">
+            <div className="modal-dialog">
                 <div className="modal-content">
                 <div className="modal-header d-flex align-items-start">
                     <div>
@@ -22,38 +60,17 @@ const AddModal = () => {
                     </div>
                     <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form>
-                <div className="modal-body row">
-                    <div className="form-group mb-1 col-md-6">
-                        <label className="form-label">Nama Gudang <Required/></label>
-                        <input type="text" onChange={(e) => handleInputChange(e, setErrors, schema, formRef)} name="name" className={errors?.name?._errors.length ? "form-control is-invalid" : "form-control"} placeholder="Masukkan nama kategori" />
-                        {
-                            errors?.name?._errors.length && <small className="form-text text-danger">{ errors?.name?._errors[0]}</small>
-                        }
+                <form onSubmit={handleSubmit}>
+                    <div className="modal-body row">
+                        <Textfield col="col-lg-6" isRequired={true} title="Nama" name="name" setErrors={setErrors} schema={addWarehouseSchema} formRef={formRef} errors={errors} placeholder="Nama"/>
+                        <Textfield col="col-lg-6" isRequired={true} title="No. Telp" name="telp" setErrors={setErrors} schema={addWarehouseSchema} formRef={formRef} errors={errors} placeholder="No. Telp"/>
+                        <Textfield col="" isRequired={true} title="Alamat" name="address" setErrors={setErrors} schema={addWarehouseSchema} formRef={formRef} errors={errors} placeholder="Alamat"/>
+                        <Dropdown isRequired={false} isMulti={true} name="user_id" col="" errors={errors} title="Karyawan/Pekerja" options={users} schema={addWarehouseSchema} formRef={formRef} setErrors={setErrors}/>
                     </div>
-                    <div className="form-group mb-1 col-md-6">
-                        <label className="form-label">Nomor Telepon <Required/></label>
-                        <input type="text" onChange={(e) => handleInputChange(e, setErrors, schema, formRef)} name="phone" className={errors?.phone?._errors.length ? "form-control is-invalid" : "form-control"} placeholder="Masukkan nama kategori" />
-                        {
-                            errors?.phone?._errors.length && <small className="form-text text-danger">{ errors?.phone?._errors[0]}</small>
-                        }
+                    <div className="modal-footer">
+                        <button type="button" className="btn btn-outline-muted" data-bs-dismiss="modal">Tutup</button>
+                        <ButtonWithLoading disabled={isLoading} type="submit" loading={isLoading} className="btn btn-primary">Tambah</ButtonWithLoading>
                     </div>
-                    <div className="form-group mb-1">
-                        <label className="form-label">Alamat <Required/></label>
-                        <textarea name="address" className={errors?.address?._errors.length ? "form-control is-invalid" : "form-control"} placeholder="Masukkan alamat kategori" onChange={(e) => handleInputChange(e, setErrors, schema, formRef)}></textarea>
-                        {
-                            errors?.address?._errors.length && <small className="form-text text-danger">{ errors?.address?._errors[0]}</small>
-                        }
-                    </div>
-                </div>
-                <div className="modal-footer">
-                    <button type="submit" className="btn bg-primary-subtle text-primary  waves-effect" >
-                    Tambah
-                    </button>
-                    <button type="button" className="btn bg-light-subtle text-muted  waves-effect" data-bs-dismiss="modal">
-                    Tutup
-                    </button>
-                </div>
                 </form>
 
                 </div>
@@ -62,6 +79,12 @@ const AddModal = () => {
             {/* <!-- /.modal-dialog --> */}
             </div>
     );
+}
+
+export const BtnAddModal = () => {
+    return (
+        <button className="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#add-warehouse-modal">Tambah Gudang</button>
+    )
 }
 
 export default AddModal;

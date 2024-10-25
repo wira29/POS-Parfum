@@ -5,9 +5,9 @@ import { TPaginationData } from "@/views/components/Pagination"
 import Swal from "sweetalert2"
 
 
-type OutletStoreType = {
+type WarehouseStoreType = {
     isLoading: boolean,
-    outlets: any[],
+    warehouses: any[],
     pagination: TPaginationData,
     isFailure: boolean,
     page: number,
@@ -15,21 +15,21 @@ type OutletStoreType = {
     search: string,
 
     setLoading: (current_loading: boolean) => void,
-    createOutlet: (form: any) => Promise<void>,
-    getOutlets: () => void,
-    deleteOutlet: (id: number) => void,
+    createWarehouse: (form: any) => Promise<void>,
+    getWarehouses: () => void,
+    deleteWarehouse: (id:number) => void,
     setPage: (page:number) => void,
     setPerPage: (per_page:number) => void,
     setSearch: (search:string) => void,
     firstGet: () => void,
-    updateOutlet: (id: number, form: any) => Promise<void>,
+    updateWarehouse: (id: number, form: any) => Promise<void>,
 }
 
 const apiClient = useApiClient()
 
-export const useOutletStore = create<OutletStoreType>()((set, get) => ({
+export const useWarehouseStore = create<WarehouseStoreType>()((set, get) => ({
     isLoading: false,
-    outlets: [],
+    warehouses: [],
     pagination: undefined,
     isFailure: false,
     page: 1,
@@ -39,21 +39,21 @@ export const useOutletStore = create<OutletStoreType>()((set, get) => ({
     setLoading: (current_loading) => set(() => ({isLoading: current_loading})),
     setPage: (page) => {
         set(() => ({page}))
-        get().getOutlets()
+        get().getWarehouses()
     },
     setPerPage: (per_page) => {
         set(() => ({per_page}))
-        get().getOutlets()
+        get().getWarehouses()
     },
     setSearch: (search) => {
         set(() => ({search}))
-        get().getOutlets()
+        get().getWarehouses()
     },
-    createOutlet: async (form) => {
+    createWarehouse: async (form) => {
         set(() => ({isLoading: true, failure: null}))
         try {
-            const response = await apiClient.post('/outlets', form.current)
-            get().getOutlets()
+            const response = await apiClient.post('/warehouses', form.current)
+            get().getWarehouses()
             Toaster('success', response.data.message)
             set(() => ({isFailure: false, isLoading: false}))
         } catch (err:any) {
@@ -61,17 +61,17 @@ export const useOutletStore = create<OutletStoreType>()((set, get) => ({
             Toaster('error', err.response.data.message)
         }
     },
-    deleteOutlet: (id) => {
+    deleteWarehouse: (id) => {
         Swal.fire({
             title: "Apakah anda yakin?",
             text: "Data outlet akan dihapus!",
             icon: 'question'
         }).then((result) => {
             if (result.isConfirmed) {
-                apiClient.delete('outlets/'+id)
+                apiClient.delete('warehouses/'+id)
                 .then(res => {
                     Toaster('success', res.data.message)
-                    get().getOutlets()
+                    get().getWarehouses()
                 })
                 .catch(err => {
                     Toaster('error', err.response.data.message)
@@ -79,23 +79,24 @@ export const useOutletStore = create<OutletStoreType>()((set, get) => ({
             }
         })
     },
-    getOutlets: () => {
+    getWarehouses: () => {
         set(() => ({isLoading: true}))
-        apiClient.get(`/outlets?per_page=${get().per_page}&page=${get().page}&search=${get().search}`).then((res) => {
-            set(() => ({isLoading: false}))
-            var outlets = res.data.data
+        apiClient.get(`/warehouses?per_page=${get().per_page}&page=${get().page}&search=${get().search}`).then((res) => {
+            var warehouses = res.data.data
             var pagination = res.data.pagination
+
+            console.log({warehouses})
 
             set(() => ({
                 isLoading: false, 
-                outlets,
-                pagination: pagination
+                warehouses,
+                pagination
             }))
         }).catch(() => {
             set(() => ({
                 isLoading: false,
                 failure: "Gagal mendapatkan user",
-                outlets: []
+                warehouses: []
             }))
         })
     },
@@ -106,13 +107,13 @@ export const useOutletStore = create<OutletStoreType>()((set, get) => ({
             search: ''
         }))
 
-        get().getOutlets()
+        get().getWarehouses()
     },
-    updateOutlet: async (id, form) => {
+    updateWarehouse: async (id, form) => {
         set(() => ({isLoading: true, failure: null}))
         try {
-            const response = await apiClient.put('/outlets/'+id, form.current)
-            get().getOutlets()
+            const response = await apiClient.put('/warehouses/'+id, form.current)
+            get().getWarehouses()
             Toaster('success', response.data.message)
             set(() => ({isFailure: false, isLoading: false}))
         } catch (err:any) {
