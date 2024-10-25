@@ -28,7 +28,6 @@ export const Dropdown = ({col, title, isRequired = true, options, name, errors, 
 
                     const result = schema.safeParse(formRef.current);
                     if (!result.success) {
-                        console.log(result)
                         setErrors(result.error.format())
                     }
                 }}

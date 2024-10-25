@@ -85,8 +85,6 @@ export const useWarehouseStore = create<WarehouseStoreType>()((set, get) => ({
             var warehouses = res.data.data
             var pagination = res.data.pagination
 
-            console.log({warehouses})
-
             set(() => ({
                 isLoading: false, 
                 warehouses,

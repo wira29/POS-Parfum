@@ -58,8 +58,6 @@ export const useUserStore = create<UserStoreType>()((set, get) => ({
             var users = res.data.data
             var pagination = res.data.pagination
 
-            console.log({users: users})
-
             set(() => ({
                 isLoading: false, 
                 users: users,
