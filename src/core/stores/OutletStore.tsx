@@ -19,7 +19,8 @@ type OutletStoreType = {
     setPage: (page:number) => void,
     setPerPage: (per_page:number) => void,
     setSearch: (search:string) => void,
-    firstGet: () => void
+    firstGet: () => void,
+    updateOutlet: (id: number, form: any) => Promise<void>,
 }
 
 const apiClient = useApiClient()
@@ -52,7 +53,7 @@ export const useOutletStore = create<OutletStoreType>()((set, get) => ({
             const response = await apiClient.post('/outlets', form.current)
             get().getOutlets()
             Toaster('success', response.data.message)
-            set(() => ({isFailure: false}))
+            set(() => ({isFailure: false, isLoading: false}))
         } catch (err:any) {
             set(() => ({isLoading: false, isFailure: true}))
             Toaster('error', err.response.data.message)
@@ -64,8 +65,6 @@ export const useOutletStore = create<OutletStoreType>()((set, get) => ({
             set(() => ({isLoading: false}))
             var outlets = res.data.data
             var pagination = res.data.pagination
-
-            console.log({data: res.data})
 
             set(() => ({
                 isLoading: false, 
@@ -88,5 +87,17 @@ export const useOutletStore = create<OutletStoreType>()((set, get) => ({
         }))
 
         get().getOutlets()
+    },
+    updateOutlet: async (id, form) => {
+        set(() => ({isLoading: true, failure: null}))
+        try {
+            const response = await apiClient.put('/outlets/'+id, form.current)
+            get().getOutlets()
+            Toaster('success', response.data.message)
+            set(() => ({isFailure: false, isLoading: false}))
+        } catch (err:any) {
+            set(() => ({isLoading: false, isFailure: true}))
+            Toaster('error', err.response.data.message)
+        }
     }
 }))

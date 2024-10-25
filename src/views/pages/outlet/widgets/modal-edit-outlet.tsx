@@ -1,12 +1,12 @@
 import Textfield from "@/views/components/Input/Textfield"
-import { useRef, useState, useEffect } from "react"
+import { useRef, useState, useEffect, ButtonHTMLAttributes } from "react"
 import { ZodFormattedError } from "zod"
 import { addOutletSchema } from "../schema/addOutletSchema"
 import { useOutletStore } from "@/core/stores/OutletStore"
 import { Dropdown } from "@/views/components/Input"
 import { useApiClient } from "@/core/helpers/ApiClient"
 
-export const ModalAddOutlet = () => {
+export const ModalEditOutlet = () => {
     const formRef = useRef({})
     const apiClient = useApiClient()
     const [errors, setErrors] = useState<ZodFormattedError<{name: string}, string>>()
@@ -47,11 +47,11 @@ export const ModalAddOutlet = () => {
     
 
     return (
-        <div className="modal fade" id="modalAddOutlet" tabIndex={-1}>
+        <div className="modal fade" id="modalEditOutlet" tabIndex={-1}>
             <div className="modal-dialog">
                 <form onSubmit={handleSubmit} className="modal-content">
                     <div className="modal-header">
-                        <h5 className="modal-title">Tambah Outlet</h5>
+                        <h5 className="modal-title">Ubah Outlet</h5>
                         <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div className="modal-body">
@@ -64,7 +64,7 @@ export const ModalAddOutlet = () => {
                         <button type="button" className="btn btn-outline-muted" data-dismiss="modal">Tutup</button>
                         <button type="submit" className="btn btn-primary">
                             {
-                                isLoading ? <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> : 'Tambah'
+                                isLoading ? <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> : 'Ubah'
                             }
                         </button>
                     </div>
@@ -74,10 +74,10 @@ export const ModalAddOutlet = () => {
     )
 }
 
-export const BtnModalAddOutlet = () => {
+export const BtnModalEditOutlet = (props: ButtonHTMLAttributes<HTMLButtonElement>) => {
     return (
-        <button className="mt-2 btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddOutlet">
-            Tambah Outlet
+        <button className="dropdown-item d-flex align-items-center gap-3" data-bs-toggle="modal" data-bs-target="#modalEditOutlet" {...props}>
+            <i className="fs-4 ti ti-edit"></i>Edit
         </button>
     )
 }

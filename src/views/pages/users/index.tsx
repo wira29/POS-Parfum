@@ -1,6 +1,6 @@
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ModalAddUser } from "./widgets/index-modal-add-user";
 import Swal from "sweetalert2";
 import { Toaster } from "@/core/helpers/BaseAlert";
@@ -11,7 +11,9 @@ import { SearchInput } from "@/views/components/SearchInput";
 export default function UserPage() {
     const apiClient = useApiClient();
 
-    const {users, getUsers, pagination, firstGet, setPage, setSearch} = useUserStore()
+    const {users, getUsers, pagination, firstGet, setPage, setSearch, setRole, setOutlet} = useUserStore()
+    const [outlets, setOutlets] = useState<{[key:string]:any}[]>([])
+    const [roles, setRoles] = useState<{[key:string]:any}[]>([])
 
     const deleteUser = (user_id:string) => {
         Swal.fire({
@@ -32,9 +34,27 @@ export default function UserPage() {
             }
         })
     }
+    const getOutlets = () => {
+        apiClient.get('/outlets/no-paginate')
+        .then(res => {
+            setOutlets(res.data.data)
+        }).catch(() => {
+            setOutlets([])
+        })
+    }
+    const getRoles = () => {
+        apiClient.get('/roles')
+        .then(res => {
+            setRoles(res.data.data)
+        }).catch(() => {
+            setRoles([])
+        })
+    }
 
     useEffect(() => {
         firstGet()
+        getOutlets()
+        getRoles()
     }, [])
 
     return (
@@ -51,13 +71,23 @@ export default function UserPage() {
                 </div>
                 <div className="col"></div>
                 <div className="col-3">
-                    <select className="form-select bg-white">
-                        <option value="">Filter Outlet</option>
+                    <select className="form-select bg-white" onChange={(e) => setOutlet(e.target.value)}>
+                        <option value="">Semua Outlet</option>
+                        {
+                            outlets.map((outles:any, index:number) => (
+                                <option key={index} value={outles.id}>{outles.name}</option>
+                            ))
+                        }
                     </select>
                 </div>
                 <div className="col-3">
-                    <select className="form-select bg-white">
-                        <option value="">Filter Posisi</option>
+                    <select className="form-select bg-white" onChange={(e) => setRole(e.target.value)}>
+                        <option value="">Semua Posisi</option>
+                        {
+                            roles.map((role:any, index:number) => (
+                                <option key={index} value={role.name}>{role.name}</option>
+                            ))
+                        }
                     </select>
                 </div>
             </div>

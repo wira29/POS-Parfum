@@ -12,6 +12,8 @@ type UserStoreType = {
     page: number,
     per_page: number,
     search: string,
+    role: string,
+    outlet: string,
 
     setLoading: (current_loading: boolean) => void,
     createUser: (form: any) => Promise<void>,
@@ -19,6 +21,8 @@ type UserStoreType = {
     setPage: (page:number) => void,
     setPerPage: (per_page:number) => void,
     setSearch: (search:string) => void,
+    setRole: (role:string) => void,
+    setOutlet: (outlet_id:string) => void,
     firstGet: () => void,
 }
 
@@ -32,6 +36,8 @@ export const useUserStore = create<UserStoreType>()((set, get) => ({
     page: 1,
     per_page: 10,
     search: '',
+    role: '',
+    outlet: '',
 
     setLoading: (current_loading) => set(() => ({isLoading: current_loading})),
     createUser: async (form) => {
@@ -47,10 +53,12 @@ export const useUserStore = create<UserStoreType>()((set, get) => ({
     },
     getUsers: () => {
         set(() => ({isLoading: true}))
-        apiClient.get(`/users?page=${get().page}&per_page=${get().per_page}&search=${get().search}`).then(res => {
+        apiClient.get(`/users?page=${get().page}&per_page=${get().per_page}&search=${get().search}&outlet_id=${get().outlet}&role=${get().role}`).then(res => {
             set(() => ({isLoading: false}))
             var users = res.data.data
             var pagination = res.data.pagination
+
+            console.log({users: users})
 
             set(() => ({
                 isLoading: false, 
@@ -78,11 +86,21 @@ export const useUserStore = create<UserStoreType>()((set, get) => ({
         set(() => ({search}))
         get().getUsers()
     },
+    setRole:(role) => {
+        set(() => ({role}))
+        get().getUsers()
+    },
+    setOutlet:(outlet) => {
+        set(() => ({outlet}))
+        get().getUsers()
+    },
     firstGet: () => {
         set(() => ({
             page: 1,
             per_page: 10,
-            search: ''
+            search: '',
+            role: '',
+            outlet: ''
         }))
         get().getUsers()
     },

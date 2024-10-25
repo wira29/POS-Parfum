@@ -4,9 +4,33 @@ import { BtnModalAddOutlet, ModalAddOutlet } from "./widgets/modal-add-outlet"
 import { useEffect } from "react"
 import { useOutletStore } from "@/core/stores/OutletStore"
 import { SearchInput } from "@/views/components/SearchInput"
+import Swal from "sweetalert2"
+import { useApiClient } from "@/core/helpers/ApiClient"
+import { Toaster } from "@/core/helpers/BaseAlert"
+import { BtnModalEditOutlet, ModalEditOutlet } from "./widgets/modal-edit-outlet"
 
 export const OutletIndex = () => {
-  const { outlets, firstGet, pagination, setPage, setSearch } = useOutletStore()
+  const apiClient = useApiClient()
+  const { outlets, firstGet, pagination, setPage, setSearch, getOutlets } = useOutletStore()
+
+  const handleDelete = (id:string) => {
+    Swal.fire({
+      title: "Apakah anda yakin?",
+      text: "Data outlet akan dihapus!",
+      icon: 'question'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        apiClient.delete('outlets/'+id)
+        .then(res => {
+          Toaster('success', res.data.message)
+          getOutlets()
+        })
+        .catch(err => {
+          Toaster('error', err.response.data.message)
+        })
+      }
+    })
+  }
 
   useEffect(() => {
     firstGet()
@@ -15,6 +39,7 @@ export const OutletIndex = () => {
   return (
     <>
       <ModalAddOutlet />
+      <ModalEditOutlet />
       <div>
         <Breadcrumb title="Outlet" desc="List outlet yang anda miliki." button={<BtnModalAddOutlet />} />
         <div className="mb-2 row">
@@ -62,14 +87,12 @@ export const OutletIndex = () => {
                             <ul className="dropdown-menu" aria-labelledby="dropdownMenuButton" style={{ "zIndex": 100, "position": "absolute", "top": "100%", "left": "0", "transform": "translateY(-100%)" }}>
 
                               <li>
-                                <a className="dropdown-item d-flex align-items-center gap-3" href="">
-                                  <i className="fs-4 ti ti-edit"></i>Edit
-                                </a>
+                                <BtnModalEditOutlet />
                               </li>
                               <li>
-                                <a className="dropdown-item d-flex align-items-center gap-3" href="">
+                                <button type="button" className="dropdown-item d-flex align-items-center gap-3" onClick={() => handleDelete(outlet.id)}>
                                   <i className="fs-4 ti ti-trash"></i>Hapus
-                                </a>
+                                </button>
                               </li>
                             </ul>
                           </div>
