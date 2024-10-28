@@ -12,7 +12,7 @@ import { BtnModalEditUser, ModalEditUser } from "./widgets/index-modal-edit-user
 export default function UserPage() {
     const apiClient = useApiClient();
 
-    const {users, currentUser, setCurrentUser, getUsers, pagination, firstGet, setPage, setSearch, setRole, setOutlet} = useUserStore()
+    const {users, setCurrentUser, getUsers, pagination, firstGet, setPage, setSearch, setRole, setOutlet} = useUserStore()
     const [outlets, setOutlets] = useState<{[key:string]:any}[]>([])
     const [roles, setRoles] = useState<{[key:string]:any}[]>([])
 
@@ -61,7 +61,7 @@ export default function UserPage() {
     return (
         <>
             <ModalAddUser />
-            <ModalEditUser current_user={currentUser} />
+            <ModalEditUser/>
             <Breadcrumb title="Pengguna" desc="Daftar pengguna yang ada pada toko anda" button={
                 <button className="mt-2 btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddUser">
                     Tambah Pengguna

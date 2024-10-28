@@ -9,9 +9,9 @@ import { addUserSchema } from "../schema/add-user"
 import { SelectInstance } from "react-select"
 import { OptionType } from "@/core/interface/select-option-interfact"
 
-export const ModalEditUser = ({current_user}:{current_user?:{[key:string]:any}}) => {
+export const ModalEditUser = () => {
 
-    const {updateUser, isLoading, isFailure} = useUserStore()
+    const {updateUser, isLoading, isFailure, currentUser} = useUserStore()
 
     const formRef = useRef<{[key:string]:string|string[]}>({})
     const inputRef = useRef<{[key:string]:HTMLInputElement|null|SelectInstance<OptionType, true>}>({})
@@ -27,36 +27,36 @@ export const ModalEditUser = ({current_user}:{current_user?:{[key:string]:any}})
             return
         }
 
-        await updateUser(current_user?.id, formRef)
+        await updateUser(currentUser?.id, formRef)
 
         if (!isFailure) $('#modalEditUser').modal('hide')
     }
 
     useEffect(() => {
-        formRef.current['name'] = current_user?.name || ''
-        formRef.current['email'] = current_user?.email || ''
+        formRef.current['name'] = currentUser?.name || ''
+        formRef.current['email'] = currentUser?.email || ''
         formRef.current['password'] = ''
         
-        if(current_user) {
-            const role_to_filter = current_user?.roles.length ? current_user?.roles?.map((role:{[key:string]:any}) => role.name) : []
+        if(currentUser) {
+            const role_to_filter = currentUser?.roles.length ? currentUser?.roles?.map((role:{[key:string]:any}) => role.name) : []
             formRef.current['role'] = role_to_filter
         } else {
             formRef.current['role'] = []
         }
 
-        if(inputRef.current['name'] && 'value' in inputRef.current['name']) inputRef.current['name'].value = current_user?.name || ''
-        if(inputRef.current['email'] && 'value' in inputRef.current['email']) inputRef.current['email'].value = current_user?.email || ''
+        if(inputRef.current['name'] && 'value' in inputRef.current['name']) inputRef.current['name'].value = currentUser?.name || ''
+        if(inputRef.current['email'] && 'value' in inputRef.current['email']) inputRef.current['email'].value = currentUser?.email || ''
         if(inputRef.current['password'] && 'value' in inputRef.current['password']) inputRef.current['password'].value = ''
         if(inputRef.current['role']) {
             let current_role:OptionType[] = []
-            if(current_user) {
-                const role_to_filter = current_user?.roles.length ? current_user?.roles?.map((role:{[key:string]:any}) => role.name) : []
+            if(currentUser) {
+                const role_to_filter = currentUser?.roles.length ? currentUser?.roles?.map((role:{[key:string]:any}) => role.name) : []
                 current_role = DataRoleSelect.filter(role => role_to_filter.includes(role.value))
             }
             const roleSelectInstance = inputRef.current['role'] as SelectInstance<OptionType, true>
             roleSelectInstance.setValue(current_role, 'select-option')
         }
-    }, [current_user])
+    }, [currentUser])
 
     return (
         <div id="modalEditUser" className="modal fade" tabIndex={-1} aria-labelledby="bs-example-modal-md" aria-hidden="true">

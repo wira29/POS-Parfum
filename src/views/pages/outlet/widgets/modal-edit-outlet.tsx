@@ -8,17 +8,17 @@ import { useApiClient } from "@/core/helpers/ApiClient"
 import { SelectInstance } from "react-select"
 import { OptionType } from "@/core/interface/select-option-interfact"
 
-export const ModalEditOutlet = ({current_outlet}:{current_outlet?:{[key:string]:any}}) => {
+export const ModalEditOutlet = () => {
     const formRef = useRef<{[key:string]:string|string[]}>({})
     const inputRef = useRef<{[key:string]:HTMLInputElement|null|SelectInstance<OptionType, true>}>({})
     const apiClient = useApiClient()
     const [errors, setErrors] = useState<ZodFormattedError<{name: string}, string>>()
-    const {isLoading, isFailure, updateOutlet, setLoading} = useOutletStore()
+    const {isLoading, isFailure, updateOutlet, setLoading, currentOutlet} = useOutletStore()
     const [users, setUsers] = useState<OptionType[]>([])
 
     const getUsers = async() => {
         try {
-            const res = await apiClient.get('users/no-paginate?outlet=false&outlet_id='+current_outlet?.id)
+            const res = await apiClient.get('users/no-paginate?outlet=false&outlet_id='+currentOutlet?.id)
             const remap_users = res.data.data.map((user:any) => ({label: user.name, value: user.id}))
             setUsers(remap_users)
         } catch(e:any) {
@@ -37,7 +37,7 @@ export const ModalEditOutlet = ({current_outlet}:{current_outlet?:{[key:string]:
             return
         }
 
-        await updateOutlet(current_outlet?.id, formRef)
+        await updateOutlet(currentOutlet?.id, formRef)
 
         if (!isFailure) $('#modalEditOutlet').modal('hide')
     }
@@ -49,24 +49,24 @@ export const ModalEditOutlet = ({current_outlet}:{current_outlet?:{[key:string]:
     const firstLoad = async () => {
         await getUsers()
 
-        formRef.current['name'] = current_outlet?.name || ''
-        formRef.current['address'] = current_outlet?.address || ''
-        formRef.current['telp'] = current_outlet?.telp || ''
+        formRef.current['name'] = currentOutlet?.name || ''
+        formRef.current['address'] = currentOutlet?.address || ''
+        formRef.current['telp'] = currentOutlet?.telp || ''
         
-        if(current_outlet) {
-            const outlet_to_filter = current_outlet?.users.length ? current_outlet?.users?.map((user:{[key:string]:any}) => user.id) : []
+        if(currentOutlet) {
+            const outlet_to_filter = currentOutlet?.users.length ? currentOutlet?.users?.map((user:{[key:string]:any}) => user.id) : []
             formRef.current['user_id'] = outlet_to_filter
         } else {
             formRef.current['user_id'] = []
         }
 
-        if(inputRef.current['name'] && 'value' in inputRef.current['name']) inputRef.current['name'].value = current_outlet?.name || ''
-        if(inputRef.current['address'] && 'value' in inputRef.current['address']) inputRef.current['address'].value = current_outlet?.address || ''
-        if(inputRef.current['telp'] && 'value' in inputRef.current['telp']) inputRef.current['telp'].value = current_outlet?.telp || ''
+        if(inputRef.current['name'] && 'value' in inputRef.current['name']) inputRef.current['name'].value = currentOutlet?.name || ''
+        if(inputRef.current['address'] && 'value' in inputRef.current['address']) inputRef.current['address'].value = currentOutlet?.address || ''
+        if(inputRef.current['telp'] && 'value' in inputRef.current['telp']) inputRef.current['telp'].value = currentOutlet?.telp || ''
         if(inputRef.current['user_id']) {
             let current_user:OptionType[] = []
-            if(current_outlet) {
-                const user_to_filter = current_outlet?.users.length ? current_outlet?.users?.map((user:{[key:string]:any}) => user.name) : []
+            if(currentOutlet) {
+                const user_to_filter = currentOutlet?.users.length ? currentOutlet?.users?.map((user:{[key:string]:any}) => user.name) : []
                 current_user = users.filter(user => user_to_filter.includes(user.value))
             }
             const userSelectInstance = inputRef.current['user_id'] as SelectInstance<OptionType, true>
@@ -76,7 +76,7 @@ export const ModalEditOutlet = ({current_outlet}:{current_outlet?:{[key:string]:
     
     useEffect(() => {
         firstLoad()
-    }, [current_outlet])
+    }, [currentOutlet])
 
     return (
         <div className="modal fade" id="modalEditOutlet" tabIndex={-1}>
