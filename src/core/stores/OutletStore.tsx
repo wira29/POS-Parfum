@@ -3,8 +3,6 @@ import { useApiClient } from "../helpers/ApiClient"
 import { Toaster } from "../helpers/BaseAlert"
 import { TPaginationData } from "@/views/components/Pagination"
 import Swal from "sweetalert2"
-import { Outlet } from "react-router-dom"
-
 
 type OutletStoreType = {
     isLoading: boolean,
