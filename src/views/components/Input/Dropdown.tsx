@@ -1,7 +1,7 @@
 import Select, { SelectInstance } from "react-select"
 import Required from "../Required"
 import { forwardRef } from "react"
-import { OptionType } from "@/core/interface/select-option-interfact"
+import { OptionType } from "@/core/interface/select-option-interface"
 
 type propType = {
     col: string,

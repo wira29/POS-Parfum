@@ -8,6 +8,7 @@ import Swal from "sweetalert2"
 type WarehouseStoreType = {
     isLoading: boolean,
     warehouses: any[],
+    currentWarehouse?: {[key:string]:any},
     pagination: TPaginationData,
     isFailure: boolean,
     page: number,
@@ -15,6 +16,7 @@ type WarehouseStoreType = {
     search: string,
 
     setLoading: (current_loading: boolean) => void,
+    setCurrentWarehouse: (current_warehouse: {[key:string]:any}) => void,
     createWarehouse: (form: any) => Promise<void>,
     getWarehouses: () => void,
     deleteWarehouse: (id:number) => void,
@@ -30,6 +32,7 @@ const apiClient = useApiClient()
 export const useWarehouseStore = create<WarehouseStoreType>()((set, get) => ({
     isLoading: false,
     warehouses: [],
+    currentWarehouse: undefined,
     pagination: undefined,
     isFailure: false,
     page: 1,
@@ -37,6 +40,7 @@ export const useWarehouseStore = create<WarehouseStoreType>()((set, get) => ({
     search: '',
 
     setLoading: (current_loading) => set(() => ({isLoading: current_loading})),
+    setCurrentWarehouse: (current_warehouse) => set(() => ({currentWarehouse: current_warehouse})),
     setPage: (page) => {
         set(() => ({page}))
         get().getWarehouses()

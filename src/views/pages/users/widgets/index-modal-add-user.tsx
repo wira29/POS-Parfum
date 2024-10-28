@@ -34,35 +34,28 @@ export const ModalAddUser = ({}:{}) => {
     return (
         <div id="modalAddUser" className="modal fade" tabIndex={-1} aria-labelledby="bs-example-modal-md" aria-hidden="true">
             <div className="modal-dialog modal-lg">
-                <div className="modal-content">
-                <div className="modal-header d-flex align-items-start">
-                    <div>
-                    <h4 className="modal-title" id="myModalLabel">
-                    Tambah Pengguna
-                    </h4>
-                    <p>Isi form dibawah ini dengan benar.</p>
+                <form onSubmit={handleSubmit} className="modal-content">
+                    <div className="modal-header flex-column w-100 align-items-stretch">
+                        <div className="d-flex align-items-center justify-content-between">
+                            <h4 className="modal-title">Tambah Pengguna</h4>
+                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <p>Isi form dibawah ini dengan benar.</p>
                     </div>
-                    <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form onSubmit={handleSubmit}>
-                <div className="modal-body row">
-                    <Textfield col="col-md-6" title="Nama" name="name" setErrors={setErrors} schema={addUserSchema} formRef={formRef} errors={errors} placeholder="Masukkan nama"/>
-                    <Textfield inputType="email" col="col-md-6" title="Email" name="email" setErrors={setErrors} schema={addUserSchema} formRef={formRef} errors={errors} placeholder="Masukkan email"/>
-                    <Textfield inputType="password" col="col-md-6" title="Password" name="password" setErrors={setErrors} schema={addUserSchema} formRef={formRef} errors={errors} placeholder="Masukkan password"/>
-                    <Dropdown isMulti={true} name="role" col="col-md-6" errors={errors} title="Role" options={DataRoleSelect} schema={addUserSchema} formRef={formRef} setErrors={setErrors}/>
-                </div>
-                <div className="modal-footer">
-                    <button type="button" className="btn btn-outline-muted" data-bs-dismiss="modal">
-                    Tutup
-                    </button>
-                    <ButtonWithLoading disabled={isLoading} type="submit" loading={isLoading} className="btn btn-primary">Submit</ButtonWithLoading>
-                </div>
+                    <div className="modal-body row">
+                        <Textfield col="" title="Nama" name="name" setErrors={setErrors} schema={addUserSchema} formRef={formRef} errors={errors} placeholder="Masukkan nama"/>
+                        <Textfield inputType="email" col="col-lg-6" title="Email" name="email" setErrors={setErrors} schema={addUserSchema} formRef={formRef} errors={errors} placeholder="Masukkan email"/>
+                        <Textfield inputType="password" col="col-lg-6" title="Password" name="password" setErrors={setErrors} schema={addUserSchema} formRef={formRef} errors={errors} placeholder="Masukkan password"/>
+                        <Dropdown isMulti={true} name="role" col="" errors={errors} title="Role" options={DataRoleSelect} schema={addUserSchema} formRef={formRef} setErrors={setErrors}/>
+                    </div>
+                    <div className="modal-footer">
+                        <button type="button" className="btn btn-outline-muted" data-bs-dismiss="modal">
+                        Tutup
+                        </button>
+                        <ButtonWithLoading disabled={isLoading} type="submit" loading={isLoading} className="btn btn-primary">Tambah</ButtonWithLoading>
+                    </div>
                 </form>
-
-                </div>
-                {/* <!-- /.modal-content --> */}
             </div>
-            {/* <!-- /.modal-dialog --> */}
-            </div>
+        </div>
     )
 }

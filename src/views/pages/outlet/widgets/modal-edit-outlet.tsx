@@ -6,11 +6,13 @@ import { useOutletStore } from "@/core/stores/OutletStore"
 import { Dropdown } from "@/views/components/Input"
 import { useApiClient } from "@/core/helpers/ApiClient"
 import { SelectInstance } from "react-select"
-import { OptionType } from "@/core/interface/select-option-interfact"
+import { OptionType } from "@/core/interface/select-option-interface"
+import { ButtonWithLoading } from "@/views/components/Button/ButtonWithLoading"
+import TextAreaInput from "@/views/components/Input/TextAreaInput"
 
 export const ModalEditOutlet = () => {
     const formRef = useRef<{[key:string]:string|string[]}>({})
-    const inputRef = useRef<{[key:string]:HTMLInputElement|null|SelectInstance<OptionType, true>}>({})
+    const inputRef = useRef<{[key:string]:HTMLInputElement|HTMLTextAreaElement|null|SelectInstance<OptionType, true>}>({})
     const apiClient = useApiClient()
     const [errors, setErrors] = useState<ZodFormattedError<{name: string}, string>>()
     const {isLoading, isFailure, updateOutlet, setLoading, currentOutlet} = useOutletStore()
@@ -79,26 +81,25 @@ export const ModalEditOutlet = () => {
     }, [currentOutlet])
 
     return (
-        <div className="modal fade" id="modalEditOutlet" tabIndex={-1}>
+        <div className="modal modal-lg fade" id="modalEditOutlet" tabIndex={-1}>
             <div className="modal-dialog">
                 <form onSubmit={handleSubmit} className="modal-content">
-                    <div className="modal-header">
-                        <h5 className="modal-title">Ubah Outlet</h5>
-                        <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div className="modal-header flex-column w-100 align-items-stretch">
+                        <div className="d-flex align-items-center justify-content-between">
+                            <h4 className="modal-title">Ubah Outlet</h4>
+                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <p>Isi form dibawah ini dengan benar.</p>
                     </div>
-                    <div className="modal-body">
-                        <Textfield ref={(el) => (inputRef.current['name'] = el)} col="" isRequired={true} title="Nama" name="name" setErrors={setErrors} schema={addOutletSchema} formRef={formRef} errors={errors} placeholder="Nama"/>
-                        <Textfield ref={(el) => (inputRef.current['address'] = el)} col="" isRequired={true} title="Alamat" name="address" setErrors={setErrors} schema={addOutletSchema} formRef={formRef} errors={errors} placeholder="Alamat"/>
-                        <Textfield ref={(el) => (inputRef.current['telp'] = el)} col="" isRequired={false} title="Telp" name="telp" setErrors={setErrors} schema={addOutletSchema} formRef={formRef} errors={errors} placeholder="No. Telp"/>
+                    <div className="modal-body row">
+                        <Textfield ref={(el) => (inputRef.current['name'] = el)} col="col-lg-6" isRequired={true} title="Nama" name="name" setErrors={setErrors} schema={addOutletSchema} formRef={formRef} errors={errors} placeholder="Nama"/>
+                        <Textfield ref={(el) => (inputRef.current['telp'] = el)} col="col-lg-6" isRequired={true} title="Telp" name="telp" setErrors={setErrors} schema={addOutletSchema} formRef={formRef} errors={errors} placeholder="No. Telp"/>
+                        <TextAreaInput ref={(el) => (inputRef.current['address'] = el)} col="" isRequired={true} title="Alamat" name="address" setErrors={setErrors} schema={addOutletSchema} formRef={formRef} errors={errors} placeholder="Alamat"/>
                         <Dropdown ref={(el) => (inputRef.current['user_id'] = el)} isRequired={false} isMulti={true} name="user_id" col="" errors={errors} title="Karyawan/Pekerja" options={users} schema={addOutletSchema} formRef={formRef} setErrors={setErrors}/>
                     </div>
                     <div className="modal-footer">
                         <button type="button" className="btn btn-outline-muted" data-dismiss="modal">Tutup</button>
-                        <button type="submit" className="btn btn-primary">
-                            {
-                                isLoading ? <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> : 'Ubah'
-                            }
-                        </button>
+                        <ButtonWithLoading disabled={isLoading} type="submit" loading={isLoading} className="btn btn-primary">Ubah</ButtonWithLoading>
                     </div>
                 </form>
             </div>

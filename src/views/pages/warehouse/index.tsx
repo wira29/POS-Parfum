@@ -6,6 +6,7 @@ import { useWarehouseStore } from "@/core/stores/WarehouseStore";
 import { useEffect } from "react";
 import { SearchInput } from "@/views/components/SearchInput";
 import { NoData } from "@/views/components/NoData";
+import EditModal from "./widgets/EditModal";
 
 
 export const WarehouseIndex = () => {
@@ -18,6 +19,7 @@ export const WarehouseIndex = () => {
     return (
         <div>
             <AddModal />
+            <EditModal />
             <Breadcrumb title="Gudang" desc="List gudang yang anda miliki." button={<BtnAddModal />}/>
             <div className="mb-2 row">
                 <div className="col-12 col-md-4">
