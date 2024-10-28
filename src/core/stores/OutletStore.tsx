@@ -3,11 +3,13 @@ import { useApiClient } from "../helpers/ApiClient"
 import { Toaster } from "../helpers/BaseAlert"
 import { TPaginationData } from "@/views/components/Pagination"
 import Swal from "sweetalert2"
+import { Outlet } from "react-router-dom"
 
 
 type OutletStoreType = {
     isLoading: boolean,
     outlets: any[],
+    currentOutlet?: {[key:string]:any},
     pagination: TPaginationData,
     isFailure: boolean,
     page: number,
@@ -16,6 +18,7 @@ type OutletStoreType = {
 
     setLoading: (current_loading: boolean) => void,
     createOutlet: (form: any) => Promise<void>,
+    setCurrentOutlet: (outlet: {[key:string]:any}) => void,
     getOutlets: () => void,
     deleteOutlet: (id: number) => void,
     setPage: (page:number) => void,
@@ -30,6 +33,7 @@ const apiClient = useApiClient()
 export const useOutletStore = create<OutletStoreType>()((set, get) => ({
     isLoading: false,
     outlets: [],
+    currentOutlet: undefined,
     pagination: undefined,
     isFailure: false,
     page: 1,
@@ -49,6 +53,7 @@ export const useOutletStore = create<OutletStoreType>()((set, get) => ({
         set(() => ({search}))
         get().getOutlets()
     },
+    setCurrentOutlet: (outlet) => set(() => ({currentOutlet: outlet})),
     createOutlet: async (form) => {
         set(() => ({isLoading: true, failure: null}))
         try {

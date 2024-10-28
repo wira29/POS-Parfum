@@ -7,6 +7,7 @@ import { Toaster } from "../helpers/BaseAlert"
 type UserStoreType = {
     isLoading: boolean,
     users: any[],
+    currentUser?: {[key:string]:any},
     pagination: TPaginationData,
     isFailure: boolean,
     page: number,
@@ -16,7 +17,9 @@ type UserStoreType = {
     outlet: string,
 
     setLoading: (current_loading: boolean) => void,
+    setCurrentUser: (current_user: {[key:string]:any}) => void,
     createUser: (form: any) => Promise<void>,
+    updateUser: (id:string, form: any) => Promise<void>,
     getUsers: () => void,
     setPage: (page:number) => void,
     setPerPage: (per_page:number) => void,
@@ -31,6 +34,7 @@ const apiClient = useApiClient()
 export const useUserStore = create<UserStoreType>()((set, get) => ({
     isLoading: false,
     users: [],
+    currentUser: undefined,
     pagination: undefined,
     isFailure: false,
     page: 1,
@@ -40,12 +44,26 @@ export const useUserStore = create<UserStoreType>()((set, get) => ({
     outlet: '',
 
     setLoading: (current_loading) => set(() => ({isLoading: current_loading})),
+    setCurrentUser: (current_user) => set(() => ({currentUser: current_user})),
     createUser: async (form) => {
         set(() => ({isLoading: true, failure: null}))
         try {
             const res:any = await apiClient.post('/users', form.current)
             Toaster('success', res.data.message)
             get().getUsers()
+            set(() => ({isLoading: false, isFailure: false}))
+        } catch (err:any) {
+            set(() => ({isLoading: false, isFailure: true}))
+            Toaster('error', err.response.data.message)
+        }
+    },
+    updateUser: async (id, form) => {
+        set(() => ({isLoading: true, failure: null}))
+        try {
+            const res:any = await apiClient.put('/users/'+id, form.current)
+            Toaster('success', res.data.message)
+            get().getUsers()
+            set(() => ({isLoading: false, isFailure: false}))
         } catch (err:any) {
             set(() => ({isLoading: false, isFailure: true}))
             Toaster('error', err.response.data.message)

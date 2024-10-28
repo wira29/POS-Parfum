@@ -25,20 +25,17 @@ export const ModalAddOutlet = () => {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        setLoading(true)
 
         // validasi 
         const result = addOutletSchema.safeParse(formRef.current);
         if (!result.success) {
             setErrors(result.error.format())
-            setLoading(false)
             return
         }
 
         await createOutlet(formRef)
 
-        if (!isFailure) $('#modalAddUser').modal('hide')
-
+        if (!isFailure) $('#modalAddOutlet').modal('hide')
     }
 
     useEffect(() => {

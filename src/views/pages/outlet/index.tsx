@@ -7,7 +7,7 @@ import { SearchInput } from "@/views/components/SearchInput"
 import { BtnModalEditOutlet, ModalEditOutlet } from "./widgets/modal-edit-outlet"
 
 export const OutletIndex = () => {
-  const { outlets, firstGet, pagination, setPage, setSearch, deleteOutlet } = useOutletStore()
+  const { outlets, currentOutlet, setCurrentOutlet, firstGet, pagination, setPage, setSearch, deleteOutlet } = useOutletStore()
 
   useEffect(() => {
     firstGet()
@@ -16,7 +16,7 @@ export const OutletIndex = () => {
   return (
     <>
       <ModalAddOutlet />
-      <ModalEditOutlet />
+      <ModalEditOutlet current_outlet={currentOutlet}/>
       <div>
         <Breadcrumb title="Outlet" desc="List outlet yang anda miliki." button={<BtnModalAddOutlet />} />
         <div className="mb-2 row">
@@ -64,7 +64,7 @@ export const OutletIndex = () => {
                             <ul className="dropdown-menu" aria-labelledby="dropdownMenuButton" style={{ "zIndex": 100, "position": "absolute", "top": "100%", "left": "0", "transform": "translateY(-100%)" }}>
 
                               <li>
-                                <BtnModalEditOutlet />
+                                <BtnModalEditOutlet onClick={() => setCurrentOutlet(outlet)}/>
                               </li>
                               <li>
                                 <button type="button" className="dropdown-item d-flex align-items-center gap-3" onClick={() => deleteOutlet(outlet.id)}>

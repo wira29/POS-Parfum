@@ -7,11 +7,12 @@ import { Toaster } from "@/core/helpers/BaseAlert";
 import { Pagination } from "@/views/components/Pagination";
 import { useUserStore } from "@/core/stores/UserStore";
 import { SearchInput } from "@/views/components/SearchInput";
+import { BtnModalEditUser, ModalEditUser } from "./widgets/index-modal-edit-user";
 
 export default function UserPage() {
     const apiClient = useApiClient();
 
-    const {users, getUsers, pagination, firstGet, setPage, setSearch, setRole, setOutlet} = useUserStore()
+    const {users, currentUser, setCurrentUser, getUsers, pagination, firstGet, setPage, setSearch, setRole, setOutlet} = useUserStore()
     const [outlets, setOutlets] = useState<{[key:string]:any}[]>([])
     const [roles, setRoles] = useState<{[key:string]:any}[]>([])
 
@@ -60,6 +61,7 @@ export default function UserPage() {
     return (
         <>
             <ModalAddUser />
+            <ModalEditUser current_user={currentUser} />
             <Breadcrumb title="Pengguna" desc="Daftar pengguna yang ada pada toko anda" button={
                 <button className="mt-2 btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddUser">
                     Tambah Pengguna
@@ -126,9 +128,7 @@ export default function UserPage() {
                                                         <ul className="dropdown-menu" aria-labelledby="dropdownMenuButton" style={{ "zIndex": 100, "position": "absolute", "top": "100%", "left": "0", "transform": "translateY(-100%)" }}>
 
                                                             <li>
-                                                                <button type="button" className="dropdown-item d-flex align-items-center gap-3">
-                                                                    <i className="fs-4 ti ti-edit"></i>Edit
-                                                                </button>
+                                                                <BtnModalEditUser onClick={() => setCurrentUser(user)} /> 
                                                             </li>
                                                             <li>
                                                                 <button type="button" onClick={() => deleteUser(user.id)} className="dropdown-item d-flex align-items-center gap-3">
