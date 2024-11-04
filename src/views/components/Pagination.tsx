@@ -75,7 +75,7 @@ export const Pagination = ({ paginationData, updatePage }: { paginationData?: TP
 
     return (
         <div className="d-flex align-items-center justify-content-between">
-            <div>menampilkan {paginationData.from} sampai {paginationData.to} dari {paginationData.total} data</div>
+            <div>menampilkan {paginationData.from ?? 0 } sampai {paginationData.to ?? 0} dari {paginationData.total ?? 0} data</div>
             <nav aria-label="Page navigation">
                 <ul className="pagination m-0">
                     {paginationList.map((item, index) => (
