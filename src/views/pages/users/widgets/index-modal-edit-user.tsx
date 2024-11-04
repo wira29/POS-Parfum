@@ -5,9 +5,9 @@ import { Dropdown } from "@/views/components/Input"
 import Textfield from "@/views/components/Input/Textfield"
 import React, { useEffect, useRef, useState } from "react"
 import { ZodFormattedError } from "zod"
-import { addUserSchema } from "../schema/add-user"
 import { SelectInstance } from "react-select"
 import { OptionType } from "@/core/interface/select-option-interface"
+import { editUserSchema } from "../schema/edit-user"
 
 export const ModalEditUser = () => {
 
@@ -21,7 +21,7 @@ export const ModalEditUser = () => {
         e.preventDefault()
 
         // validasi 
-        const result = addUserSchema.safeParse(formRef.current);
+        const result = editUserSchema.safeParse(formRef.current);
         if (!result.success) {
             setErrors(result.error.format())
             return
@@ -70,10 +70,10 @@ export const ModalEditUser = () => {
                         <p>Isi form dibawah ini dengan benar.</p>
                     </div>
                     <div className="modal-body row">
-                        <Textfield ref={(el) => (inputRef.current['name'] = el)} col="" title="Nama" name="name" setErrors={setErrors} schema={addUserSchema} formRef={formRef} errors={errors} placeholder="Masukkan nama"/>
-                        <Textfield ref={(el) => (inputRef.current['email'] = el)} inputType="email" col="col-lg-6" title="Email" name="email" setErrors={setErrors} schema={addUserSchema} formRef={formRef} errors={errors} placeholder="Masukkan email"/>
-                        <Textfield ref={(el) => (inputRef.current['password'] = el)} inputType="password" col="col-lg-6" title="Password" name="password" setErrors={setErrors} schema={addUserSchema} formRef={formRef} errors={errors} placeholder="Masukkan password"/>
-                        <Dropdown ref={(el) => (inputRef.current['role']) = el} isMulti={true} name="role" col="" errors={errors} title="Role" options={DataRoleSelect} schema={addUserSchema} formRef={formRef} setErrors={setErrors}/>
+                        <Textfield ref={(el) => (inputRef.current['name'] = el)} col="" title="Nama" name="name" setErrors={setErrors} schema={editUserSchema} formRef={formRef} errors={errors} placeholder="Masukkan nama"/>
+                        <Textfield ref={(el) => (inputRef.current['email'] = el)} inputType="email" col="col-lg-6" title="Email" name="email" setErrors={setErrors} schema={editUserSchema} formRef={formRef} errors={errors} placeholder="Masukkan email"/>
+                        <Textfield ref={(el) => (inputRef.current['password'] = el)} inputType="password" col="col-lg-6" title="Password" name="password" setErrors={setErrors} schema={editUserSchema} formRef={formRef} errors={errors} placeholder="Masukkan password"/>
+                        <Dropdown ref={(el) => (inputRef.current['role']) = el} isMulti={true} name="role" col="" errors={errors} title="Role" options={DataRoleSelect} schema={editUserSchema} formRef={formRef} setErrors={setErrors}/>
                     </div>
                     <div className="modal-footer">
                         <button type="button" className="btn btn-outline-muted" data-bs-dismiss="modal">Tutup</button>
