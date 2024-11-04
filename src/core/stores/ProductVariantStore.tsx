@@ -13,6 +13,7 @@ type ProductVariantStoreType = {
     page: number,
     per_page: number,
     search: string,
+    current_variant?: {[key:string]:any},
 
     setLoading: (current_loading: boolean) => void,
     createVariant: (form: any) => Promise<void>,
@@ -22,7 +23,8 @@ type ProductVariantStoreType = {
     setPerPage: (per_page:number) => void,
     setSearch: (search:string) => void,
     firstGet: () => void,
-    updateVariant: (id: number, form: any) => Promise<void>,
+    updateVariant: (form: any) => Promise<void>,
+    setCurrentVariant: (current_variant: {[key:string]:any}) => void
 }
 
 const apiClient = useApiClient()
@@ -35,6 +37,7 @@ export const useProductVariantStore = create<ProductVariantStoreType>()((set, ge
     page: 1,
     per_page: 10,
     search: '',
+    current_variant: undefined,
 
     setLoading: (current_loading) => set(() => ({isLoading: current_loading})),
     setPage: (page) => {
@@ -68,7 +71,7 @@ export const useProductVariantStore = create<ProductVariantStoreType>()((set, ge
             icon: 'question'
         }).then((result) => {
             if (result.isConfirmed) {
-                apiClient.delete('variants/'+id)
+                apiClient.delete('product-variants/'+id)
                 .then(res => {
                     Toaster('success', res.data.message)
                     get().getVariants()
@@ -82,6 +85,7 @@ export const useProductVariantStore = create<ProductVariantStoreType>()((set, ge
     getVariants: () => {
         set(() => ({isLoading: true}))
         apiClient.get(`/variants?per_page=${get().per_page}&page=${get().page}&search=${get().search}`).then((res) => {
+            console.log({res})
             set(() => ({isLoading: false}))
             var variants = res.data.data
             var pagination = res.data.pagination
@@ -108,10 +112,10 @@ export const useProductVariantStore = create<ProductVariantStoreType>()((set, ge
 
         get().getVariants()
     },
-    updateVariant: async (id, form) => {
+    updateVariant: async (form) => {
         set(() => ({isLoading: true, failure: null}))
         try {
-            const response = await apiClient.put('/variants/'+id, form.current)
+            const response = await apiClient.put('/variants/'+get().current_variant?.id, form.current)
             get().getVariants()
             Toaster('success', response.data.message)
             set(() => ({isFailure: false, isLoading: false}))
@@ -119,5 +123,6 @@ export const useProductVariantStore = create<ProductVariantStoreType>()((set, ge
             set(() => ({isLoading: false, isFailure: true}))
             Toaster('error', err.response.data.message)
         }
-    }
+    },
+    setCurrentVariant: (current_variant) => set({current_variant: current_variant})
 }))

@@ -1,7 +1,7 @@
 import { IsAuth } from "@/core/middlewares/is-auth";
 import { MainLayout } from "@/views/layouts/MainLayout";
 import { Home } from "@/views/pages/home";
-import { CategoryIndex, LoginPage, OutletIndex, ProductIndex, UserPage, WarehouseIndex } from "@/views/pages/pages";
+import { CategoryIndex, LoginPage, OutletIndex, ProductIndex, UserPage, VariantIndex, WarehouseIndex } from "@/views/pages/pages";
 import { createBrowserRouter } from "react-router-dom";
 
 export const router = createBrowserRouter([
@@ -26,10 +26,16 @@ export const router = createBrowserRouter([
                     {
                         path: "categories",
                         element: <CategoryIndex />
-                    }, {
+                    },
+                    {
+                        path: "variants",
+                        element: <VariantIndex />
+                    },
+                    {
                         path: "outlets",
                         element: <OutletIndex />
-                    }, {
+                    },
+                    {
                         path: "warehouses",
                         element: <WarehouseIndex />
                     }, 
