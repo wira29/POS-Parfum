@@ -1,7 +1,5 @@
 import { z } from "zod";
 
 export const schema = z.object({
-    name: z
-      .string()
-      .min(1, 'Nama kategori harus diisi'),
-  });
+    name: z.string().min(1, 'tidak boleh kosong'),
+});

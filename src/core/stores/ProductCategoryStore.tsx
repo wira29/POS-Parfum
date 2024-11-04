@@ -13,6 +13,7 @@ type ProductCategoryStoreType = {
     page: number,
     per_page: number,
     search: string,
+    current_category?: {[key:string]:any},
 
     setLoading: (current_loading: boolean) => void,
     createCategory: (form: any) => Promise<void>,
@@ -22,7 +23,8 @@ type ProductCategoryStoreType = {
     setPerPage: (per_page:number) => void,
     setSearch: (search:string) => void,
     firstGet: () => void,
-    updateCategory: (id: number, form: any) => Promise<void>,
+    updateCategory: (form: any) => Promise<void>,
+    setCurrentCategory: (current_category: any) => void,
 }
 
 const apiClient = useApiClient()
@@ -35,6 +37,7 @@ export const useProductCategoryStore = create<ProductCategoryStoreType>()((set, 
     page: 1,
     per_page: 10,
     search: '',
+    current_category: undefined,
 
     setLoading: (current_loading) => set(() => ({isLoading: current_loading})),
     setPage: (page) => {
@@ -108,10 +111,11 @@ export const useProductCategoryStore = create<ProductCategoryStoreType>()((set, 
 
         get().getCategories()
     },
-    updateCategory: async (id, form) => {
+    setCurrentCategory: (current_category) => set(() => ({current_category})),
+    updateCategory: async (form) => {
         set(() => ({isLoading: true, failure: null}))
         try {
-            const response = await apiClient.put('/categories/'+id, form.current)
+            const response = await apiClient.put('/categories/'+get().current_category?.id, form.current)
             get().getCategories()
             Toaster('success', response.data.message)
             set(() => ({isFailure: false, isLoading: false}))
