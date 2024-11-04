@@ -60,6 +60,7 @@ export const useWarehouseStore = create<WarehouseStoreType>()((set, get) => ({
             get().getWarehouses()
             Toaster('success', response.data.message)
             set(() => ({isFailure: false, isLoading: false}))
+            $('#add-warehouse-modal').modal('hide')
         } catch (err:any) {
             set(() => ({isLoading: false, isFailure: true}))
             Toaster('error', err.response.data.message)
