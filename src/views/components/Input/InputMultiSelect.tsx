@@ -13,7 +13,7 @@ export const InputMultiSelect = ({settings, errors, options, selectedOptions}:In
                     options={options}
                     value={selectedOptions}
                     styles={{
-                        control: (base, state) => ({
+                        control: (base) => ({
                             ...base,
                             borderColor: (errors?.length ? "var(--bs-danger)" : "var(--bs-border-color)"),
                         }),
