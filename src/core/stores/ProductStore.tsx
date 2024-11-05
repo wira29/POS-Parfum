@@ -13,6 +13,7 @@ type ProductStoreType = {
     page: number,
     per_page: number,
     search: string,
+    current_product?: {[key:string]:any},
 
     setLoading: (current_loading: boolean) => void,
     createProduct: (form: any) => Promise<void>,
@@ -22,7 +23,8 @@ type ProductStoreType = {
     setPerPage: (per_page:number) => void,
     setSearch: (search:string) => void,
     firstGet: () => void,
-    updateProduct: (id: number, form: any) => Promise<void>,
+    updateProduct: (form: any) => Promise<void>,
+    setCurrentProduct: (product: any) => void,
 }
 
 const apiClient = useApiClient()
@@ -35,6 +37,7 @@ export const useProductStore = create<ProductStoreType>()((set, get) => ({
     page: 1,
     per_page: 10,
     search: '',
+    current_product: undefined,
 
     setLoading: (current_loading) => set(() => ({isLoading: current_loading})),
     setPage: (page) => {
@@ -52,7 +55,11 @@ export const useProductStore = create<ProductStoreType>()((set, get) => ({
     createProduct: async (form) => {
         set(() => ({isLoading: true, failure: null}))
         try {
-            const response = await apiClient.post('/products', form.current)
+            const response = await apiClient.post('/products', form.current, {
+                headers: {
+                    'Content-Type':'multipart/form-data'
+                }
+            })
             get().getProducts()
             Toaster('success', response.data.message)
             set(() => ({isFailure: false, isLoading: false}))
@@ -108,10 +115,10 @@ export const useProductStore = create<ProductStoreType>()((set, get) => ({
 
         get().getProducts()
     },
-    updateProduct: async (id, form) => {
+    updateProduct: async (form) => {
         set(() => ({isLoading: true, failure: null}))
         try {
-            const response = await apiClient.put('/products/'+id, form.current)
+            const response = await apiClient.put('/products/'+get().current_product?.id, form.current)
             get().getProducts()
             Toaster('success', response.data.message)
             set(() => ({isFailure: false, isLoading: false}))
@@ -119,5 +126,6 @@ export const useProductStore = create<ProductStoreType>()((set, get) => ({
             set(() => ({isLoading: false, isFailure: true}))
             Toaster('error', err.response.data.message)
         }
-    }
+    },
+    setCurrentProduct: (product) => set({current_product: product})
 }))
