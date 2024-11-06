@@ -36,7 +36,7 @@ export const CategoryIndex = () => {
                     <tr key={index}>
                       <th>{index + 1}</th>
                       <td>{category.name}</td>
-                      <td><span className="badge text-primary bg-light-primary">20 produk</span></td>
+                      <td><span className="badge text-primary bg-light-primary">{category.products_count} produk</span></td>
                       <td>
                         <div className="dropdown dropstart">
                           <a href="" className="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
