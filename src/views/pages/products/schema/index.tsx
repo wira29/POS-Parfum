@@ -4,6 +4,7 @@ export const addProductSchema = z.object({
     name: z.string().min(1, 'harus diisi'),
     desc: z.string().min(1, 'harus diisi'),
     unit_type: z.string().min(1, 'harus diisi'),
+    category_id: z.string().min(1, 'tidak boleh kosong').or(z.number().min(1, 'tidak boleh kosong')),
     qr_code: z.string().min(0, 'minimal 1 karakter').optional(),
     image: z.nullable(
         z.instanceof(File, {message: 'tidak boleh kosong'})

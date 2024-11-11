@@ -35,15 +35,18 @@ export const Dropdown = forwardRef<SelectInstance<OptionType, true> | null, prop
     ) => {
 
         return (
-            <div className={"form-group mb-1 " + col}>
+            <div className={"form-group mb-2 " + col}>
                 <label className="form-label mb-0">{title} {isRequired && <Required />} </label>
                 <Select
                     options={options}
                     name={name}
                     onChange={(e: any) => {
                         setErrors(undefined);
-                        formRef.current[name] = e.map((item: any) => item.value)
-
+                        if(inputProp.isMulti && inputProp.isMulti === true) {
+                            formRef.current[name] = e.map((item: any) => item.value)
+                        } else {
+                            formRef.current[name] = e.value
+                        }
                         const result = schema.safeParse(formRef.current);
                         if (!result.success) {
                             setErrors(result.error.format())

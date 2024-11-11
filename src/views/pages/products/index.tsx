@@ -3,6 +3,7 @@ import { Breadcrumb } from "@/views/components/Breadcrumb"
 import { Pagination } from "@/views/components/Pagination"
 import { useEffect } from "react"
 import AddModal, { BtnAddModal } from "./widgets/AddModal"
+import EditModal, { BtnEditModal } from "./widgets/EditModal"
 
 export const ProductIndex = () => {
 
@@ -15,6 +16,7 @@ export const ProductIndex = () => {
   return (
     <div>
       <AddModal />
+      <EditModal />
       <Breadcrumb title="Produk" desc="List produk yang ada pada toko anda" button={<BtnAddModal />} />
       <div className='card rounded-lg'>
         <div className="card-body">
@@ -45,7 +47,7 @@ export const ProductIndex = () => {
                             </a>
                             <ul className="dropdown-menu" aria-labelledby="dropdownMenuButton" style={{ "zIndex": 100, "position": "absolute", "top": "100%", "left": "0", "transform": "translateY(-100%)" }}>
                               <li>
-                                {/* <BtnEditModal onClick={() => setCurrentProduct(product)} /> */}
+                                <BtnEditModal onClick={() => setCurrentProduct(product)} />
                               </li>
                               <li>
                                 <button type="button" className="dropdown-item d-flex align-items-center gap-3" onClick={() => deleteProduct(product)}>
