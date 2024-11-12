@@ -93,6 +93,8 @@ export const useProductStore = create<ProductStoreType>()((set, get) => ({
             var products = res.data.data
             var pagination = res.data.pagination
 
+            console.log({products})
+
             set(() => ({
                 isLoading: false, 
                 products,
@@ -118,7 +120,11 @@ export const useProductStore = create<ProductStoreType>()((set, get) => ({
     updateProduct: async (form) => {
         set(() => ({isLoading: true, failure: null}))
         try {
-            const response = await apiClient.put('/products/'+get().current_product?.id, form.current)
+            const response = await apiClient.post('/products/'+get().current_product?.id+'?_method=PUT', form.current, {
+                headers: {
+                    'Content-Type':'multipart/form-data'
+                }
+            })
             get().getProducts()
             Toaster('success', response.data.message)
             set(() => ({isFailure: false, isLoading: false}))

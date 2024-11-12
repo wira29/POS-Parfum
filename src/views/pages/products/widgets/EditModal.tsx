@@ -13,7 +13,7 @@ import { SelectInstance } from "react-select";
 import { OptionType } from "@/core/interface/select-option-interface";
 
 export default function EditModal() {
-    const {isLoading, setLoading, createProduct, isFailure, current_product} = useProductStore()
+    const {isLoading, setLoading, updateProduct, isFailure, current_product} = useProductStore()
     const formRef = useRef<any>({
         product_details: [],
     });
@@ -30,10 +30,8 @@ export default function EditModal() {
             setLoading(false)
             return
         }
-
-        console.log(formRef.current)
         
-        await createProduct(formRef)
+        await updateProduct(formRef)
         if(!isFailure) $('#add-product-modal').modal('hide')
     }
 
@@ -80,10 +78,6 @@ export default function EditModal() {
             const roleSelectInstance = inputRef.current['category_id'] as SelectInstance<OptionType, true>
             roleSelectInstance.setValue(current_category_id, 'select-option')
         }
-        console.log({
-            form: formRef.current,
-            input: inputRef.current,
-        })
     }, [current_product])
 
     return (

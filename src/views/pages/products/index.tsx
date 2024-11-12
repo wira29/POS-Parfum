@@ -37,8 +37,8 @@ export const ProductIndex = () => {
                     ? products.map((product, index) => (
                       <tr key={index}>
                         <th>{index + 1}</th>
-                        <td>Produk</td>
-                        <td>Kategori</td>
+                        <td>{product.name}</td>
+                        <td><span className="badge bg-light-warning text-warning">{product?.category?.name ?? '-'}</span> </td>
                         <td>Varian</td>
                         <td>
                           <div className="dropdown dropstart">
@@ -50,7 +50,7 @@ export const ProductIndex = () => {
                                 <BtnEditModal onClick={() => setCurrentProduct(product)} />
                               </li>
                               <li>
-                                <button type="button" className="dropdown-item d-flex align-items-center gap-3" onClick={() => deleteProduct(product)}>
+                                <button type="button" className="dropdown-item d-flex align-items-center gap-3" onClick={() => deleteProduct(product.id)}>
                                   <i className="fs-4 ti ti-trash"></i>Hapus
                                 </button>
                               </li>
