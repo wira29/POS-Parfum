@@ -1,7 +1,7 @@
 import { IsAuth } from "@/core/middlewares/is-auth";
 import { MainLayout } from "@/views/layouts/MainLayout";
 import { Home } from "@/views/pages/home";
-import { CategoryIndex, LoginPage, OutletIndex, ProductIndex, UserPage, VariantIndex, WarehouseIndex } from "@/views/pages/pages";
+import { CategoryIndex, Dashboard, LoginPage, OutletIndex, ProductIndex, UserPage, VariantIndex, WarehouseIndex } from "@/views/pages/pages";
 import { createBrowserRouter } from "react-router-dom";
 
 export const router = createBrowserRouter([
@@ -18,7 +18,7 @@ export const router = createBrowserRouter([
                 children: [
                     {
                         path: "dashboard",
-                        element: <ProductIndex />,
+                        element: <Dashboard />,
                     }, {
                         path: "products",
                         element: <ProductIndex />
