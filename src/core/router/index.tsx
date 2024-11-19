@@ -1,5 +1,7 @@
 import { IsAuth } from "@/core/middlewares/is-auth";
 import { MainLayout } from "@/views/layouts/MainLayout";
+import DiscountIndex from "@/views/pages/discount";
+import { NotFoundPage } from "@/views/pages/errors";
 import { Home } from "@/views/pages/home";
 import { CategoryIndex, Dashboard, LoginPage, OutletIndex, ProductIndex, UserPage, VariantIndex, WarehouseIndex } from "@/views/pages/pages";
 import { createBrowserRouter } from "react-router-dom";
@@ -42,6 +44,10 @@ export const router = createBrowserRouter([
                     {
                         path: "users",
                         element: <UserPage />
+                    },
+                    {
+                        path: "discounts",
+                        element: <DiscountIndex />
                     }
                 ]
             }
@@ -55,5 +61,8 @@ export const router = createBrowserRouter([
                 element: <Home />
             }
         ]
+    }, {
+        path: '*',
+        element: <NotFoundPage />
     }
 ])

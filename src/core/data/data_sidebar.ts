@@ -50,23 +50,9 @@ export const ownerMenu:TNavItem[] = [
                 url: '/warehouses'
             },
             {
-                label: 'User',
-                icon: IoPeople,
-                url: '/users',
-                children: [
-                    {
-                        label: 'Sales',
-                        url: '/users/sales'
-                    },
-                    {
-                        label: 'Admin Gudang',
-                        url: '/users/warehouse_admin'
-                    },
-                    {
-                        label: 'Admin Transaksi',
-                        url: '/users/transaction_admin'
-                    }
-                ]
+                label: 'Diskon',
+                icon: IoStorefront,
+                url: '/discounts'
             },
         ]
     }, {
