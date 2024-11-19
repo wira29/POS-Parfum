@@ -43,9 +43,11 @@ export const Dropdown = forwardRef<SelectInstance<OptionType, true> | null, prop
                     onChange={(e: any) => {
                         setErrors(undefined);
                         if(inputProp.isMulti && inputProp.isMulti === true) {
-                            formRef.current[name] = e.map((item: any) => item.value)
+                            if(e) formRef.current[name] = e.map((item: any) => item.value)
+                            else formRef.current[name] = []
                         } else {
-                            formRef.current[name] = e.value
+                            if(e) formRef.current[name] = e.value
+                            else formRef.current[name] = null
                         }
                         const result = schema.safeParse(formRef.current);
                         if (!result.success) {

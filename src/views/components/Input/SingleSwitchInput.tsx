@@ -11,12 +11,11 @@ type PropTypes = {
     name: string;
     col: string;
     title: string;
-    onlyNumber?: boolean;
     placeholder?: string;
     inputType?: string;
 };
 
-const Textfield = forwardRef<HTMLInputElement | null, PropTypes>(
+const SingleSwitchInput = forwardRef<HTMLInputElement | null, PropTypes>(
     (
         {
             isRequired = true,
@@ -28,7 +27,6 @@ const Textfield = forwardRef<HTMLInputElement | null, PropTypes>(
             col,
             title,
             placeholder,
-            onlyNumber = false,
             inputType = "text",
         }: PropTypes,
         ref
@@ -36,18 +34,18 @@ const Textfield = forwardRef<HTMLInputElement | null, PropTypes>(
 
         return (
             <div className={"form-group mb-2 " + col}>
-                <label className="form-label mb-0">
-                    {title} {isRequired && <Required />}
-                </label>
-                <input
-                    type={inputType}
-                    onChange={(e) => handleInputChange(e, setErrors, schema, formRef)}
-                    name={name}
-                    data-only-number={onlyNumber}
-                    className={errors?.[name]?._errors.length ? "form-control is-invalid" : "form-control"}
-                    placeholder={placeholder}
-                    ref={ref}
-                />
+                <div className="form-check form-switch">
+                    <input
+                        type="checkbox"
+                        className={"form-check-input "+(errors?.[name]?._errors.length && "is-invalid")}
+                        role="switch"
+                        name={name}
+                        placeholder={placeholder}
+                        ref={ref}
+                        onChange={(e) => handleInputChange(e, setErrors, schema, formRef)}
+                    />
+                    <label className="form-check-label">{title} {isRequired && <Required/>}</label>
+                </div>
                 {errors?.[name]?._errors.length && (
                     <small className="form-text text-danger">
                         {errors?.[name]?._errors[0]}
@@ -58,4 +56,4 @@ const Textfield = forwardRef<HTMLInputElement | null, PropTypes>(
     }
 );
 
-export default Textfield;
+export default SingleSwitchInput;
