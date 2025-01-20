@@ -1,6 +1,8 @@
+import { Toaster } from "@/core/helpers/BaseAlert";
 import Required from "../Required";
 import { useCallback, useState } from "react";
-import { useDropzone } from 'react-dropzone'
+import { FileError, useDropzone } from 'react-dropzone'
+import { handlerTranslateDropzone } from "@/core/helpers/ErrorDropZoneId";
 
 type PropTypes = {
     isRequired?: boolean;
@@ -47,14 +49,22 @@ const InputImage = (
         checkErrors()
     }, [])
 
-    const { getRootProps, getInputProps } = useDropzone({
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
         accept: {
             'image/*': []
         },
-        maxFiles: 1,
         multiple: false,
-        maxSize: 1000000,
-        onDrop: onChangeImg
+        maxSize: 1024*1024,
+        onDrop: onChangeImg,
+        onDropRejected: (fileRejections) => {
+            const array_error:FileError[] = []
+            fileRejections.forEach((file) => {
+                file.errors.forEach((err) => {
+                    if(!array_error.some((arr) => arr.code == err.code))  array_error.push(err)
+                });
+            });
+            Toaster('error', handlerTranslateDropzone(array_error[0]))
+        },
     })
 
     return (
@@ -68,7 +78,7 @@ const InputImage = (
                 {
                 ...getRootProps(
                     {
-                        className: `dropzone text-center d-flex align-items-center justify-content-center ${errors?.[name]?._errors.length && 'border-danger'}`,
+                        className: `dropzone text-center d-flex align-items-center justify-content-center ${isDragActive && 'text-primary bg-light-primary'} ${errors?.[name]?._errors.length && 'border-danger'}`,
                         style: { minHeight: "100px" }
                     }
                 )
@@ -82,7 +92,9 @@ const InputImage = (
                 }} />
                 {
                     !preview
-                        ? <div className="py-7">Drag 'n' drop some files here, or click to select files</div>
+                        ? isDragActive
+                            ? <div className="py-7">Drop files here...</div>
+                            : <div className="py-7">Drag 'n' drop some files here, or click to select files</div>
                         : <img src={preview} alt="Preview" style={{ width: '90px', height: '90px', objectFit: 'cover' }} className="rounded" />
                 }
             </div>
