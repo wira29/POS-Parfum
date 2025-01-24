@@ -14,7 +14,7 @@ export const ProductIndex = () => {
 
   return (
     <div>
-      <Breadcrumb title="Produk" desc="List produk yang ada pada toko anda" button={<Link to={'/products/create'} className="btn btn-primary">Tambah Produk</Link>} />
+      <Breadcrumb title="Produk" desc="List produk yang ada pada toko anda" button={<Link to={'/products/create'} className="mt-2 btn btn-primary">Tambah Produk</Link>} />
       <div className='card rounded-lg'>
         <div className="card-body">
           <div className="mb-4 border rounded-1">

@@ -49,7 +49,7 @@ const AddModal = () => {
 
 export const BtnAddModal = () => {
     return (
-        <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add-variant-modal">Tambah Varian</button>
+        <button type="button" className="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#add-variant-modal">Tambah Varian</button>
     )
 }
 
