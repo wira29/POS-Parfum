@@ -6,6 +6,7 @@ import Textfield from "@/views/components/Input/Textfield"
 import React, { useRef, useState } from "react"
 import { ZodFormattedError } from "zod"
 import { addUserSchema } from "../schema/add-user"
+import InputImage from "@/views/components/Input/InputImage"
 
 export const ModalAddUser = ({}:{}) => {
 
@@ -43,6 +44,7 @@ export const ModalAddUser = ({}:{}) => {
                         <p>Isi form dibawah ini dengan benar.</p>
                     </div>
                     <div className="modal-body row">
+                        <InputImage setErrors={setErrors} schema={addUserSchema} formRef={formRef} name="image" errors={errors} col="" title="Profil Pengguna" isRequired={false} />
                         <Textfield col="" title="Nama" name="name" setErrors={setErrors} schema={addUserSchema} formRef={formRef} errors={errors} placeholder="Masukkan nama"/>
                         <Textfield inputType="email" col="col-lg-6" title="Email" name="email" setErrors={setErrors} schema={addUserSchema} formRef={formRef} errors={errors} placeholder="Masukkan email"/>
                         <Textfield inputType="password" col="col-lg-6" title="Password" name="password" setErrors={setErrors} schema={addUserSchema} formRef={formRef} errors={errors} placeholder="Masukkan password"/>

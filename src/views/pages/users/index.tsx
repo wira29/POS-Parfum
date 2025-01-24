@@ -8,6 +8,7 @@ import { Pagination } from "@/views/components/Pagination";
 import { useUserStore } from "@/core/stores/UserStore";
 import { SearchInput } from "@/views/components/SearchInput";
 import { BtnModalEditUser, ModalEditUser } from "./widgets/index-modal-edit-user";
+import { BtnModalDetailUser, ModalDetailUser } from "./widgets/index-modal-detail-user";
 
 export default function UserPage() {
     const apiClient = useApiClient();
@@ -62,6 +63,7 @@ export default function UserPage() {
         <>
             <ModalAddUser />
             <ModalEditUser/>
+            <ModalDetailUser />
             <Breadcrumb title="Pengguna" desc="Daftar pengguna yang ada pada toko anda" button={
                 <button className="mt-2 btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddUser">
                     Tambah Pengguna
@@ -126,6 +128,9 @@ export default function UserPage() {
                                                             <i className="ti ti-dots-vertical fs-6"></i>
                                                         </a>
                                                         <ul className="dropdown-menu" aria-labelledby="dropdownMenuButton" style={{ "zIndex": 100, "position": "absolute", "top": "100%", "left": "0", "transform": "translateY(-100%)" }}>
+                                                            <li>
+                                                                <BtnModalDetailUser onClick={() => setCurrentUser(user)} />
+                                                            </li>
 
                                                             <li>
                                                                 <BtnModalEditUser onClick={() => setCurrentUser(user)} /> 

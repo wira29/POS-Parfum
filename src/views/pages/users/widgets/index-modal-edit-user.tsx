@@ -8,6 +8,7 @@ import { ZodFormattedError } from "zod"
 import { SelectInstance } from "react-select"
 import { OptionType } from "@/core/interface/select-option-interface"
 import { editUserSchema } from "../schema/edit-user"
+import InputImage from "@/views/components/Input/InputImage"
 
 export const ModalEditUser = () => {
 
@@ -70,6 +71,7 @@ export const ModalEditUser = () => {
                         <p>Isi form dibawah ini dengan benar.</p>
                     </div>
                     <div className="modal-body row">
+                        <InputImage setErrors={setErrors} schema={editUserSchema} formRef={formRef} name="image" errors={errors} col="" title="Gambar Produk" isRequired={false} />
                         <Textfield ref={(el) => (inputRef.current['name'] = el)} col="" title="Nama" name="name" setErrors={setErrors} schema={editUserSchema} formRef={formRef} errors={errors} placeholder="Masukkan nama"/>
                         <Textfield ref={(el) => (inputRef.current['email'] = el)} inputType="email" col="col-lg-6" title="Email" name="email" setErrors={setErrors} schema={editUserSchema} formRef={formRef} errors={errors} placeholder="Masukkan email"/>
                         <Textfield ref={(el) => (inputRef.current['password'] = el)} inputType="password" col="col-lg-6" title="Password" name="password" setErrors={setErrors} schema={editUserSchema} formRef={formRef} errors={errors} placeholder="Masukkan password"/>
