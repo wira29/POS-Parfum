@@ -60,8 +60,8 @@ export const useProductStore = create<ProductStoreType>()((set, get) => ({
                     'Content-Type':'multipart/form-data'
                 }
             })
-            Toaster('success', response.data.message)
             set(() => ({isFailure: false, isLoading: false}))
+            Toaster('success', response.data.message)
         } catch (err:any) {
             set(() => ({isLoading: false, isFailure: true}))
             Toaster('error', err.response.data.message)
@@ -125,8 +125,8 @@ export const useProductStore = create<ProductStoreType>()((set, get) => ({
                 }
             })
             get().getProducts()
-            Toaster('success', response.data.message)
             set(() => ({isFailure: false, isLoading: false}))
+            Toaster('success', response.data.message)
         } catch (err:any) {
             set(() => ({isLoading: false, isFailure: true}))
             Toaster('error', err.response.data.message)
