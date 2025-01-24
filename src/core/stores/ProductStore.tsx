@@ -23,7 +23,7 @@ type ProductStoreType = {
     setPerPage: (per_page:number) => void,
     setSearch: (search:string) => void,
     firstGet: () => void,
-    updateProduct: (form: any) => Promise<void>,
+    updateProduct: (form: any, id: string|number) => Promise<void>,
     setCurrentProduct: (product: any) => void,
 }
 
@@ -53,14 +53,13 @@ export const useProductStore = create<ProductStoreType>()((set, get) => ({
         get().getProducts()
     },
     createProduct: async (form) => {
-        set(() => ({isLoading: true, failure: null}))
+        set(() => ({isLoading: true, isFailure: false}))
         try {
             const response = await apiClient.post('/products', form.current, {
                 headers: {
                     'Content-Type':'multipart/form-data'
                 }
             })
-            get().getProducts()
             Toaster('success', response.data.message)
             set(() => ({isFailure: false, isLoading: false}))
         } catch (err:any) {
@@ -117,10 +116,10 @@ export const useProductStore = create<ProductStoreType>()((set, get) => ({
 
         get().getProducts()
     },
-    updateProduct: async (form) => {
+    updateProduct: async (form, id) => {
         set(() => ({isLoading: true, failure: null}))
         try {
-            const response = await apiClient.post('/products/'+get().current_product?.id+'?_method=PUT', form.current, {
+            const response = await apiClient.post('/products/'+id+'?_method=PUT', form.current, {
                 headers: {
                     'Content-Type':'multipart/form-data'
                 }
