@@ -70,8 +70,11 @@ export const useProductStore = create<ProductStoreType>()((set, get) => ({
     deleteProduct: (id) => {
         Swal.fire({
             title: "Apakah anda yakin?",
-            text: "Data product akan dihapus!",
-            icon: 'question'
+            text: "Data produk akan dihapus!",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal',
         }).then((result) => {
             if (result.isConfirmed) {
                 apiClient.delete('products/'+id)
