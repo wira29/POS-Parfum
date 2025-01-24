@@ -127,7 +127,7 @@ export const ProductEdit = () => {
     
     return (
         <>
-            <Breadcrumb title="Tambah Produk" desc="Tambah produk di toko anda" />
+            <Breadcrumb title="Ubah Produk" desc="Ubah produk di toko anda" />
             <form onSubmit={handleSubmit}>
                 <div className="card">
                     <div className="card-header">

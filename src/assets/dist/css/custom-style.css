@@ -1,9 +1,9 @@
+* {
+  --bs-nav-underline-link-active-color: var(--bs-primary)!important;
+}
 .flex-1 {
   flex: 1;
 }
-
-
-
 
 .dot {
     width: 10px;
