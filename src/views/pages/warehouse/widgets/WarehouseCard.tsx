@@ -1,6 +1,7 @@
 import { useWarehouseStore } from "@/core/stores/WarehouseStore";
 import { HiOutlineDotsVertical } from "react-icons/hi";
 import { BtnEditModal } from "./EditModal";
+import { Link } from "react-router-dom";
 
 const WarehouseCard = ({warehouse}:{warehouse:{[key:string]:any}}) => {
     const { deleteWarehouse, setCurrentWarehouse } = useWarehouseStore()
@@ -18,7 +19,7 @@ const WarehouseCard = ({warehouse}:{warehouse:{[key:string]:any}}) => {
                 <p className="text-dark mb-1">Total Produk</p>
                 <h4 className="card-title mb-3">134</h4>
                 <div className="d-flex flex-row">
-                    <a href="" className="btn btn-primary flex-grow-1 me-1">Detail</a>
+                    <Link to={`/warehouses/${warehouse.id}`} className="btn btn-primary flex-grow-1 me-1">Detail</Link>
                     <div className="dropdown dropstart">
                         <a href="" className="btn btn-warning" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
                             <HiOutlineDotsVertical />

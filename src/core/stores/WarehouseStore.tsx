@@ -8,6 +8,7 @@ import Swal from "sweetalert2"
 type WarehouseStoreType = {
     isLoading: boolean,
     warehouses: any[],
+    warehouse: {[key:string]:any}|null,
     currentWarehouse?: {[key:string]:any},
     pagination: TPaginationData,
     isFailure: boolean,
@@ -19,6 +20,7 @@ type WarehouseStoreType = {
     setCurrentWarehouse: (current_warehouse: {[key:string]:any}) => void,
     createWarehouse: (form: any) => Promise<void>,
     getWarehouses: () => void,
+    getWarehouse: (id: string) => void,
     deleteWarehouse: (id:number) => void,
     setPage: (page:number) => void,
     setPerPage: (per_page:number) => void,
@@ -32,6 +34,7 @@ const apiClient = useApiClient()
 export const useWarehouseStore = create<WarehouseStoreType>()((set, get) => ({
     isLoading: false,
     warehouses: [],
+    warehouse: null,
     currentWarehouse: undefined,
     pagination: undefined,
     isFailure: false,
@@ -98,8 +101,28 @@ export const useWarehouseStore = create<WarehouseStoreType>()((set, get) => ({
         }).catch(() => {
             set(() => ({
                 isLoading: false,
-                failure: "Gagal mendapatkan user",
+                failure: "Gagal mendapatkan data gudang",
                 warehouses: []
+            }))
+        })
+    },
+    getWarehouse: (id) => {
+        set(() => ({
+            isLoading: true,
+            isFailure: false,
+        }))
+        apiClient.get(`warehouses/${id}`).then(res => {
+            set(() => ({
+                isLoading: false,
+                warehouse: res.data.data,
+                isFailure: true
+            }))
+            console.log({res})
+        }).catch(() => {
+            set(() => ({
+                isLoading: false,
+                warehouse: null,
+                isFailure: true
             }))
         })
     },
