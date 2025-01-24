@@ -1,6 +1,6 @@
 import { Toaster } from "@/core/helpers/BaseAlert";
 import Required from "../Required";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { FileError, useDropzone } from 'react-dropzone'
 import { handlerTranslateDropzone } from "@/core/helpers/ErrorDropZoneId";
 
@@ -66,6 +66,13 @@ const InputImage = (
             Toaster('error', handlerTranslateDropzone(array_error[0]))
         },
     })
+
+    useEffect(() => {
+        if(typeof formRef.current?.[name] === 'string') {
+            const url = import.meta.env.VITE_BASE_STORAGE+formRef.current[name]
+            setPreview(url)
+        }
+    }, [formRef.current[name]])
 
     return (
         <div className={"form-group mb-2 " + col}>

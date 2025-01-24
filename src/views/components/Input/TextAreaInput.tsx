@@ -41,7 +41,7 @@ const TextAreaInput = forwardRef<HTMLTextAreaElement | null, PropTypes>(
                     className={errors?.[name]?._errors.length ? "form-control is-invalid" : "form-control"}
                     placeholder={placeholder}
                     ref={ref}
-                ></textarea>
+                >{formRef.current?.[name]}</textarea>
                 {errors?.[name]?._errors.length && (
                     <small className="form-text text-danger">
                         {errors?.[name]?._errors[0]}

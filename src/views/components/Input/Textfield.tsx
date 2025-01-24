@@ -1,6 +1,6 @@
 import { handleInputChange } from "@/core/helpers/HandleInputChange";
 import Required from "../Required";
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 
 type PropTypes = {
     isRequired?: boolean;
@@ -34,6 +34,13 @@ const Textfield = forwardRef<HTMLInputElement | null, PropTypes>(
         ref
     ) => {
 
+        const [_, setForceRender] = useState(0)
+
+        const handleChange = (e:any) => {
+            handleInputChange(e, setErrors, schema, formRef)
+            setForceRender((prev) => prev + 1)
+        }
+
         return (
             <div className={"form-group mb-2 " + col}>
                 <label className="form-label mb-0">
@@ -41,12 +48,13 @@ const Textfield = forwardRef<HTMLInputElement | null, PropTypes>(
                 </label>
                 <input
                     type={inputType}
-                    onChange={(e) => handleInputChange(e, setErrors, schema, formRef)}
+                    onChange={handleChange}
                     name={name}
                     data-only-number={onlyNumber}
                     className={errors?.[name]?._errors.length ? "form-control is-invalid" : "form-control"}
                     placeholder={placeholder}
                     ref={ref}
+                    value={formRef.current?.[name]}
                 />
                 {errors?.[name]?._errors.length && (
                     <small className="form-text text-danger">

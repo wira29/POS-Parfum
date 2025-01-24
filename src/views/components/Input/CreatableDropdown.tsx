@@ -14,6 +14,12 @@ type propType = {
     setErrors: any,
     schema: any,
     formRef: any,
+    label?: {
+        [key:string]: any
+    },
+    parent?: {
+        [key:string]:any
+    }
     [key: string]: any
 }
 
@@ -30,14 +36,16 @@ export const CreateableDropdown = forwardRef<SelectInstance<OptionType, true> | 
             setErrors,
             schema,
             formRef,
+            label,
+            parent,
             ...inputProp
         }: propType,
         ref
     ) => {
 
         return (
-            <div className={"form-group mb-2 " + col}>
-                <label className="form-label mb-0">{title} {isRequired && <Required />} </label>
+            <div className={"form-group " + col + " mb-2"} {...parent}>
+                {(title || isRequired) && <label className="form-label mb-0" {...label}>{title} {isRequired && <Required />} </label> }
                 <Createable
                     options={options}
                     name={name}
@@ -46,6 +54,7 @@ export const CreateableDropdown = forwardRef<SelectInstance<OptionType, true> | 
                         if(inputProp.isMulti && inputProp.isMulti === true) {
                             if(e) formRef.current[name] = e.map((item: any) => item.value)
                             else formRef.current[name] = []
+                            console.log(e)
                         } else {
                             if(e) formRef.current[name] = e.value
                             else formRef.current[name] = null
@@ -80,7 +89,7 @@ export const CreateableDropdown = forwardRef<SelectInstance<OptionType, true> | 
                     ref={ref}
                 />
                 {
-                    errors?.[name]?._errors.length && <small className="form-text text-danger">{errors?.[name]?._errors[0]}</small>
+                    errors?.[name]?._errors.length !== 0 && <small className="form-text text-danger">{errors?.[name]?._errors[0]}</small>
                 }
             </div>
         )
