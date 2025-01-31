@@ -28,7 +28,7 @@ export const ProductShow = () => {
 
     return (
         <>
-            <Breadcrumb title="Produk Detail" desc="Detail produk yang ada pada toko anda" button={<Link to="/products" class="btn btn-primary mt-2"><i className="ti ti-arrow-left"></i> kembali</Link>} />
+            <Breadcrumb title="Produk Detail" desc="Detail produk yang ada pada toko anda" button={<Link to="/products" className="btn btn-primary mt-2"><i className="ti ti-arrow-left"></i> kembali</Link>} />
             <div className="row">
                 <div className="col-lg-4">
                     <div className="card">
@@ -61,7 +61,7 @@ export const ProductShow = () => {
                                             {
                                                 product?.details?.length
                                                 ?  product.details.map((detail:{[key:string]:any}, index:number) => (
-                                                    <tr>
+                                                    <tr key={index}>
                                                         <td className="text-nowrap">{detail.category_id}</td>
                                                         <td className="text-nowrap">{detail.product_varian_id}</td>
                                                         <td className="text-nowrap">{detail.material}</td>
