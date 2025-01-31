@@ -21,7 +21,7 @@ const EditModal = () => {
 
     const getUsers = async () => {
         try {
-            const res = await apiClient.get('users/no-paginate?warehouse=false&warehouse_id=' + currentWarehouse?.id)
+            const res = await apiClient.get('users/v2/no-paginate?warehouse=true&warehouse_id=' + currentWarehouse?.id)
             const remap_users = res.data.data.map((user: any) => ({ label: user.name, value: user.id }))
             setUsers(remap_users)
         } catch (e: any) {
@@ -63,7 +63,7 @@ const EditModal = () => {
         if (inputRef.current['user_id']) {
             let current_user: OptionType[] = []
             if (currentWarehouse) {
-                const user_to_filter = currentWarehouse?.users.length ? currentWarehouse?.users?.map((user: { [key: string]: any }) => user.name) : []
+                const user_to_filter = currentWarehouse?.users.length ? currentWarehouse?.users?.map((user: { [key: string]: any }) => user.id) : []
                 current_user = users.filter(user => user_to_filter.includes(user.value))
             }
             const userSelectInstance = inputRef.current['user_id'] as SelectInstance<OptionType, true>
