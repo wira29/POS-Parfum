@@ -3,7 +3,7 @@ import { MainLayout } from "@/views/layouts/MainLayout";
 import DiscountIndex from "@/views/pages/discount";
 import { NotFoundPage } from "@/views/pages/errors";
 import { Home } from "@/views/pages/home";
-import { CategoryIndex, Dashboard, LoginPage, OutletIndex, ProductCreate, ProductEdit, ProductIndex, UserPage, VariantIndex, WarehouseIndex, WarehouseShow } from "@/views/pages/pages";
+import { CategoryIndex, Dashboard, LoginPage, OutletIndex, ProductCreate, ProductEdit, ProductIndex, ProductShow, UserPage, VariantIndex, WarehouseIndex, WarehouseShow } from "@/views/pages/pages";
 import { createBrowserRouter } from "react-router-dom";
 
 export const router = createBrowserRouter([
@@ -28,6 +28,10 @@ export const router = createBrowserRouter([
                     {
                         path: "products/create",
                         element: <ProductCreate />
+                    }, 
+                    {
+                        path: "products/:id",
+                        element: <ProductShow />
                     }, 
                     {
                         path: "products/:id/edit",

@@ -44,6 +44,9 @@ export const ProductIndex = () => {
                             </a>
                             <ul className="dropdown-menu" aria-labelledby="dropdownMenuButton" style={{ "zIndex": 100, "position": "absolute", "top": "100%", "left": "0", "transform": "translateY(-100%)" }}>
                               <li>
+                                <Link to={"/products/"+product.id} className="dropdown-item d-flex align-items-center gap-3"><i className="fs-4 ti ti-eye"></i> Detail</Link>
+                              </li>
+                              <li>
                                 <Link to={"/products/"+product.id+"/edit"} className="dropdown-item d-flex align-items-center gap-3"><i className="fs-4 ti ti-edit"></i> Ubah</Link>
                               </li>
                               <li>
