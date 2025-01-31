@@ -44,8 +44,6 @@ const EditModal = () => {
     }
 
     const firstLoad = async () => {
-        await getUsers()
-
         formRef.current['name'] = currentWarehouse?.name || ''
         formRef.current['address'] = currentWarehouse?.address || ''
         formRef.current['telp'] = currentWarehouse?.telp || ''
@@ -73,6 +71,11 @@ const EditModal = () => {
 
     useEffect(() => {
         firstLoad()
+    }, [users])
+
+    useEffect(() => {
+        firstLoad()
+        getUsers()
     }, [currentWarehouse])
 
     return (

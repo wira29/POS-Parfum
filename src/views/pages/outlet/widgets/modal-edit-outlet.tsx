@@ -20,7 +20,7 @@ export const ModalEditOutlet = () => {
 
     const getUsers = async() => {
         try {
-            const res = await apiClient.get('users/no-paginate?outlet=false&outlet_id='+currentOutlet?.id)
+            const res = await apiClient.get('users/v2/no-paginate?outlet=true&outlet_id='+currentOutlet?.id)
             const remap_users = res.data.data.map((user:any) => ({label: user.name, value: user.id}))
             setUsers(remap_users)
         } catch(e:any) {
@@ -49,8 +49,6 @@ export const ModalEditOutlet = () => {
     }, [])
 
     const firstLoad = async () => {
-        await getUsers()
-
         formRef.current['name'] = currentOutlet?.name || ''
         formRef.current['address'] = currentOutlet?.address || ''
         formRef.current['telp'] = currentOutlet?.telp || ''
@@ -68,8 +66,9 @@ export const ModalEditOutlet = () => {
         if(inputRef.current['user_id']) {
             let current_user:OptionType[] = []
             if(currentOutlet) {
-                const user_to_filter = currentOutlet?.users.length ? currentOutlet?.users?.map((user:{[key:string]:any}) => user.name) : []
+                const user_to_filter = currentOutlet?.users.length ? currentOutlet?.users?.map((user:{[key:string]:any}) => user.id) : []
                 current_user = users.filter(user => user_to_filter.includes(user.value))
+                console.log({currentOutlet, current_user, user_to_filter, users})
             }
             const userSelectInstance = inputRef.current['user_id'] as SelectInstance<OptionType, true>
             userSelectInstance.setValue(current_user, 'select-option')
@@ -78,6 +77,10 @@ export const ModalEditOutlet = () => {
     
     useEffect(() => {
         firstLoad()
+    }, [users])
+    useEffect(() => {
+        firstLoad()
+        getUsers()
     }, [currentOutlet])
 
     return (
