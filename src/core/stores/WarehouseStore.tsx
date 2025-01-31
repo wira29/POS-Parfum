@@ -117,7 +117,6 @@ export const useWarehouseStore = create<WarehouseStoreType>()((set, get) => ({
                 warehouse: res.data.data,
                 isFailure: true
             }))
-            console.log({res})
         }).catch(() => {
             set(() => ({
                 isLoading: false,
