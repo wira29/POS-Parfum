@@ -4,6 +4,7 @@ import { TMultiSelect } from "@/core/interface/input-interface"
 import { NormalTextInput } from "@/views/components/Input/NormalTextInput"
 import { ZodFormattedError } from "zod"
 import { addProductType } from "../schema"
+import { useProductStore } from "@/core/stores/ProductStore"
 
 type props = {
     variants: TMultiSelect,
@@ -17,12 +18,25 @@ type props = {
 }
 export const EditRepeater = ({variants, categories, datas, setVariants, setCategories, setDatas, baseData, errors}:props) => {
 
+    const {deleteDetail} = useProductStore()
+
     const handleAddRepeat = () => {
         setDatas((old_data) => [...old_data, baseData])
     }
 
-    const handleRemoveRepeat = (index:number) => {
-        setDatas((old_data) => old_data.filter((_, idx) => idx !== index))
+    const handleRemoveRepeat = async (index:number) => {
+        console.log(datas[index])
+        if(datas[index].product_detail_id) {
+            try {
+                const success_delete = await deleteDetail(datas[index].product_detail_id)
+                if(success_delete) setDatas((old_data) => old_data.filter((_, idx) => idx !== index))
+                else throw new Error("Batal menghapus detail")
+            } catch ($e:any) {
+                console.error($e)
+            }
+        } else {
+            setDatas((old_data) => old_data.filter((_, idx) => idx !== index))
+        }
     }
 
     const handleChangeValue = (index:number, key:string, value: any) => {

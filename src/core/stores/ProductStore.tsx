@@ -25,6 +25,7 @@ type ProductStoreType = {
     firstGet: () => void,
     updateProduct: (form: any, id: string|number) => Promise<void>,
     setCurrentProduct: (product: any) => void,
+    deleteDetail: (id:string|number) => Promise<boolean>,
 }
 
 const apiClient = useApiClient()
@@ -87,6 +88,27 @@ export const useProductStore = create<ProductStoreType>()((set, get) => ({
                 })
             }
         })
+    },
+    deleteDetail: async (id) => {
+        const result = await Swal.fire({
+            title: "Apakah anda yakin?",
+            text: "Data detail produk akan dihapus!",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal',
+        })
+        if (result.isConfirmed) {
+            try {
+                const res = await apiClient.delete('product-details/'+id)
+                Toaster('success', res.data.message)
+                return true
+            } catch(err:any) {
+                Toaster('error', err.response.data.message || "Gagal menghapus detail produk")
+                return false
+            }
+        }
+        return false
     },
     getProducts: () => {
         set(() => ({isLoading: true}))
