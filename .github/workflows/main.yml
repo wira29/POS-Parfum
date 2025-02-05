@@ -19,11 +19,11 @@ jobs:
     - name: Setup SSH Key
       run: |
         set -x
-        ssh-keyscan -H ${{ secrets.SSH_HOST }} 2>&1 || echo "ssh-keyscan gagal"
+        ssh-keyscan -p 2212 -H ${{ secrets.SSH_HOST }} 2>&1 || echo "ssh-keyscan gagal"
         mkdir -p /home/runner/.ssh
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+        ssh-keyscan -p 2212 -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
     - name: Deploy ke Server
       run: |
