@@ -18,6 +18,7 @@ jobs:
 
     - name: Setup SSH Key
       run: |
+        set -x
         mkdir -p /home/runner/.ssh
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
