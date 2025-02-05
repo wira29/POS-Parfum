@@ -32,7 +32,6 @@ jobs:
         git pull origin setting-template
         npm install
         npm run build
-        pm2 restart all  # Jika pakai PM2, sesuaikan jika pakai layanan lain
         EOF
 
     - name: FTP Deploy
