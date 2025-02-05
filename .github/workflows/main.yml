@@ -27,7 +27,7 @@ jobs:
 
     - name: Deploy ke Server
       run: |
-        ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+        ssh -p 2212 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
         cd /www/wwwroot/pos-parfum
         git pull origin setting-template
         npm install
