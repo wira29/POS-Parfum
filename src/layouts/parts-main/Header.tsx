@@ -1,8 +1,7 @@
 import { useLayoutStore } from '@/lib/stores/LayoutStore'
-import { useEffect } from 'react'
+import { Dropdown } from 'flowbite-react'
 import { BsFilterLeft } from 'react-icons/bs'
 import { Link } from 'react-router-dom'
-import { Dropdown } from 'flowbite-react'
 
 export const Header = () => {
     const {setNavOpen} = useLayoutStore()

@@ -1,27 +1,24 @@
-import { DataTable } from "primereact/datatable"
-import { Column } from "primereact/column"
-import { SyntheticEvent, useEffect, useState } from "react"
-import axios from 'axios'
+import { Button } from "@/components/Button"
 import { InputWithIcon } from "@/components/InputWithIcon"
-import { HiSearch } from 'react-icons/hi'
 import { product } from '@/lib/data/product'
 import { numberBodyTemplate } from '@/lib/helpers/TestHelper'
-import { Button } from "@/components/Button"
-import { HiEye } from 'react-icons/hi'
-import { FaHistory, FaImage } from 'react-icons/fa'
 import { Modal } from "flowbite-react"
+import { Column } from "primereact/column"
+import { DataTable } from "primereact/datatable"
+import { SyntheticEvent, useState } from "react"
+import { FaHistory, FaImage } from 'react-icons/fa'
+import { HiEye, HiSearch } from 'react-icons/hi'
 
 export const ProductIndex = () => {
 
-    const [pageData, setPageData] = useState({})
-    const [search, setSearch] = useState('')
+    const [_, setSearch] = useState('')
     const [imgLoaded, setImgLoaded] = useState(false)
     const [openModalDetail, setOpenModalDetail] = useState(false)
     const [openModalHistory, setOpenModalHistory] = useState(false)
 
     const arrayFill = Array(7).fill('')
 
-    const actionBodyTemplate = (rowData, column) => {
+    const actionBodyTemplate = () => {
         return (
             <div className='flex gap-2 items-center'>
                 <Button color='light-primary' type='button' onClick={() => setOpenModalHistory(true)}><FaHistory /></Button>

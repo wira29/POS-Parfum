@@ -1,8 +1,8 @@
-export const FormatError = (errors) => {
-    const reformatted = {};
+export const FormatError = (errors: { path: string[]; message: string }[]) => {
+    const reformatted: Record<string, string[]> = {};
     
-    errors.forEach(error => {
-        error.path.forEach(field => {
+    errors.forEach((error) => {
+        error.path.forEach((field) => {
         if (!reformatted[field]) {
             reformatted[field] = [];
         }
