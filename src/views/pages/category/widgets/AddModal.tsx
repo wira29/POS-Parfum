@@ -53,7 +53,7 @@ const AddModal = () => {
 }
 
 export const BtnAddModal = () => {
-    return (<button className="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#modal-add-category">Tambah Kategori</button>)
+    return (<button className="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#modal-add-category">Tambah Kategori</button>)
 }
 
 export default AddModal;

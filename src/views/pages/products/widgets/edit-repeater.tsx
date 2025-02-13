@@ -4,6 +4,7 @@ import { TMultiSelect } from "@/core/interface/input-interface"
 import { NormalTextInput } from "@/views/components/Input/NormalTextInput"
 import { ZodFormattedError } from "zod"
 import { addProductType } from "../schema"
+import { useProductStore } from "@/core/stores/ProductStore"
 
 type props = {
     variants: TMultiSelect,
@@ -17,12 +18,25 @@ type props = {
 }
 export const EditRepeater = ({variants, categories, datas, setVariants, setCategories, setDatas, baseData, errors}:props) => {
 
+    const {deleteDetail} = useProductStore()
+
     const handleAddRepeat = () => {
         setDatas((old_data) => [...old_data, baseData])
     }
 
-    const handleRemoveRepeat = (index:number) => {
-        setDatas((old_data) => old_data.filter((_, idx) => idx !== index))
+    const handleRemoveRepeat = async (index:number) => {
+        console.log(datas[index])
+        if(datas[index].product_detail_id) {
+            try {
+                const success_delete = await deleteDetail(datas[index].product_detail_id)
+                if(success_delete) setDatas((old_data) => old_data.filter((_, idx) => idx !== index))
+                else throw new Error("Batal menghapus detail")
+            } catch ($e:any) {
+                console.error($e)
+            }
+        } else {
+            setDatas((old_data) => old_data.filter((_, idx) => idx !== index))
+        }
     }
 
     const handleChangeValue = (index:number, key:string, value: any) => {
@@ -48,7 +62,7 @@ export const EditRepeater = ({variants, categories, datas, setVariants, setCateg
                                     <NormalTextInput label={{ title: "Unit" }} handleChangeValue={(value) => {handleChangeValue(index, "unit", value)}} value={data.unit} parent={{ className:"col-md-3 col-sm-6 form-group mb-2" }} placeholder="Unit" errors={errors?.product_details?.[index]?.unit}/>
                                     <NormalTextInput label={{ title: "Kapasitas" }} handleChangeValue={(value) => {handleChangeValue(index, "capacity", value)}} value={data.capacity} parent={{ className:"col-md-3 col-sm-6 form-group mb-2" }} placeholder="Kapasitas" regex={/^\d+/} errors={errors?.product_details?.[index]?.capacity} />
                                     <NormalTextInput label={{ title: "Berat" }} handleChangeValue={(value) => {handleChangeValue(index, "weight", value)}} value={data.weight} parent={{ className:"col-md-3 col-sm-6 form-group mb-2" }} placeholder="Berat" regex={/^\d+/} errors={errors?.product_details?.[index]?.weight} />
-                                    <NormalTextInput label={{ title: "Density" }} handleChangeValue={(value) => {handleChangeValue(index, "density", value)}} value={data.density} parent={{ className:"col-md-3 col-sm-6 form-group mb-2" }} placeholder="Density" regex={/^\d+/} errors={errors?.product_details?.[index]?.density} />
+                                    <NormalTextInput label={{ title: "Kekentalan" }} handleChangeValue={(value) => {handleChangeValue(index, "density", value)}} value={data.density} parent={{ className:"col-md-3 col-sm-6 form-group mb-2" }} placeholder="Density" regex={/^\d+/} errors={errors?.product_details?.[index]?.density} />
                                     <NormalTextInput label={{ title: "Harga" }} handleChangeValue={(value) => {handleChangeValue(index, "price", value)}} value={data.price} parent={{ className:"col-md-3 col-sm-6 form-group mb-2" }} placeholder="Harga" regex={/^\d+/} errors={errors?.product_details?.[index]?.price} />
                                     {/* <NormalTextInput label={{ title: "Harga Diskon" }} handleChangeValue={(value) => {handleChangeValue(index, "price_discount", value)}} value={data.price_discount} parent={{ className:"col-md-3 col-sm-6 form-group mb-2" }} placeholder="Harga Diskon" regex={/^\d+/} /> */}
                                 </div>

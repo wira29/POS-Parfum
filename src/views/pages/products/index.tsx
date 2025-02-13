@@ -14,7 +14,7 @@ export const ProductIndex = () => {
 
   return (
     <div>
-      <Breadcrumb title="Produk" desc="List produk yang ada pada toko anda" button={<Link to={'/products/create'} className="btn btn-primary">Tambah Produk</Link>} />
+      <Breadcrumb title="Produk" desc="List produk yang ada pada toko anda" button={<Link to={'/products/create'} className="mt-2 btn btn-primary">Tambah Produk</Link>} />
       <div className='card rounded-lg'>
         <div className="card-body">
           <div className="mb-4 border rounded-1">
@@ -43,6 +43,9 @@ export const ProductIndex = () => {
                               <i className="ti ti-dots-vertical fs-6"></i>
                             </a>
                             <ul className="dropdown-menu" aria-labelledby="dropdownMenuButton" style={{ "zIndex": 100, "position": "absolute", "top": "100%", "left": "0", "transform": "translateY(-100%)" }}>
+                              <li>
+                                <Link to={"/products/"+product.id} className="dropdown-item d-flex align-items-center gap-3"><i className="fs-4 ti ti-eye"></i> Detail</Link>
+                              </li>
                               <li>
                                 <Link to={"/products/"+product.id+"/edit"} className="dropdown-item d-flex align-items-center gap-3"><i className="fs-4 ti ti-edit"></i> Ubah</Link>
                               </li>

@@ -77,7 +77,7 @@ const AddModal = () => {
 
 export const BtnAddModal = () => {
     return (
-        <button className="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#add-warehouse-modal">Tambah Gudang</button>
+        <button className="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#add-warehouse-modal">Tambah Gudang</button>
     )
 }
 

@@ -87,5 +87,5 @@ export default function AddDiscountModal() {
 }
 
 export const BtnAddDiscountModal = () => {
-    return <button className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add-discount-modal">+ Tambah</button>
+    return <button className="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#add-discount-modal">+ Tambah</button>
 }

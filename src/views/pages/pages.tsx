@@ -4,6 +4,7 @@ export { OutletIndex as OutletIndex } from "./outlet";
 export { ProductIndex as ProductIndex } from "./products";
 export { ProductCreate as ProductCreate } from "./products/create";
 export { ProductEdit as ProductEdit } from "./products/edit";
+export {ProductShow as ProductShow} from './products/show'
 export { WarehouseIndex as WarehouseIndex } from "./warehouse";
 export { default as WarehouseShow } from './warehouse/show'
 export { default as UserPage} from './users'

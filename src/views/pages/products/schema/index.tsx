@@ -34,7 +34,7 @@ export const editProductSchema = z.object({
     ),
     product_details: z.array(
         z.object({
-            id: z.string().min(1, 'harus diisi').or(z.number().min(1, 'harus diisi')).optional(),
+            product_detail_id: z.string().min(1, 'harus diisi').or(z.number().min(1, 'harus diisi')).optional(),
             category_id: z.string().min(1, 'harus diisi').or(z.number().min(1, 'harus diisi')),
             product_varian_id: z.string().min(1, 'harus diisi').or(z.number().min(1, 'harus diisi')),
             material: z.string().min(1, 'harus diisi'),

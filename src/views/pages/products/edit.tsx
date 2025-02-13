@@ -38,10 +38,14 @@ export const ProductEdit = () => {
     const getProductDetail = () => {
         apiClient.get("products/"+id).then(res => {
             const { details, ...new_product } = res.data.data
-            new_product['product_details'] = details
+            const mapped_details = details.map(({id, ...rest}:{[key:string]:any}) => ({
+                product_detail_id: id,
+                ...rest
+            }))
+            new_product['product_details'] = mapped_details
             setProduct(new_product)
             formRef.current = new_product
-            setDetails(details)
+            setDetails(mapped_details)
         }).catch((err) => {
             Toaster('error', err.response.data.message)
             navigate('/products')
@@ -127,7 +131,7 @@ export const ProductEdit = () => {
     
     return (
         <>
-            <Breadcrumb title="Tambah Produk" desc="Tambah produk di toko anda" />
+            <Breadcrumb title="Ubah Produk" desc="Ubah produk di toko anda" />
             <form onSubmit={handleSubmit}>
                 <div className="card">
                     <div className="card-header">
