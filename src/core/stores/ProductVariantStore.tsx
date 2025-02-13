@@ -71,7 +71,7 @@ export const useProductVariantStore = create<ProductVariantStoreType>()((set, ge
             icon: 'question'
         }).then((result) => {
             if (result.isConfirmed) {
-                apiClient.delete('product-variants/'+id)
+                apiClient.delete('variants/'+id)
                 .then(res => {
                     Toaster('success', res.data.message)
                     get().getVariants()

@@ -47,7 +47,7 @@ export const VariantIndex = () => {
                               <BtnEditModal onClick={() => setCurrentVariant(variant)} />
                             </li>
                             <li>
-                              <button type="button" className="dropdown-item d-flex align-items-center gap-3" onClick={() => deleteVariant(variant)}>
+                              <button type="button" className="dropdown-item d-flex align-items-center gap-3" onClick={() => deleteVariant(variant.id)}>
                                 <i className="fs-4 ti ti-trash"></i>Hapus
                               </button>
                             </li>
