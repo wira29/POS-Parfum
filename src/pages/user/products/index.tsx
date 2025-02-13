@@ -85,7 +85,7 @@ export const ProductIndex = () => {
                     <table className="dt-custom w-full">
                         <tbody>
                             {
-                                arrayFill.map((data, index) => (
+                                arrayFill.map((_, index) => (
                                     <tr key={index}>
                                         <td>
                                             <div className="flex items-center gap-2">
