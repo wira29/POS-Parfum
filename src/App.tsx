@@ -1,11 +1,11 @@
 import { router } from "@/core/router"
+import $ from "jquery"
 import { useEffect } from "react"
 import { RouterProvider } from "react-router-dom"
 import { getToken } from "./core/helpers/TokenHandle"
 import { useAuthStore } from "./core/stores/AuthStore"
 
-import $ from "jquery"
-
+// jquery 
 window.$ = $;
 window.jQuery = $;
 
