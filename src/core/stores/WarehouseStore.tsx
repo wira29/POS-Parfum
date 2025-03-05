@@ -73,7 +73,10 @@ export const useWarehouseStore = create<WarehouseStoreType>()((set, get) => ({
         Swal.fire({
             title: "Apakah anda yakin?",
             text: "Data outlet akan dihapus!",
-            icon: 'question'
+            icon: 'question',
+            confirmButtonText: 'Yakin',
+            cancelButtonText: 'Batal',
+            showCancelButton: true,
         }).then((result) => {
             if (result.isConfirmed) {
                 apiClient.delete('warehouses/'+id)
