@@ -14,6 +14,7 @@ type PropTypes = {
     onlyNumber?: boolean;
     placeholder?: string;
     inputType?: string;
+    startText?: string;
 };
 
 const Textfield = forwardRef<HTMLInputElement | null, PropTypes>(
@@ -30,6 +31,7 @@ const Textfield = forwardRef<HTMLInputElement | null, PropTypes>(
             placeholder,
             onlyNumber = false,
             inputType = "text",
+            startText
         }: PropTypes,
         ref
     ) => {
@@ -46,16 +48,19 @@ const Textfield = forwardRef<HTMLInputElement | null, PropTypes>(
                 <label className="form-label mb-0">
                     {title} {isRequired && <Required />}
                 </label>
-                <input
-                    type={inputType}
-                    onChange={handleChange}
-                    name={name}
-                    data-only-number={onlyNumber}
-                    className={errors?.[name]?._errors.length ? "form-control is-invalid" : "form-control"}
-                    placeholder={placeholder}
-                    ref={ref}
-                    value={formRef.current?.[name]}
-                />
+                <div className="input-group">
+                    {startText && <div className="input-group-text">{startText}</div>}
+                    <input
+                        type={inputType}
+                        onChange={handleChange}
+                        name={name}
+                        data-only-number={onlyNumber}
+                        className={errors?.[name]?._errors.length ? "form-control is-invalid" : "form-control"}
+                        placeholder={placeholder}
+                        ref={ref}
+                        value={formRef.current?.[name]}
+                    />
+                </div>
                 {errors?.[name]?._errors.length && (
                     <small className="form-text text-danger">
                         {errors?.[name]?._errors[0]}
