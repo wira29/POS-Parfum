@@ -63,7 +63,7 @@ export const ProductShow = () => {
                                                 ?  product.details.map((detail:{[key:string]:any}, index:number) => (
                                                     <tr key={index}>
                                                         <td className="text-nowrap">{detail.category_id}</td>
-                                                        <td className="text-nowrap">{detail.product_varian_id}</td>
+                                                        <td className="text-nowrap">{detail.varian?.name}</td>
                                                         <td className="text-nowrap">{detail.material}</td>
                                                         <td className="text-nowrap">{detail.unit}</td>
                                                         <td className="text-nowrap">{formatNum(detail.capacity, true)}</td>
