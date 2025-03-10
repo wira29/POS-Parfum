@@ -77,7 +77,7 @@ export const NormalCreateableDropdown = (
                     styles={{
                         control: (base) => ({
                             ...base,
-                            borderColor: ("var(--bs-border-color)"),
+                            borderColor: (errors?._errors.length ? "var(--bs-danger)" : "var(--bs-border-color)"),
                         }),
                         multiValue: (provided) => ({
                             ...provided,

@@ -64,7 +64,7 @@ export const useUserStore = create<UserStoreType>()((set, get) => ({
     updateUser: async (id, form) => {
         set(() => ({isLoading: true, failure: null}))
         try {
-            const res:any = await apiClient.put('/users/'+id, form.current, {
+            const res:any = await apiClient.post('/users/'+id, form.current, {
                 headers: {
                     "Content-Type": 'multipart/form-data'
                 }

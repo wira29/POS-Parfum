@@ -11,6 +11,7 @@ import { ButtonWithLoading } from "@/views/components/Button/ButtonWithLoading";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { CreateRepeater } from "./widgets/create-repeater";
 import { Link, useNavigate } from "react-router-dom";
+import { NormalCreateableDropdown } from "@/views/components/Input/NormalCreatableDropdown";
 
 export const ProductCreate = () => {
     const navigate = useNavigate()
@@ -19,7 +20,6 @@ export const ProductCreate = () => {
         product_details: [],
     });
     const base_detail_data = {
-        category_id: "",
         product_varian_id: "",
         material: "",
         unit: "",
@@ -117,6 +117,7 @@ export const ProductCreate = () => {
                             <div className="tab-pane active" id="form-product" role="tabpanel">
                                 <InputImage setErrors={setErrors} schema={addProductSchema} formRef={formRef} name="image" errors={errors} col="" title="Gambar Produk" isRequired={false} />
                                 <Textfield setErrors={setErrors} schema={addProductSchema} formRef={formRef} name="name" errors={errors} col="" title="Nama Produk" isRequired={true} placeholder="Nama Produk" />
+                                <NormalCreateableDropdown pa options={categories} setOptions={setCategories} label={{ title: "Kategori" }} handleChangeValue={(value) => {formRef.current.category_id = value}} idValue={formRef.current.category_id} parent={{ className:"w-100 form-group mb-2" }} errors={errors?.category_id} />
                                 <Dropdown isMulti={false} isRequired={true} title="Tipe Satuan" formRef={formRef} name="unit_type" errors={errors} col="" options={unitOptions} setErrors={setErrors} schema={addProductSchema} />
                             </div>
                             <div className="tab-pane" id="form-details" role="tabpanel">

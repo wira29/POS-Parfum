@@ -61,11 +61,13 @@ export const useProductStore = create<ProductStoreType>()((set, get) => ({
                     'Content-Type':'multipart/form-data'
                 }
             })
-            set(() => ({isFailure: false, isLoading: false}))
+            set(() => ({isFailure: false}))
             Toaster('success', response.data.message)
         } catch (err:any) {
-            set(() => ({isLoading: false, isFailure: true}))
+            set(() => ({isFailure: true}))
             Toaster('error', err.response.data.message)
+        } finally {
+            set(() => ({isLoading: false}))
         }
     },
     deleteProduct: (id) => {

@@ -14,7 +14,7 @@ export const ModalEditUser = () => {
 
     const {updateUser, isLoading, isFailure, currentUser} = useUserStore()
 
-    const formRef = useRef<{[key:string]:string|string[]}>({})
+    const formRef = useRef<{[key:string]:string|string[]}>({"_method": "PUT"})
     const inputRef = useRef<{[key:string]:HTMLInputElement|null|SelectInstance<OptionType, true>}>({})
     const [errors, setErrors] = useState<ZodFormattedError<{name: string}, string>>()
 

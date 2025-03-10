@@ -9,9 +9,10 @@ export const addProductSchema = z.object({
         .refine((file) => ['image/png', 'image/jpeg'].includes(file.type), {message: 'format harus PNG atau JPEG'})
         .refine((file) => file.size <= 1024 * 1024, {message: "tidak boleh lebih dari 1MB"}),
     ),
+    category_id: z.string().min(1, 'harus diisi').or(z.number().min(1, 'harus diisi')),
     product_details: z.array(
         z.object({
-            category_id: z.string().min(1, 'harus diisi').or(z.number().min(1, 'harus diisi')),
+            // category_id: z.string().min(1, 'harus diisi').or(z.number().min(1, 'harus diisi')),
             product_varian_id: z.string().min(1, 'harus diisi').or(z.number().min(1, 'harus diisi')),
             material: z.string().min(1, 'harus diisi'),
             unit: z.string().min(1, 'harus diisi'),
@@ -27,6 +28,7 @@ export const editProductSchema = z.object({
     name: z.string().min(1, 'harus diisi'),
     unit_type: z.string().min(1, 'harus diisi'),
     qr_code: z.string().min(0, 'minimal 1 karakter').optional().nullable(),
+    category_id: z.string().min(1, 'harus diisi').or(z.number().min(1, 'harus diisi')),
     image: z.nullable(
         z.instanceof(File, {message: 'tidak boleh kosong'})
         .refine((file) => ['image/png', 'image/jpeg'].includes(file.type), {message: 'format harus PNG atau JPEG'})
@@ -35,7 +37,7 @@ export const editProductSchema = z.object({
     product_details: z.array(
         z.object({
             product_detail_id: z.string().min(1, 'harus diisi').or(z.number().min(1, 'harus diisi')).optional(),
-            category_id: z.string().min(1, 'harus diisi').or(z.number().min(1, 'harus diisi')),
+            // category_id: z.string().min(1, 'harus diisi').or(z.number().min(1, 'harus diisi')),
             product_varian_id: z.string().min(1, 'harus diisi').or(z.number().min(1, 'harus diisi')),
             material: z.string().min(1, 'harus diisi'),
             unit: z.string().min(1, 'harus diisi'),
