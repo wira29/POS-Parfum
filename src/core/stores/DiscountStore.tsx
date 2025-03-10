@@ -75,7 +75,7 @@ export const useDiscountStore = create<DiscountStoreType>()((set, get) => ({
             icon: 'question'
         }).then((result) => {
             if (result.isConfirmed) {
-                apiClient.delete('discounts/'+id)
+                apiClient.delete('discount-vouchers/'+id)
                 .then(res => {
                     Toaster('success', res.data.message)
                     get().getDiscounts()
