@@ -68,7 +68,10 @@ export const useProductVariantStore = create<ProductVariantStoreType>()((set, ge
         Swal.fire({
             title: "Apakah anda yakin?",
             text: "Data variant akan dihapus!",
-            icon: 'question'
+            icon: 'question',
+            showCancelButton: true,
+            cancelButtonText: "Tidak",
+            confirmButtonText: "Ya"
         }).then((result) => {
             if (result.isConfirmed) {
                 apiClient.delete('variants/'+id)

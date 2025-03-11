@@ -37,7 +37,7 @@ const EditModal = () => {
             <div className="modal-dialog">
                 <form onSubmit={handleSubmit} className="modal-content">
                     <div className="modal-header d-flex align-items-center">
-                        <h4 className="modal-title">Tambah Varian</h4>
+                        <h4 className="modal-title">Ubah Varian</h4>
                         <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div className="modal-body">
@@ -45,7 +45,7 @@ const EditModal = () => {
                     </div>
                     <div className="modal-footer">
                         <button type="button" className="btn btn-muted" data-bs-dismiss="modal">Batal</button>
-                        <ButtonWithLoading type={'submit'} loading={isLoading} className="btn btn-primary" disabled={isLoading}>Tambah</ButtonWithLoading>
+                        <ButtonWithLoading type={'submit'} loading={isLoading} className="btn btn-primary" disabled={isLoading}>Ubah</ButtonWithLoading>
                     </div>
                 </form>
             </div>

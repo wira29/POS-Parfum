@@ -2,7 +2,7 @@ import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { Pagination } from "@/views/components/Pagination";
 import AddModal, { BtnAddModal } from "./widgets/AddModal";
 import { useProductVariantStore } from "@/core/stores/ProductVariantStore";
-import { BtnEditModal } from "./widgets/EditModal";
+import EditModal, { BtnEditModal } from "./widgets/EditModal";
 import { useEffect } from "react";
 
 export const VariantIndex = () => {
@@ -16,6 +16,7 @@ export const VariantIndex = () => {
     <div>
       <Breadcrumb title="Varian" desc="List varian untuk produk pada toko anda" button={<BtnAddModal />} />
       <AddModal />
+      <EditModal />
       <div className='card rounded-lg'>
         <div className="card-body">
           <div className="mb-4 border rounded-1 row">
