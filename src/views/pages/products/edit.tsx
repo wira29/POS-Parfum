@@ -78,6 +78,7 @@ export const ProductEdit = () => {
     // form & handler
     const { isLoading, setLoading, isFailure, updateProduct } = useProductStore()
     const formRef = useRef<any>({
+        image: null,
         product_details: [],
     });
     const base_detail_data = {

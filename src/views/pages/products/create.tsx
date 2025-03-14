@@ -17,6 +17,7 @@ export const ProductCreate = () => {
     const navigate = useNavigate()
     const { isLoading, setLoading, createProduct, isFailure } = useProductStore()
     const formRef = useRef<any>({
+        image: null,
         product_details: [],
     });
     const base_detail_data = {
