@@ -1,7 +1,7 @@
 import { SidebarItem } from './SidebarItem'
 import { Link } from "react-router-dom"
 import { useLayoutStore } from "@/core/stores/LayoutStore"
-import { ownerMenu } from '@/core/data/data_sidebar'
+import { ownerMenu, outletMenu, warehouseMenu } from '@/core/data/data_sidebar'
 import { useEffect, useState } from 'react'
 import { TNavItem } from '@/core/interface/sidebar-interface'
 import { useAuthStore } from '@/core/stores/AuthStore'
@@ -14,11 +14,9 @@ export const Sidebar = () => {
     const [menuList, setMenuList] = useState<TNavItem[]>([])
 
     useEffect(() => {
-        if(isRoleCanAccess('owner')){
-            setMenuList(ownerMenu)
-        } else {
-            // setMenuList(ownerMenu)
-        }
+        if(isRoleCanAccess('owner')) setMenuList(ownerMenu)
+        else if(isRoleCanAccess('warehouse')) setMenuList(warehouseMenu)
+        else if(isRoleCanAccess('outlet')) setMenuList(outletMenu)
     })
 
     return (

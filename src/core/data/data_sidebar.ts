@@ -108,3 +108,47 @@ export const ownerMenu:TNavItem[] = [
         ]
     }
 ]
+
+export const outletMenu:TNavItem[] = [
+    {
+        title: 'home',
+        navItem: [
+            {
+                label: 'Dashboard',
+                icon: IoGrid,
+                url: '/dashboard'
+            },
+        ]
+    }, {
+        title: 'management',
+        navItem: [
+            {
+                label: 'Produk',
+                icon: IoStorefront,
+                url: '/products'
+            },
+        ]
+    }
+]
+
+export const warehouseMenu:TNavItem[] = [
+    {
+        title: 'home',
+        navItem: [
+            {
+                label: 'Dashboard',
+                icon: IoGrid,
+                url: '/dashboard'
+            },
+        ]
+    }, {
+        title: 'management',
+        navItem: [
+            {
+                label: 'Permintaan Restock',
+                icon: IoStorefront,
+                url: '/restock'
+            },
+        ]
+    }
+]
