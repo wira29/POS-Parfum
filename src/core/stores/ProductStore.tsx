@@ -14,6 +14,7 @@ type ProductStoreType = {
     per_page: number,
     search: string,
     current_product?: {[key:string]:any},
+    custom_query: string,
 
     setLoading: (current_loading: boolean) => void,
     createProduct: (form: any) => Promise<void>,
@@ -22,6 +23,7 @@ type ProductStoreType = {
     setPage: (page:number) => void,
     setPerPage: (per_page:number) => void,
     setSearch: (search:string) => void,
+    setCustomQuery: (query:string) => void,
     firstGet: () => void,
     updateProduct: (form: any, id: string|number) => Promise<void>,
     setCurrentProduct: (product: any) => void,
@@ -38,6 +40,7 @@ export const useProductStore = create<ProductStoreType>()((set, get) => ({
     page: 1,
     per_page: 10,
     search: '',
+    custom_query: '',
     current_product: undefined,
 
     setLoading: (current_loading) => set(() => ({isLoading: current_loading})),
@@ -51,6 +54,10 @@ export const useProductStore = create<ProductStoreType>()((set, get) => ({
     },
     setSearch: (search) => {
         set(() => ({search}))
+        get().getProducts()
+    },
+    setCustomQuery: (query) => {
+        set(() => ({ custom_query: query }))
         get().getProducts()
     },
     createProduct: async (form) => {
@@ -114,13 +121,11 @@ export const useProductStore = create<ProductStoreType>()((set, get) => ({
     },
     getProducts: () => {
         set(() => ({isLoading: true}))
-        apiClient.get(`/products?per_page=${get().per_page}&page=${get().page}&search=${get().search}`).then((res) => {
+        apiClient.get(`/products?per_page=${get().per_page}&page=${get().page}&search=${get().search}&${get().custom_query}`).then((res) => {
             set(() => ({isLoading: false}))
             var products = res.data.data
             var pagination = res.data.pagination
-
-            console.log({products})
-
+            
             set(() => ({
                 isLoading: false, 
                 products,
