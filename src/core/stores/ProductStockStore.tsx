@@ -15,6 +15,7 @@ type ProductStockStoreType = {
 
     setLoading: (current_loading: boolean) => void,
     createProductRequest: (form: any) => Promise<void>,
+    updateProductRequest: (form: any, id:string) => Promise<void>,
     getProductRequests: () => void,
     setPage: (page:number) => void,
     setPerPage: (per_page:number) => void,
@@ -54,6 +55,20 @@ export const useProductStockStore = create<ProductStockStoreType>()((set, get) =
             const response = await apiClient.post('/stock-request', data)
             set(() => ({isFailure: false}))
             Toaster('success', response.data.message)
+        } catch (err:any) {
+            set(() => ({isFailure: true}))
+            Toaster('error', err.response.data.message)
+        } finally {
+            set(() => ({isLoading: false}))
+        }
+    },
+    updateProductRequest: async (data, id) => {
+        set(() => ({isLoading: true, isFailure: false}))
+        try {
+            const response = await apiClient.post('/stock-request/'+id, {...data, _method: 'PUT'})
+            set(() => ({isFailure: false}))
+            Toaster('success', response.data.message)
+            get().getProductRequests()
         } catch (err:any) {
             set(() => ({isFailure: true}))
             Toaster('error', err.response.data.message)
