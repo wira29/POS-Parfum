@@ -1,5 +1,6 @@
 import { RoleList } from "@/core/stores/AuthStore";
 
+
 type UserType = {
     name: string,
     email: string,
