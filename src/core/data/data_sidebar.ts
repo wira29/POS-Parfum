@@ -145,9 +145,18 @@ export const warehouseMenu:TNavItem[] = [
         title: 'management',
         navItem: [
             {
-                label: 'Permintaan Restock',
+                label: 'Stock',
                 icon: IoStorefront,
-                url: '/restock'
+                url: '/request-stock',
+                children: [
+                    {
+                        label: "Permintaan Outlet",
+                        url: "/request-stock"
+                    }, {
+                        label: "Restock",
+                        url: "/restock"
+                    }
+                ]
             },
         ]
     }

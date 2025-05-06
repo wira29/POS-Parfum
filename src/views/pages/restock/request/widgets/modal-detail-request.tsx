@@ -5,9 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import moment from "moment"
 import { useEffect, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
-import { updateRequestRestockProductSchema } from "../../request-stock/schema"
-import { product } from "@/core/data/product"
-import { useProductStockStore } from "@/core/stores/ProductStockStore"
+import { updateRequestRestockProductSchema } from "../../../request-stock/schema"
+import { useProductRequestStockStore } from "@/core/stores/ProductRequestStockStore"
 
 type ComponentProps = {
     request:{[key:string]:any}|null
@@ -15,7 +14,7 @@ type ComponentProps = {
 
 export const ModalDetailRequest = ({ request }:ComponentProps) => {
 
-    const { updateProductRequest, isFailure, isLoading } = useProductStockStore()
+    const { updateProductRequest, isFailure, isLoading } = useProductRequestStockStore()
     const [isEdited, setIsEdited] = useState(false)
     const [globalKey, setGlobalKey] = useState(0)
 

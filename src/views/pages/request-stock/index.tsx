@@ -1,5 +1,5 @@
 import { OptionType } from "@/core/interface/select-option-interface";
-import { useProductStockStore } from "@/core/stores/ProductStockStore";
+import { useProductRequestStockStore } from "@/core/stores/ProductRequestStockStore";
 import { useWarehouseStore } from "@/core/stores/WarehouseStore";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
 import InputSelectLabel from "@/views/components/Input/hook-form/InputSelectLabel";
@@ -22,7 +22,7 @@ export default function RequestStockIndex() {
     const navigate = useNavigate()
 
     const { setPerPage, warehouses } = useWarehouseStore()
-    const { createProductRequest, isFailure, isLoading } = useProductStockStore()
+    const { createProductRequest, isFailure, isLoading } = useProductRequestStockStore()
     const { setPerPage: setPageProduct, products } = useProductStore()
 
     const { control, formState, handleSubmit, watch, setValue } = useForm({

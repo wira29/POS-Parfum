@@ -1,14 +1,14 @@
 import { formatNum } from "@/core/helpers/FormatNumber"
-import { useProductStockStore } from "@/core/stores/ProductStockStore"
+import { useProductRequestStockStore } from "@/core/stores/ProductRequestStockStore"
 import { Breadcrumb } from "@/views/components/Breadcrumb"
 import { Pagination } from "@/views/components/Pagination"
 import moment from "moment"
 import { useEffect, useState } from "react"
 import { BtnOpenDetailRequest, ModalDetailRequest, OpenModalDetailRequest } from "./widgets/modal-detail-request"
 
-export const RestockIndex = () => {
+export const RequestRestockIndex = () => {
 
-    const { firstGet, pagination, product_requests, setPage,  } = useProductStockStore()
+    const { firstGet, pagination, product_requests, setPage,  } = useProductRequestStockStore()
 
     const [selectedRequest, setSelectedRequest] = useState<any>(null)
 
@@ -19,7 +19,7 @@ export const RestockIndex = () => {
     return (
         <>
             <ModalDetailRequest request={selectedRequest} />
-            <Breadcrumb title="Permintaan Restock" desc="Permintaan restock dari kepala outlet" />
+            <Breadcrumb title="Permintaan Stock" desc="Permintaan stock dari kepala outlet" />
             <div className="card rounded-lg">
                 <div className="card-body">
                     <div className="mb-4 border rounded-1">

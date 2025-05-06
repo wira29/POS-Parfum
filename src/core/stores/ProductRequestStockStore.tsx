@@ -3,7 +3,7 @@ import { useApiClient } from "../helpers/ApiClient"
 import { Toaster } from "../helpers/BaseAlert"
 import { TPaginationData } from "@/views/components/Pagination"
 
-type ProductStockStoreType = {
+type ProductRequestStockStoreType = {
     isLoading: boolean,
     product_requests: any[],
     pagination: TPaginationData,
@@ -26,7 +26,7 @@ type ProductStockStoreType = {
 
 const apiClient = useApiClient()
 
-export const useProductStockStore = create<ProductStockStoreType>()((set, get) => ({
+export const useProductRequestStockStore = create<ProductRequestStockStoreType>()((set, get) => ({
     isLoading: false,
     product_requests: [],
     pagination: undefined,

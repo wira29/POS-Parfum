@@ -5,7 +5,8 @@ import { NotFoundPage } from "@/views/pages/errors";
 import { Home } from "@/views/pages/home";
 import { CategoryIndex, Dashboard, LoginPage, OutletIndex, ProductCreate, ProductEdit, ProductIndex, ProductShow, UserPage, VariantIndex, WarehouseIndex, WarehouseShow } from "@/views/pages/pages";
 import RequestStockIndex from "@/views/pages/request-stock";
-import { RestockIndex } from "@/views/pages/restock";
+import { RequestRestockIndex } from "@/views/pages/restock/request";
+import { RestockIndex } from "@/views/pages/restock/restock";
 import { createBrowserRouter } from "react-router-dom";
 
 export const router = createBrowserRouter([
@@ -72,9 +73,13 @@ export const router = createBrowserRouter([
                         element: <DiscountIndex />
                     },
                     {
+                        path: "request-stock",
+                        element: <RequestRestockIndex />
+                    },
+                    {
                         path: "restock",
                         element: <RestockIndex />
-                    }
+                    },
                 ]
             }
         ]

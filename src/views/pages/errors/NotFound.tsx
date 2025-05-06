@@ -8,7 +8,7 @@ export default function NotFound() {
             }}
         >
             <img 
-                src="/public/images/illustrations/not_found_page.svg"
+                src="/images/illustrations/not_found_page.svg"
                 alt="page not found"
                 className="mb-5"
                 style={{ 
