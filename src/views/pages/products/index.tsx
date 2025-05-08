@@ -94,7 +94,7 @@ export const ProductIndex = () => {
                                       product.details.map((detail:{[key:string]:any}, index:number) => (
                                         <tr key={index}>
                                           <td>{detail.material}</td>
-                                          <td>{formatNum(detail.stock, true)} {detail.unit}</td>
+                                          <td>{formatNum(detail.product_stock_outlet_sum_stock ?? 0, true)} {detail.unit}</td>
                                         </tr>
                                       ))
                                       : <tr><th colSpan={isRoleCanAccess('outlet') ? 3 : 2} className="text-center text-muted">-- tidak ada varian --</th></tr>
