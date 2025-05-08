@@ -1,9 +1,9 @@
-import Createable from "react-select/creatable"
-import Required from "../Required"
-import { Dispatch, SetStateAction, useEffect, useState } from "react"
-import { OptionType } from "@/core/interface/select-option-interface"
 import { TMultiSelect } from "@/core/interface/input-interface"
+import { OptionType } from "@/core/interface/select-option-interface"
+import { Dispatch, SetStateAction, useEffect, useState } from "react"
+import Createable from "react-select/creatable"
 import { ZodFormattedError } from "zod"
+import Required from "../Required"
 
 type propType = {
     isRequired?: boolean,
@@ -56,7 +56,7 @@ export const NormalCreateableDropdown = (
 
         return (
             <div className={"form-group mb-2"} {...parent}>
-                {(title || isRequired) && <label className="form-label mb-0" {...label_props}>{title} {isRequired && <Required />} </label> }
+                {(title || isRequired) && <label className="form-label mb-2" {...label_props}>{title} {isRequired && <Required />} </label> }
                 <Createable
                     isClearable
                     options={options}

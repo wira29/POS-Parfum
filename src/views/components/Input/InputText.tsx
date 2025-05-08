@@ -13,7 +13,7 @@ export const InputText = ({settings, errors}:InputPropType) => {
     return (
         <>
             <div className="form-group">
-                <label>{label} {required && <Required />}</label>
+                <label className="mb-3">{label} {required && <Required />}</label>
                 <input type="text" className={("form-control bg-white "+errorClass)} {...inputProp}/>
                 {
                     errors && errors.length &&

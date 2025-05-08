@@ -1,8 +1,8 @@
 import { Toaster } from "@/core/helpers/BaseAlert";
-import Required from "../Required";
-import { useCallback, useEffect, useState } from "react";
-import { FileError, useDropzone } from 'react-dropzone'
 import { handlerTranslateDropzone } from "@/core/helpers/ErrorDropZoneId";
+import { useCallback, useEffect, useState } from "react";
+import { FileError, useDropzone } from 'react-dropzone';
+import Required from "../Required";
 
 type PropTypes = {
     isRequired?: boolean;
@@ -76,7 +76,7 @@ const InputImage = (
 
     return (
         <div className={"form-group mb-2 " + col}>
-            <label className="form-label mb-0">
+            <label className="form-label mb-2">
                 {title} {isRequired && <Required />}
             </label>
 

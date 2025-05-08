@@ -56,6 +56,7 @@ export const LoginPage = () => {
             return navigate('/dashboard')
         }).catch((err) => {
             setLoading(false)
+            console.log(err)
             Toaster('error', err.response.data.message)
         })
     }

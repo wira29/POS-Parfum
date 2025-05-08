@@ -1,6 +1,6 @@
 import { handleInputChange } from "@/core/helpers/HandleInputChange";
-import Required from "../Required";
 import { forwardRef, useState } from "react";
+import Required from "../Required";
 
 type PropTypes = {
     isRequired?: boolean;
@@ -15,6 +15,8 @@ type PropTypes = {
     placeholder?: string;
     inputType?: string;
     startText?: string;
+    value?: string;
+    disabled?: boolean;
 };
 
 const Textfield = forwardRef<HTMLInputElement | null, PropTypes>(
@@ -31,7 +33,9 @@ const Textfield = forwardRef<HTMLInputElement | null, PropTypes>(
             placeholder,
             onlyNumber = false,
             inputType = "text",
-            startText
+            startText,
+            value,
+            disabled = false
         }: PropTypes,
         ref
     ) => {
@@ -45,7 +49,7 @@ const Textfield = forwardRef<HTMLInputElement | null, PropTypes>(
 
         return (
             <div className={"form-group mb-2 " + col}>
-                <label className="form-label mb-0">
+                <label className="form-label mb-2">
                     {title} {isRequired && <Required />}
                 </label>
                 <div className="input-group">
@@ -58,7 +62,8 @@ const Textfield = forwardRef<HTMLInputElement | null, PropTypes>(
                         className={errors?.[name]?._errors.length ? "form-control is-invalid" : "form-control"}
                         placeholder={placeholder}
                         ref={ref}
-                        value={formRef.current?.[name]}
+                        value={value ? value :formRef.current?.[name]}
+                        disabled={disabled}
                     />
                 </div>
                 {errors?.[name]?._errors.length && (

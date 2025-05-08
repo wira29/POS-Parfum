@@ -1,17 +1,17 @@
+import { useApiClient } from "@/core/helpers/ApiClient";
 import { TMultiSelect } from "@/core/interface/input-interface";
 import { useProductStore } from "@/core/stores/ProductStore";
+import { Breadcrumb } from "@/views/components/Breadcrumb";
+import { ButtonWithLoading } from "@/views/components/Button/ButtonWithLoading";
+import { Dropdown } from "@/views/components/Input";
+import InputImage from "@/views/components/Input/InputImage";
+import { NormalCreateableDropdown } from "@/views/components/Input/NormalCreatableDropdown";
+import Textfield from "@/views/components/Input/Textfield";
 import { FormEvent, useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { ZodFormattedError } from "zod";
 import { addProductSchema, type addProductType } from "./schema";
-import InputImage from "@/views/components/Input/InputImage";
-import Textfield from "@/views/components/Input/Textfield";
-import { Dropdown } from "@/views/components/Input";
-import { useApiClient } from "@/core/helpers/ApiClient";
-import { ButtonWithLoading } from "@/views/components/Button/ButtonWithLoading";
-import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { CreateRepeater } from "./widgets/create-repeater";
-import { Link, useNavigate } from "react-router-dom";
-import { NormalCreateableDropdown } from "@/views/components/Input/NormalCreatableDropdown";
 
 export const ProductCreate = () => {
     const navigate = useNavigate()

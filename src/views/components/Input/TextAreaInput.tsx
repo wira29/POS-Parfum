@@ -1,6 +1,6 @@
 import { handleInputChange } from "@/core/helpers/HandleInputChange";
-import Required from "../Required";
 import { forwardRef } from "react";
+import Required from "../Required";
 
 type PropTypes = {
     isRequired?: boolean;
@@ -12,6 +12,7 @@ type PropTypes = {
     col: string;
     title: string;
     placeholder?: string;
+    areaRows?: number;
 };
 
 const TextAreaInput = forwardRef<HTMLTextAreaElement | null, PropTypes>(
@@ -26,13 +27,14 @@ const TextAreaInput = forwardRef<HTMLTextAreaElement | null, PropTypes>(
             col,
             title,
             placeholder,
+            areaRows = 3,
         }: PropTypes,
         ref
     ) => {
 
         return (
             <div className={"form-group mb-2 " + col}>
-                <label className="form-label mb-0">
+                <label className="form-label mb-2">
                     {title} {isRequired && <Required />}
                 </label>
                 <textarea
@@ -40,6 +42,7 @@ const TextAreaInput = forwardRef<HTMLTextAreaElement | null, PropTypes>(
                     name={name}
                     className={errors?.[name]?._errors.length ? "form-control is-invalid" : "form-control"}
                     placeholder={placeholder}
+                    rows={areaRows}
                     ref={ref}
                 >{formRef.current?.[name]}</textarea>
                 {errors?.[name]?._errors.length && (
