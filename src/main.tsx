@@ -7,10 +7,8 @@ import App from './App.tsx'
 // import css
 // import 'sweetalert2/dist/sweetalert2.min.css'
 // import 'sweetalert2/dist/sweetalert2.min.js'
-import '@/assets/dist/css/custom-style.css'
-import '@/assets/dist/css/style.min.css'
-import '@/assets/dist/libs/owl.carousel/dist/assets/owl.carousel.min.css'
-import 'react-datepicker/dist/react-datepicker.css'
+import '@/assets/dist/css/tailwind.css'
+import '@/assets/dist/css/custom-animation.css'
 
 // import js
 import '@/assets/dist/libs/bootstrap/dist/js/bootstrap.bundle.min.js'

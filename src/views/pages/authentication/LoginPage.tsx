@@ -13,14 +13,13 @@ import { z } from "zod"
 
 export const LoginPage = () => {
     const navigate = useNavigate()
-
     const apiClient = useApiClient()
 
     const LoginFormSchema = z.object({
         email: z.string({message: "harus berupa string"}).email({message: "harus berupa email valid"}).min(1, {message: 'tidak boleh kosong'}),
         password: z.string({message: "harus berupa string"}).min(8 ,{message: "tidak boleh kurang dari 8 karakter"})
     })
-    
+
     type LoginFormType = z.infer<typeof LoginFormSchema>
 
     const { setUser, setRole, setAuth, isLoading, setLoading } = useAuthStore()
@@ -28,19 +27,12 @@ export const LoginPage = () => {
     const illustrationRef = useRef(null)
     const cardRef = useRef(null)
 
-    const [formData, setFormData] = useState<LoginFormType>({
-        email: "",
-        password: ""
-    })
-
+    const [formData, setFormData] = useState<LoginFormType>({ email: "", password: "" })
     const [formErrorMsg, setFormErrorMsg] = useState<{[key: string]: string[]}>({})
 
     const handleInputChange = (e: SyntheticEvent<HTMLInputElement>) => {
         const { name, value } = e.target as HTMLInputElement;
-        setFormData(prevFormData => ({
-            ...prevFormData,
-            [name]: value
-        }));
+        setFormData(prev => ({ ...prev, [name]: value }))
     }
 
     const handleFormSubmit = () => {
@@ -53,7 +45,7 @@ export const LoginPage = () => {
             setUser(res.data.data)
             Toaster('success', res.data.message)
             setToken(res.data.data.token)
-            return navigate('/dashboard')
+            navigate('/dashboard')
         }).catch((err) => {
             setLoading(false)
             console.log(err)
@@ -87,85 +79,79 @@ export const LoginPage = () => {
         }, rightButton: {
             show: true,
             icon: FaEye,
-            onclickFn: () => {
-                changeInputPasswordType()
-            }
+            onclickFn: () => changeInputPasswordType()
         }
     })
 
     const changeInputPasswordType = () => {
-        setPasswordConfig(prevState => ({
-            ...prevState,
+        setPasswordConfig(prev => ({
+            ...prev,
             settings: {
-                ...prevState.settings, 
-                type: prevState.settings.type === "password" ? "text" : "password"
+                ...prev.settings, 
+                type: prev.settings.type === "password" ? "text" : "password"
             },
             rightButton: {
-                ...prevState.rightButton!,
-                icon: prevState.settings.type === "password" ? FaEyeSlash : FaEye,
+                ...prev.rightButton!,
+                icon: prev.settings.type === "password" ? FaEyeSlash : FaEye,
             }
         }))
     }
 
     useEffect(() => {
         gsap.registerPlugin(Bounce)
-    
-        gsap.fromTo(illustrationRef.current,
-            {y: -50}, 
-            {
-                y: 0, 
-                duration: 1, 
-                ease: "bounce.out", 
-                yoyo: true, 
-                repeat: -1,
-            }
-        )
-
-        gsap.fromTo(cardRef.current,
-            {x: -1000},
-            {x: 0, duration: 1}
-        )
+        gsap.fromTo(illustrationRef.current, {y: -50}, {
+            y: 0, duration: 1, ease: "bounce.out", yoyo: true, repeat: -1,
+        })
+        gsap.fromTo(cardRef.current, {x: -1000}, {x: 0, duration: 1})
     }, [])
 
     return (
-        <>
-            <div style={{display: "grid", minHeight: "100dvh", overflow: "hidden", placeContent: 'center'}} >
-                <div
-                    className="bg-primary d-flex rounded-5 shadow-xl m-6"
-                    ref={cardRef}
-                    style={{
-                        height: "min(95dvh, 500px)",
-                        minHeight: "500px",
-                        width: "min(90vw, 800px)"
-                    }}
-                >
-                    <div className=" flex-1 d-md-flex flex-column justify-content-between align-items-center p-3 d-none">
-                        <img src="/images/logos/logo-full.png" alt="Logo image" width={120} className="bg-white py-1 px-3 rounded-pill"/>
-                        <div className="text-center">
-                            <h4 className="fs-7 text-white fw-bolder mt-3">Selamat Datang</h4>
-                            <p className="text-white lead">Web Admin Gudang dan Owner</p>
-                        </div>
-                        <img src="/images/illustrations/warehouse-02.svg" className="mt-3" width={300} alt="" ref={illustrationRef} />
+        <div className="grid min-h-screen place-content-center overflow-hidden bg-gray-100 px-4 py-10">
+            <div ref={cardRef} className="flex w-full max-w-4xl overflow-hidden rounded-2xl shadow-xl bg-primary">
+                <div className="hidden md:flex flex-1 flex-col justify-between items-center p-6 text-white">
+                    <img src="/images/logos/logo-full.png" alt="Logo" width={120} className="bg-white py-1 px-3 rounded-full"/>
+                    <div className="text-center">
+                        <h4 className="text-lg font-bold mt-3">Selamat Datang</h4>
+                        <p className="text-sm">Web Admin Gudang dan Owner</p>
                     </div>
-                    <ZodForm formdata={formData} setFormdataFn={setFormData} setErrorMsg={setFormErrorMsg} onSuccessValidation={handleFormSubmit} schema={LoginFormSchema} className="flex-1 bg-white rounded-5 d-flex flex-column align-items-stretch justify-content-between gap-3 p-4">
-                        <img src="/images/logos/logo-full.png" alt="Logo image" width={100} className="d-md-none" style={{alignSelf: "center"}}/>
-                        <div className="flex flex-col gap-3">
-                            <h3 className="font-bold text-xl text-center mb-5">Masuk</h3>
-                            <InputWithIcon settings={emailConfig.settings} errors={formErrorMsg.email}/>
-                            <InputWithIcon settings={passwordConfig.settings} rightButton={passwordConfig.rightButton} errors={formErrorMsg.password}/>
-                            <button disabled={isLoading} className="btn btn-primary w-100" type="submit">
-                                {
-                                    isLoading && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                }
-                                {
-                                    isLoading ? "Loading..." : "Masuk"
-                                }
-                            </button>
-                        </div>
-                        <div className="text-center">Developed By <a href="https://www.hummatech.com" target="_blank" className="text-blue-600 dark:text-blue-500 hover:underline">Hummatech</a></div>
-                    </ZodForm>
+                    <img ref={illustrationRef} src="/images/illustrations/warehouse-02.svg" width={300} alt="Ilustrasi"/>
                 </div>
+                <ZodForm
+                    formdata={formData}
+                    setFormdataFn={setFormData}
+                    setErrorMsg={setFormErrorMsg}
+                    onSuccessValidation={handleFormSubmit}
+                    schema={LoginFormSchema}
+                    className="flex-1 bg-white rounded-2xl flex flex-col justify-between p-8 gap-4"
+                >
+                    <img src="/images/logos/logo-full.png" alt="Logo" width={100} className="md:hidden self-center"/>
+                    <div className="flex flex-col gap-4">
+                        <h3 className="text-xl font-bold text-center">Masuk</h3>
+                        <InputWithIcon settings={emailConfig.settings} errors={formErrorMsg.email}/>
+                        <InputWithIcon settings={passwordConfig.settings} rightButton={passwordConfig.rightButton} errors={formErrorMsg.password}/>
+                        <button
+                            disabled={isLoading}
+                            className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 w-full"
+                            type="submit"
+                        >
+                            {isLoading ? (
+                                <span className="flex items-center justify-center">
+                                    <svg className="animate-spin h-4 w-4 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                    </svg>
+                                    Loading...
+                                </span>
+                            ) : (
+                                "Masuk"
+                            )}
+                        </button>
+                    </div>
+                    <div className="text-center text-sm">
+                        Developed By <a href="https://www.hummatech.com" target="_blank" className="text-blue-600 hover:underline">Hummatech</a>
+                    </div>
+                </ZodForm>
             </div>
-        </>
+        </div>
     )
 }

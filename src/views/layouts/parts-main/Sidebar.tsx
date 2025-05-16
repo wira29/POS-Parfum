@@ -36,7 +36,7 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
         <aside className={`h-screen fixed left-0 top-0 shadow-md z-20 transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'} bg-white`}>
             <div className="flex items-center justify-between h-16 px-4">
                 <div className="flex items-center">
-                    <img src={isCollapsed ? "../../../../public/images/logos/logo-mini-new.png" : "../../../../public/images/logos/logo-new.png"} alt="Logo" className={`transition-all duration-300 ${isCollapsed ? 'w-23 h-10' : 'w-23 h-10'}`} />
+                    <img src={isCollapsed ? "../../../../public/images/logos/logo-mini-new.png" : "../../../../public/images/logos/logo-new.png"} alt="Logo" className={`transition-all duration-300 ${isCollapsed ? 'w-16 h-11' : 'w-28 h-11'}`} />
                 </div>
             </div>
             <nav className="p-4 overflow-y-auto space-y-6">
