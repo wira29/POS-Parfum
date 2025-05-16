@@ -5,52 +5,51 @@ import { Header } from './parts-main/Header'
 import { Sidebar } from './parts-main/Sidebar'
 
 export const MainLayout = () => {
+  const [isLoaded, setIsLoaded] = useState(false)
+  const { sidebar, setSidebar } = useLayoutStore()
 
-    const [isLoaded, setIsLoaded] = useState(false)
-    const {sidebar, setSidebar} = useLayoutStore()
+  useEffect(() => {
+    const handleLoad = () => setIsLoaded(true)
 
-    useEffect(() => {
-        const handleLoad = () => {
-            setIsLoaded(true)
-        }
+    if (document.readyState === 'complete') handleLoad()
+    else window.addEventListener('load', handleLoad)
 
-        if(document.readyState === 'complete') handleLoad()
-        else window.addEventListener('load', handleLoad)
+    return () => window.removeEventListener('load', handleLoad)
+  }, [])
 
-        return () => {
-            window.removeEventListener('load', handleLoad)
-        }
-    }, [])
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 990) setSidebar('mini-sidebar')
+      else setSidebar('full')
+    }
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
-    useEffect(() => {
-        const handleResize = () => {
-            if(window.innerWidth <= 990) setSidebar('mini-sidebar')
-            else setSidebar('full')
-        };
-        window.addEventListener('resize', handleResize);
-    
-        return () => {
-            window.removeEventListener('resize', handleResize);
-        };
-    }, []);
+  const toggleSidebar = () => {
+    setSidebar(sidebar === 'full' ? 'mini-sidebar' : 'full')
+  }
 
-    return (
-        <div>
-            { 
-                !isLoaded &&
-                <div className="preloader">
-                    <img src="/images/logos/logo-full-1.png" alt="loader" className="lds-ripple img-fluid" />
-                </div>
-            }
-            <div className="page-wrapper" id="main-wrapper" data-theme="blue_theme" data-layout="vertical" data-sidebartype={sidebar} data-sidebar-position="fixed" data-header-position="fixed">
-                <Sidebar />
-                <div className="body-wrapper">
-                    <Header />
-                    <div className="container-fluid" style={{maxWidth: "100%"}}>
-                        <Outlet />
-                    </div>
-                </div>
-            </div>
-        </div>
-    )
+  if (!isLoaded) return null
+
+  return (
+    <div className="flex">
+      <Sidebar sidebar={sidebar} />
+      <div
+        className={`flex-1 min-h-screen bg-gray-50 transition-all duration-300 ${
+          sidebar === 'full' ? 'ml-0' : 'ml-2'
+        }`}
+      >
+        <Header onToggleSidebar={toggleSidebar} sidebar={sidebar} />
+        <main
+          className={`pt-16 transition-all duration-300 ${
+            sidebar === 'full' ? 'pl-64' : 'pl-23'
+          } p-6`}
+        >
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  )
 }
