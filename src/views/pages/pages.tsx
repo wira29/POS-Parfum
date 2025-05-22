@@ -10,3 +10,6 @@ export { default as WarehouseShow } from './warehouse/show'
 export { default as UserPage} from './users'
 export { VariantIndex as VariantIndex } from './variant'
 export { Dashboard as Dashboard } from './dashboard'
+export { default as DiscountIndex } from "./discount";
+export { DiscountCreate as DiscountCreate } from "./discount/create";
+export { DiscountEdit as DiscountEdit } from "./discount/edit";

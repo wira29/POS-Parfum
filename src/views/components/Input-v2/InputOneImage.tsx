@@ -1,8 +1,8 @@
 import React from "react"
-import { Trash2 } from "react-feather"
+import { Trash2, Image } from "react-feather"
 
 interface InputImageProps {
-    images: File[]
+    images: (File | string)[]
     onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void
     onRemoveImage: (index: number) => void
     label?: string
@@ -13,14 +13,12 @@ const InputOneImage = ({
     images,
     onImageUpload,
     onRemoveImage,
-    label = "Add Image",
     className = "",
 }: InputImageProps) => (
     <div className={`flex gap-4 flex-wrap ${className}`}>
         {images.length === 0 && (
             <label className="w-24 h-24 border border-dashed border-gray-300 flex flex-col items-center justify-center rounded cursor-pointer text-gray-500 text-sm">
-                <span className="text-2xl">＋</span>
-                {label}
+                <span><Image size={50}/></span>
                 <input
                     type="file"
                     accept="image/*"
@@ -32,7 +30,7 @@ const InputOneImage = ({
         {images.map((img, i) => (
             <div key={i} className="relative w-24 h-24 rounded overflow-hidden shadow">
                 <img
-                    src={URL.createObjectURL(img)}
+                    src={typeof img === "string" ? img : URL.createObjectURL(img)}
                     alt={`preview-${i}`}
                     className="w-full h-full object-cover rounded"
                 />

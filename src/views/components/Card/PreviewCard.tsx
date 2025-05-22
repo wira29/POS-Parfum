@@ -1,3 +1,5 @@
+import { BiSolidDiscount } from "react-icons/bi"
+
 interface PreviewCardProps {
     images: File[]
     price: number
@@ -56,6 +58,7 @@ const PreviewCard = ({
             </span>
             {discountValue > 0 && (
                 <span className="text-gray-400 line-through text-sm ml-2">
+                    <BiSolidDiscount className="size-6 text-blue-600" />
                     Rp
                     {discountType === "Rp"
                         ? (price + discountValue).toLocaleString()
