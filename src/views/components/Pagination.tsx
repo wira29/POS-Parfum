@@ -1,95 +1,61 @@
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import React from "react";
+import clsx from "clsx";
 
-export type TPaginationData = {
-    current_page: number;
-    from: number;
-    last_page: number;
-    prev_page_url: string | null;
-    next_page_url: string | null;
-    per_page: number;
-    to: number;
-    total: number;
-    path: string;
-} | undefined;
+interface PaginationProps {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}
 
-type TUpdatePage = Dispatch<SetStateAction<number>>|((page: number) => void);
+export const Pagination: React.FC<PaginationProps> = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+}) => {
+  const pageNumbers = [];
 
-export const Pagination = ({ paginationData, updatePage }: { paginationData?: TPaginationData, updatePage: TUpdatePage}) => {
-    const [paginationList, setPaginationList] = useState<
-        { label: string; url: string | null; active?: boolean; disabled?: boolean, onClickFn: () => void }[]
-    >([]);
+  for (let i = 1; i <= totalPages; i++) {
+    pageNumbers.push(i);
+  }
 
-    const mappingPagination = () => {
-        if (!paginationData) return;
+  return (
+    <div className="inline-flex overflow-hidden rounded-lg border border-gray-300 text-sm">
+      <button
+        className={clsx(
+          "px-4 py-2 text-gray-700 hover:bg-gray-100",
+          currentPage === 1 && "cursor-not-allowed text-gray-400"
+        )}
+        onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+      >
+        Previous
+      </button>
 
-        const { current_page, last_page, prev_page_url, next_page_url, path } = paginationData;
-        const pages = [];
+      {pageNumbers.map((page) => (
+        <button
+          key={page}
+          onClick={() => onPageChange(page)}
+          className={clsx(
+            "px-4 py-2 hover:bg-gray-100",
+            currentPage === page
+              ? "bg-gray-200 text-gray-800 font-semibold"
+              : "text-gray-700"
+          )}
+        >
+          {page}
+        </button>
+      ))}
 
-        // Add the "Previous" page
-        pages.push({
-            label: "‹",
-            url: prev_page_url,
-            disabled: current_page === 1, // Disable if on the first page
-            onClickFn: () => updatePage(current_page !== 1 ? current_page - 1 : 1)
-        });
-
-        // Determine range of pages to show
-        let startPage = Math.max(current_page - 2, 1);
-        let endPage = Math.min(current_page + 2, last_page);
-
-        // Adjust range if at the beginning or end of pagination
-        if (current_page <= 3) {
-            endPage = Math.min(5, last_page);
-        } else if (current_page > last_page - 3) {
-            startPage = Math.max(last_page - 4, 1);
-        }
-
-        // Add individual pages based on the range
-        for (let i = startPage; i <= endPage; i++) {
-            pages.push({
-                label: `${i}`,
-                url: `${path}?page=${i}`,
-                active: i === current_page,
-                onClickFn: () => updatePage(i)
-            });
-        }
-
-        // Add the "Next" page
-        pages.push({
-            label: "›",
-            url: next_page_url,
-            disabled: current_page === last_page, // Disable if on the last page
-            onClickFn: () => updatePage(current_page !== last_page ? current_page + 1 : last_page)
-        });
-
-        setPaginationList(pages);
-    };
-
-    useEffect(() => {
-        mappingPagination();
-    }, [paginationData]);
-
-    if (!paginationData) {
-        return <p>No pagination data available.</p>;
-    }
-
-    return (
-        <div className="d-flex align-items-center justify-content-between">
-            <div>menampilkan {paginationData.from ?? 0 } sampai {paginationData.to ?? 0} dari {paginationData.total ?? 0} data</div>
-            <nav aria-label="Page navigation">
-                <ul className="pagination m-0">
-                    {paginationList.map((item, index) => (
-                        <li
-                            key={index}
-                            className={`page-item ${item.active ? "active" : ""} ${item.disabled ? "disabled" : ""}`}
-                        >
-                            <button type="button" className="page-link" onClick={item.onClickFn} disabled={item.disabled}>
-                                {item.label}
-                            </button>
-                        </li>
-                    ))}
-                </ul>
-            </nav>
-        </div>
-    );
+      <button
+        className={clsx(
+          "px-4 py-2 text-gray-700 hover:bg-gray-100",
+          currentPage === totalPages && "cursor-not-allowed text-gray-400"
+        )}
+        onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+      >
+        Next
+      </button>
+    </div>
+  );
 };

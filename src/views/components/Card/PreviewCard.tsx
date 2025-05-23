@@ -1,25 +1,23 @@
 interface PreviewCardProps {
     images: File[]
-    price: number
-    discountValue: number
-    discountType: string
+    price: number | [number, number]
     category: string
     productName: string
     productCode: string
     stock: number
     composition: string[]
+    variantImages?: (File | string)[][]
 }
 
 const PreviewCard = ({
     images,
     price,
-    discountValue,
-    discountType,
     category,
     productName,
     productCode,
     stock,
     composition,
+    variantImages = [],
 }: PreviewCardProps) => (
     <div className="bg-white rounded-2xl p-4 shadow">
         <h4 className="text-sm font-medium mb-2">Preview</h4>
@@ -39,7 +37,8 @@ const PreviewCard = ({
             )}
         </div>
 
-        <div className="flex gap-2 mb-4">
+        {/* Tampilkan gambar varian */}
+        <div className="flex gap-2 mb-4 flex-wrap">
             {images.map((img, i) => (
                 <img
                     key={i}
@@ -48,20 +47,27 @@ const PreviewCard = ({
                     className="w-12 h-12 object-cover rounded shadow"
                 />
             ))}
+            {variantImages.map((row, i) =>
+                row.map((img, j) =>
+                    img
+                        ? (
+                            <img
+                                key={`variant-${i}-${j}`}
+                                src={typeof img === "string" ? img : URL.createObjectURL(img)}
+                                alt={`variant-${i}-${j}`}
+                                className="w-12 h-12 object-cover rounded shadow border border-blue-400"
+                            />
+                        ) : null
+                )
+            )}
         </div>
 
         <div className="mb-2">
             <span className="text-blue-600 font-bold text-lg">
-                Rp{price.toLocaleString()}
+                {Array.isArray(price)
+                    ? `Rp${price[0].toLocaleString()} - Rp${price[1].toLocaleString()}`
+                    : `Rp${Number(price).toLocaleString()}`}
             </span>
-            {discountValue > 0 && (
-                <span className="text-gray-400 line-through text-sm ml-2">
-                    Rp
-                    {discountType === "Rp"
-                        ? (price + discountValue).toLocaleString()
-                        : Math.round(price + (price * discountValue) / 100).toLocaleString()}
-                </span>
-            )}
         </div>
 
         <p className="text-sm text-gray-800 mb-4">

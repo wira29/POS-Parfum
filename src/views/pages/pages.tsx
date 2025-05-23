@@ -15,3 +15,6 @@ export { default as UserCreate } from './users/widgets/AddPage';
 export { default as UserEdit } from './users/widgets/EditPage';
 export { VariantIndex as VariantIndex } from './variant'
 export { Dashboard as Dashboard } from './dashboard'
+export { default as DiscountIndex } from "./discount";
+export { DiscountCreate as DiscountCreate } from "./discount/create";
+export { DiscountEdit as DiscountEdit } from "./discount/edit";
