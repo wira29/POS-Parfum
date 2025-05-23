@@ -7,7 +7,7 @@ interface SearchInputProps {
 
 export const SearchInput = ({ value, onChange }: SearchInputProps) => {
   return (
-    <div className="flex border border-gray-400 rounded-md overflow-hidden w-full max-w-lg">
+    <div className="flex border border-gray-400/[0.5] rounded-md overflow-hidden w-full max-w-lg">
       <div className="bg-blue-600 p-3">
         <FiSearch className="text-white" />
       </div>

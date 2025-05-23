@@ -44,7 +44,7 @@ export const MainLayout = () => {
         <Header onToggleSidebar={toggleSidebar} sidebar={sidebar} />
         <main
           className={`pt-16 transition-all duration-300 ${
-            sidebar === 'full' ? 'pl-64' : 'pl-23'
+            sidebar === 'full' ? 'pl-70' : 'pl-23'
           } p-6`}
         >
           <Outlet />

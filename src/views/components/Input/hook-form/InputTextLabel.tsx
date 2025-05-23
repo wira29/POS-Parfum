@@ -8,14 +8,15 @@ type ComponentProps<T extends FieldValues> = {
     name: Path<T>,
     type: 'email'|'text'|'number'|'password',
     startText?: string,
+    placeholder?:string
     endText?: string,
 }
 
-export default function InputTextLabel<T extends FieldValues>({control, error, label, name, type='text', startText, endText}:ComponentProps<T>) {
+export default function InputTextLabel<T extends FieldValues>({control, error, label, name, type='text', startText, endText,placeholder}:ComponentProps<T>) {
     return (
-        <>
-            <label htmlFor={name}>{label}</label>
-            <InputText<T> control={control} error={error} name={name} type={type} startText={startText} endText={endText} />
-        </>
+        <div className="flex flex-col gap-2">
+            <label htmlFor={name} className="font-normal text-slate-800">{label}</label>
+            <InputText<T> control={control} error={error} label={label} name={name} type={type} placeholder={placeholder} startText={startText} endText={endText} />
+        </div>
     )
 }

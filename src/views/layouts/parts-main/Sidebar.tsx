@@ -50,7 +50,7 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                                 const isActive = location.pathname.startsWith(item.path)
                                 return (
                                     <li key={idx}>
-                                        <Link to={item.path} className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${isActive ? 'bg-blue-600 text-white' : 'text-gray-700'} ${isCollapsed ? 'justify-center' : ''}`}>
+                                        <Link to={item.path} className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${isActive ? 'bg-blue-600 text-white hover:bg-blue-600' : 'text-gray-700'} ${isCollapsed ? 'justify-center' : ''}`}>
                                             <span className="text-lg">{item.icon}</span>
                                             {!isCollapsed && item.label}
                                         </Link>

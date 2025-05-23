@@ -11,7 +11,7 @@ import '@/assets/dist/css/tailwind.css'
 import '@/assets/dist/css/custom-animation.css'
 
 // import js
-import '@/assets/dist/libs/bootstrap/dist/js/bootstrap.bundle.min.js'
+// import '@/assets/dist/libs/bootstrap/dist/js/bootstrap.bundle.min.js'
 // import '@/assets/dist/libs/jquery/dist/jquery.min.js'
 import '@/assets/dist/libs/simplebar/dist/simplebar.min.js'
 
