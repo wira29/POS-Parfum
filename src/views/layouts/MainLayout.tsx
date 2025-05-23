@@ -37,14 +37,14 @@ export const MainLayout = () => {
     <div className="flex">
       <Sidebar sidebar={sidebar} />
       <div
-        className={`flex-1 min-h-screen bg-gray-100 transition-all duration-300 ${
+        className={`flex-1 min-h-screen bg-gray-50 transition-all duration-300 ${
           sidebar === 'full' ? 'ml-0' : 'ml-2'
         }`}
       >
         <Header onToggleSidebar={toggleSidebar} sidebar={sidebar} />
         <main
-          className={`pt-16 transition-all duration-300 ml-2 mt-3 ${
-            sidebar === 'full' ? 'pl-64' : 'pl-23'
+          className={`pt-16 transition-all duration-300 ${
+            sidebar === 'full' ? 'pl-70' : 'pl-23'
           } p-6`}
         >
           <Outlet />

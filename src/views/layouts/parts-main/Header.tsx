@@ -12,7 +12,7 @@ export const Header = ({ onToggleSidebar, sidebar }: { onToggleSidebar: () => vo
     >
       <button
         onClick={onToggleSidebar}
-        className={`text-gray-600 px-4 transition-all duration-300 ${
+        className={`text-gray-600 px-4 transition-all duration-300 cursor-pointer ${
           sidebar === 'mini-sidebar' ? 'ml-2' : ''
         }`}
       >
