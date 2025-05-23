@@ -3,7 +3,7 @@ import { getToken, removeToken } from '@/core/helpers/TokenHandle'
 
 export const useApiClient = () => {
     const client = axios.create({
-        baseURL: import.meta.env.VITE_BASE_API,
+        baseURL: "https://core-parfum.mijurnal.com/api",
     })
     
     client.interceptors.request.use((config) => {
