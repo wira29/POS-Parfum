@@ -22,8 +22,8 @@ const menuItems = [
     },
     {
         label: 'Lainnya', children: [
-            { label: 'Retail', icon: <FaShop />, path: '/retail' },
-            { label: 'Tambah Akun', icon: <FiUsers />, path: '/retail' }
+            { label: 'Retail', icon: <FaShop />, path: '/warehouses' },
+            { label: 'Tambah Pengguna', icon: <FiUsers />, path: '/users' }
         ]
     },
 ]

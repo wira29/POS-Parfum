@@ -1,9 +1,10 @@
 import { IsAuth } from "@/core/middlewares/is-auth";
 import { MainLayout } from "@/views/layouts/MainLayout";
+import { Register } from "@/views/pages/authentication/Registrasi";
 import DiscountIndex from "@/views/pages/discount";
 import { NotFoundPage } from "@/views/pages/errors";
 import { Home } from "@/views/pages/home";
-import { CategoryIndex, Dashboard, LoginPage, OutletIndex, ProductCreate, ProductEdit, ProductIndex, ProductShow, UserPage, VariantIndex, WarehouseIndex, WarehouseShow } from "@/views/pages/pages";
+import { CategoryIndex, Dashboard, LoginPage, OutletIndex, ProductCreate, ProductEdit, ProductIndex, ProductShow, UserPage, UserDetail, UserCreate, UserEdit, VariantIndex, WarehouseIndex, WarehouseDetail, WarehouseCreate, WarehouseEdit } from "@/views/pages/pages";
 import RequestStockIndex from "@/views/pages/request-stock";
 import { RequestRestockIndex } from "@/views/pages/restock/request";
 import { RestockIndex } from "@/views/pages/restock/restock";
@@ -13,6 +14,10 @@ export const router = createBrowserRouter([
     {
         path: "/login",
         element: <LoginPage />
+    }, 
+    {
+        path: "/register",
+        element: <Register />
     }, {
         path: "",
         element: <IsAuth guest={false} redirectOnError="/login" />,
@@ -61,13 +66,33 @@ export const router = createBrowserRouter([
                         element: <WarehouseIndex />
                     }, 
                     {
+                        path: "warehouses/create",
+                        element: <WarehouseCreate />
+                    },
+                    {
                         path: "warehouses/:id",
-                        element: <WarehouseShow />
+                        element: <WarehouseDetail />
+                    }, 
+                    {
+                        path: "warehouses/:id/edit",
+                        element: <WarehouseEdit />
                     }, 
                     {
                         path: "users",
                         element: <UserPage />
                     },
+                    {
+                        path: "users/create",
+                        element: <UserCreate />
+                    },
+                    {
+                        path: "users/:id",
+                        element: <UserDetail />
+                    }, 
+                    {
+                        path: "users/:id/edit",
+                        element: <UserEdit />
+                    }, 
                     {
                         path: "discounts",
                         element: <DiscountIndex />

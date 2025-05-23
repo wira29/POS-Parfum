@@ -1,6 +1,6 @@
 import { useWarehouseStore } from "@/core/stores/WarehouseStore";
 import { HiOutlineDotsVertical } from "react-icons/hi";
-import { BtnEditModal } from "./EditModal";
+import { BtnEditModal } from "./EditPage";
 import { Link } from "react-router-dom";
 
 const WarehouseCard = ({warehouse}:{warehouse:{[key:string]:any}}) => {
