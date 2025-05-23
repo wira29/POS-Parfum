@@ -1,13 +1,12 @@
-import { useState, useRef, FormEvent } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import InputSelect from "@/views/components/Input-v2/InputSelect";
 import InputText from "@/views/components/Input-v2/InputText";
 import InputNumber from "@/views/components/Input-v2/InputNumber";
-import InputDiscountSelect from "@/views/components/Input-v2/InputDiscountSelect";
 import InputImage from "@/views/components/Input-v2/InputImage";
+import InputOneImage from "@/views/components/Input-v2/InputOneImage";
 import InputManyText from "@/views/components/Input-v2/InputManyText";
 import PreviewCard from "@/views/components/Card/PreviewCard";
-
 import {
     FileText,
     Barcode,
@@ -17,7 +16,6 @@ import {
     Info,
     X
 } from "lucide-react";
-
 import {
     handleAddComposition,
     handleRemoveComposition,
@@ -35,12 +33,9 @@ import {
 
 export const ProductCreate = () => {
     const navigate = useNavigate();
-    const formRef = useRef<any>({ image: null, product_details: [] });
 
     const [composition, setComposition] = useState<string[]>([""]);
     const [price, setPrice] = useState(0);
-    const [discountType, setDiscountType] = useState("Rp");
-    const [discountValue, setDiscountValue] = useState(0);
     const [stock, setStock] = useState(0);
     const [images, setImages] = useState<File[]>([]);
     const [productName, setProductName] = useState("");
@@ -49,6 +44,11 @@ export const ProductCreate = () => {
     const [globalPrice, setGlobalPrice] = useState<number | string>("");
     const [globalStock, setGlobalStock] = useState<number | string>("");
     const [globalCode, setGlobalCode] = useState<string>("");
+
+    const [variations, setVariations] = useState([
+        { name: "Aroma", options: ["Water Lily", "Rose"] },
+        { name: "Volume", options: ["100 ml", "200 ml"] },
+    ]);
 
     const [variantMatrix, setVariantMatrix] = useState([
         {
@@ -67,22 +67,92 @@ export const ProductCreate = () => {
         },
     ]);
 
+    const [variantImages, setVariantImages] = useState<(File | string)[][]>([]);
+
+    useEffect(() => {
+        setVariantImages((prev) =>
+            variantMatrix.map((variant, i) =>
+                variant.volumes.map((_, j) => prev?.[i]?.[j] ?? "")
+            )
+        );
+    }, [variantMatrix]);
+
+    const getVariantMinStock = () => {
+        const allStocks = variantMatrix
+            .flatMap(variant => variant.stocks)
+            .map(s => Number(s))
+            .filter(s => !isNaN(s) && s >= 0);
+
+        if (allStocks.length === 0) return 0;
+        return Math.min(...allStocks);
+    };
+
+    const handleVariantImageUpload = (i: number, j: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setVariantImages(prev => {
+                const updated = prev.map(row => [...row]);
+                if (!updated[i]) updated[i] = [];
+                updated[i][j] = file;
+                return updated;
+            });
+        }
+    };
+
+    const handleRemoveVariantImage = (i: number, j: number) => () => {
+        setVariantImages(prev => {
+            const updated = prev.map(row => [...row]);
+            if (updated[i]) updated[i][j] = "";
+            return updated;
+        });
+    };
+
+    useEffect(() => {
+        if (variations.length < 2) return;
+        const aromaOptions = variations[0].options.length > 0 ? variations[0].options : [""];
+        const volumeOptions = variations[1].options.length > 0 ? variations[1].options : [""];
+        const newMatrix = aromaOptions.map((aroma, i) => ({
+            aroma: aroma || `Aroma ${i + 1}`,
+            volumes: volumeOptions,
+            prices: volumeOptions.map((_, j) => variantMatrix[i]?.prices?.[j] || ""),
+            stocks: volumeOptions.map((_, j) => variantMatrix[i]?.stocks?.[j] || ""),
+            codes: volumeOptions.map((_, j) => variantMatrix[i]?.codes?.[j] || ""),
+        }));
+        setVariantMatrix(newMatrix);
+    }, [variations]);
+
     const applyToAllVariants = () => {
         const updated = variantMatrix.map((variant) => ({
             ...variant,
-            prices: variant.prices.map(() => globalPrice),
-            stocks: variant.stocks.map(() => globalStock),
-            codes: variant.codes.map(() => globalCode),
+            prices: variant.prices.map((old, idx) =>
+                globalPrice === "" || globalPrice === null ? old : String(globalPrice)
+            ),
+            stocks: variant.stocks.map((old, idx) =>
+                globalStock === "" || globalStock === null ? old : String(globalStock)
+            ),
+            codes: variant.codes.map((old, idx) =>
+                globalCode === "" || globalCode === null ? old : String(globalCode)
+            ),
         }));
-        //setVariantMatrix(updated);
+        setVariantMatrix(updated);
+        setGlobalPrice("");   
+        setGlobalStock("");  
+        setGlobalCode("");
     };
 
-    const [variations, setVariations] = useState([
-        { name: "", options: [""] },
-    ]);
+    const getVariantPriceRange = (): number | [number, number] => {
+        const allPrices = variantMatrix
+            .flatMap(variant => variant.prices)
+            .map(h => Number(h))
+            .filter(h => !isNaN(h) && h > 0);
+
+        if (allPrices.length === 0) return 0;
+        const min = Math.min(...allPrices);
+        const max = Math.max(...allPrices);
+        return min === max ? min : [min, max] as [number, number];
+    };
 
     const labelClass = "block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2";
-
     const isParfum = ["Parfum Malam", "Parfum Siang"].includes(category);
 
     return (
@@ -91,8 +161,6 @@ export const ProductCreate = () => {
                 onSubmit={(e) =>
                     handleSubmit(e, {
                         price,
-                        discountType,
-                        discountValue,
                         stock,
                         composition,
                         images,
@@ -226,7 +294,7 @@ export const ProductCreate = () => {
                                             <div className="flex gap-4 items-center">
                                                 <span className="font-medium">Variasi {i + 1}</span>
                                                 <input
-                                                    placeholder="Nama Variasi"
+                                                    placeholder={i === 0 ? "Aroma" : "Nama Variasi"}
                                                     value={variation.name}
                                                     onChange={(e) =>
                                                         handleVariationNameChange(
@@ -279,55 +347,98 @@ export const ProductCreate = () => {
                                             type="number"
                                             placeholder="Harga"
                                             className="w-1/3 px-3 py-2 focus:outline-none"
+                                            value={globalPrice}
+                                            onChange={e => setGlobalPrice(e.target.value)}
                                         />
                                         <input
                                             type="number"
                                             placeholder="Stok"
                                             className="w-1/3 px-3 py-2 focus:outline-none"
+                                            value={globalStock}
+                                            onChange={e => setGlobalStock(e.target.value)}
                                         />
                                         <input
                                             type="text"
                                             placeholder="Kode Varian"
                                             className="w-1/3 px-3 py-2 focus:outline-none"
+                                            value={globalCode}
+                                            onChange={e => setGlobalCode(e.target.value)}
                                         />
                                     </div>
                                     <button
                                         type="button"
-                                        className="bg-blue-600 text-white max-w-30 max-h-10 px-4 py-2 rounded-lg"
+                                        className="bg-blue-600 text-white max-w-30 max-h-15 px-3 rounded-lg"
+                                        onClick={applyToAllVariants}
                                     >
                                         Terapkan Ke Semua
                                     </button>
                                 </div>
 
                                 <div className="mt-8 rounded-xl overflow-hidden">
-                                    <div className="grid grid-cols-5 font-semibold bg-gray-400 text-white">
-                                        <div className="p-3">Aroma</div>
-                                        <div className="p-3">Volume</div>
+                                    <div
+                                        className={`grid font-semibold bg-gray-400 text-white`}
+                                        style={{
+                                            gridTemplateColumns: variations[1]?.options.length > 0
+                                                ? "repeat(5, minmax(0, 1fr))"
+                                                : "repeat(4, minmax(0, 1fr))"
+                                        }}
+                                    >
+                                        <div className="p-3">{variations[0]?.name}</div>
+                                        {variations[1]?.options.length > 0 && (
+                                            <div className="p-3">{variations[1]?.name}</div>
+                                        )}
+                                        <div className="p-3">Kode Varian</div>
                                         <div className="p-3">Harga</div>
                                         <div className="p-3">Stok</div>
                                     </div>
 
-                                    {[
-                                        { aroma: "Water Lily", volumes: ["100 ml", "200 ml"], stocks: ["1000", "2000"], prices: ["", ""] },
-                                        { aroma: "Rose", volumes: ["100 ml", "200 ml"], stocks: ["0", "0"], prices: ["", ""] },
-                                    ].map((variant, i) =>
-                                        variant.volumes.map((volume, j) => (
+                                    {variantMatrix.map((variant, i) =>
+                                        (variant.volumes.length > 0 ? variant.volumes : [null]).map((volume, j) => (
                                             <div
-                                                className="grid grid-cols-5 items-center bg-white"
-                                                key={`${variant.aroma}-${volume}`}
+                                                className="grid items-center bg-white"
+                                                style={{
+                                                    gridTemplateColumns: variations[1]?.options.length > 0
+                                                        ? "repeat(5, minmax(0, 1fr))"
+                                                        : "repeat(4, minmax(0, 1fr))"
+                                                }}
+                                                key={`${variant.aroma}-${volume ?? "single"}`}
                                             >
                                                 <div className="p-3 align-top">
                                                     {j === 0 && (
                                                         <div className="row-span-2">
-                                                            <p className="font-medium mb-2">{variant.aroma}</p>
-                                                            <div className="w-24 h-24 border-2 border-dashed flex items-center justify-center text-gray-400 rounded">
-                                                                <span className="text-sm text-center">+<br />Tambah Gambar</span>
-                                                            </div>
+                                                            <p className="font-medium mb-2">
+                                                                {variations[0]?.options[i] && variations[0]?.options[i].trim() !== ""
+                                                                    ? variations[0]?.options[i]
+                                                                    : ""}
+                                                            </p>
+                                                            <InputOneImage
+                                                                images={variantImages[i]?.[j] ? [variantImages[i][j]] : []}
+                                                                onImageUpload={handleVariantImageUpload(i, j)}
+                                                                onRemoveImage={handleRemoveVariantImage(i, j)}
+                                                                label="Unggah"
+                                                                className="mt-1"
+                                                            />
                                                         </div>
                                                     )}
                                                 </div>
-
-                                                <div className="p-3">{volume}</div>
+                                                {variations[1]?.options.length > 0 && (
+                                                    <div className="p-3">
+                                                        {variations[1]?.options[j]}
+                                                    </div>
+                                                )}
+                                                <div className="p-3">
+                                                    <input
+                                                        type="text"
+                                                        className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
+                                                        placeholder="Kode Varian"
+                                                        value={variant.codes[j]}
+                                                        onChange={e => {
+                                                            const updated = [...variantMatrix];
+                                                            updated[i].codes[j] = e.target.value;
+                                                            setVariantMatrix(updated);
+                                                        }}
+                                                    />
+                                                </div>
                                                 <div className="p-3">
                                                     <div className="flex items-center">
                                                         <span className="text-gray-500 mr-1">Rp.</span>
@@ -336,16 +447,25 @@ export const ProductCreate = () => {
                                                             className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
                                                             placeholder="Harga"
                                                             value={variant.prices[j]}
+                                                            onChange={e => {
+                                                                const updated = [...variantMatrix];
+                                                                updated[i].prices[j] = e.target.value;
+                                                                setVariantMatrix(updated);
+                                                            }}
                                                         />
                                                     </div>
                                                 </div>
-
                                                 <div className="p-3">
                                                     <input
                                                         type="number"
                                                         className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
                                                         placeholder="Stok"
                                                         value={variant.stocks[j]}
+                                                        onChange={e => {
+                                                            const updated = [...variantMatrix];
+                                                            updated[i].stocks[j] = e.target.value;
+                                                            setVariantMatrix(updated);
+                                                        }}
                                                     />
                                                 </div>
                                             </div>
@@ -355,8 +475,6 @@ export const ProductCreate = () => {
                             </div>
                         </div>
                     )}
-
-
 
                     <div className="flex justify-end gap-4">
                         <button
@@ -378,14 +496,13 @@ export const ProductCreate = () => {
                 <div className="lg:col-span-4">
                     <PreviewCard
                         images={images}
-                        price={price}
-                        discountValue={discountValue}
-                        discountType={discountType}
+                        price={isParfum ? getVariantPriceRange() : price}
                         category={category}
                         productName={productName}
                         productCode={productCode}
-                        stock={stock}
+                        stock={isParfum ? getVariantMinStock() : stock}
                         composition={composition}
+                        variantImages={variantImages}
                     />
                 </div>
             </form>

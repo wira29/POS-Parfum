@@ -8,39 +8,12 @@ import { DeleteIcon } from "@/views/components/DeleteIcon"
 import { EditIcon } from "@/views/components/EditIcon"
 import AddButton from "@/views/components/AddButton"
 import ViewIcon from "@/views/components/ViewIcon"
-
-interface Category {
-  name: string
-}
-
-interface Variant {
-  id: number
-  name: string
-  code: string
-  stock: number
-  price: number
-  image: string
-}
-
-interface Product {
-  id: number
-  name: string
-  code: string
-  createdAt: string
-  category: Category
-  sales: number
-  price: number
-  total_stock: number
-  image: string
-  composition: string[]
-  variants: Variant[]
-}
+import dummyProducts from "./dummy/ProductDummy"
 
 export const ProductIndex = () => {
   const [searchQuery, setSearchQuery] = useState("")
   const [expandedProducts, setExpandedProducts] = useState<number[]>([])
   const expandRefs = useRef<Record<number, HTMLDivElement | null>>({})
-
 
   const toggleExpand = (productId: number) => {
     setExpandedProducts(prev => {
@@ -56,44 +29,32 @@ export const ProductIndex = () => {
     })
   }
 
-  const dummyProducts: Product[] = [
-    {
-      id: 1,
-      name: "Parfum A",
-      code: "PRO001",
-      createdAt: "2024-09-18",
-      category: { name: "Kategori A" },
-      sales: 120,
-      price: 150000,
-      total_stock: 5000,
-      image: "/images/logos/logo-mini-new.png",
-      composition: ["Alkohol", "Essential Oil", "Air"],
-      variants: [
-        { id: 101, name: "Varian A1", code: "VR1-PRO001", stock: 100, price: 100000, image: "/images/logos/logo-mini-new.png" },
-        { id: 102, name: "Varian A2", code: "VR2-PRO001", stock: 50, price: 110000, image: "/images/logos/logo-mini-new.png" }
-      ]
-    },
-    {
-      id: 2,
-      name: "Parfum B",
-      code: "PRO002",
-      createdAt: "2024-09-18",
-      category: { name: "Kategori A" },
-      sales: 100,
-      price: 140000,
-      total_stock: 4000,
-      image: "/images/logos/logo-mini-new.png",
-      composition: ["Alkohol", "Essential Oil"],
-      variants: [
-        { id: 201, name: "Varian B1", code: "VR1-PRO002", stock: 80, price: 95000, image: "/images/logos/logo-mini-new.png" }
-      ]
-    }
-  ]
+  const products = dummyProducts.map((p: any) => ({
+    id: p.id,
+    name: p.productName,
+    code: p.productCode,
+    createdAt: "2024-09-18",
+    category: { name: p.category },
+    sales: 0,
+    price: p.price,
+    total_stock: p.stock,
+    image: p.image,
+    composition: p.composition,
+    variants: p.variations && p.variations[0]?.options
+      ? p.variations[0].options.map((aroma: string, idx: number) => ({
+          id: `${p.id}-${aroma}`,
+          name: aroma,
+          code: `${aroma.toUpperCase().slice(0,3)}-${p.productCode}`,
+          stock: p.stock,
+          price: p.price,
+          image: p.variations[0].image || p.image,
+        }))
+      : []
+  }))
 
-  const filteredProducts = dummyProducts.filter((product) =>
+  const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
-
 
   return (
     <div className="p-6 space-y-6">
@@ -164,7 +125,7 @@ export const ProductIndex = () => {
                         ref={el => (expandRefs.current[product.id] = el)}
                         className={`variant-slide ${expandedProducts.includes(product.id) ? 'variant-enter' : 'variant-leave'}`}
                       >
-                        {expandedProducts.includes(product.id) && product.variants.map((variant) => (
+                        {expandedProducts.includes(product.id) && product.variants.map((variant: { id: React.Key | null | undefined; image: string | undefined; name: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined; code: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined; price: { toLocaleString: () => string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined }; stock: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined }) => (
                           <div key={variant.id} className="flex flex-wrap md:flex-nowrap items-center gap-4 p-4 bg-gray-50">
                             <div className="w-1/2 md:w-1/12">
                               <img src={variant.image} className="w-12 h-12 rounded object-cover" />

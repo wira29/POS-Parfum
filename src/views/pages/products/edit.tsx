@@ -1,10 +1,10 @@
-import { useState, useRef, FormEvent, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import InputSelect from "@/views/components/Input-v2/InputSelect";
 import InputText from "@/views/components/Input-v2/InputText";
 import InputNumber from "@/views/components/Input-v2/InputNumber";
-import InputDiscountSelect from "@/views/components/Input-v2/InputDiscountSelect";
 import InputImage from "@/views/components/Input-v2/InputImage";
+import InputOneImage from "@/views/components/Input-v2/InputOneImage";
 import InputManyText from "@/views/components/Input-v2/InputManyText";
 import PreviewCard from "@/views/components/Card/PreviewCard";
 import {
@@ -32,49 +32,14 @@ import {
 } from "./function/Operation";
 import { Toaster } from "@/core/helpers/BaseAlert";
 
+import dummyProducts from "./dummy/ProductDummy";
+
 export const ProductEdit = () => {
     const navigate = useNavigate();
-    const formRef = useRef<any>({ image: null, product_details: [] });
     const { id } = useParams();
-
-    const dummyProducts = [
-        {
-            id: 1,
-            name: "Parfum A",
-            code: "PRO001",
-            createdAt: "2024-09-18",
-            category: { name: "Kategori A" },
-            sales: 120,
-            price: 150000,
-            total_stock: 5000,
-            image: "/images/logos/logo-mini-new.png",
-            composition: ["Alkohol", "Essential Oil", "Air"],
-            variants: [
-                { id: 101, name: "Varian A1", code: "VR1-PRO001", stock: 100, price: 100000, image: "/images/logos/logo-mini-new.png" },
-                { id: 102, name: "Varian A2", code: "VR2-PRO001", stock: 50, price: 110000, image: "/images/logos/logo-mini-new.png" }
-            ]
-        },
-        {
-            id: 2,
-            name: "Parfum B",
-            code: "PRO002",
-            createdAt: "2024-09-18",
-            category: { name: "Kategori A" },
-            sales: 100,
-            price: 140000,
-            total_stock: 4000,
-            image: "/images/logos/logo-mini-new.png",
-            composition: ["Alkohol", "Essential Oil"],
-            variants: [
-                { id: 201, name: "Varian B1", code: "VR1-PRO002", stock: 80, price: 95000, image: "/images/logos/logo-mini-new.png" }
-            ]
-        }
-    ];
 
     const [composition, setComposition] = useState<string[]>([""]);
     const [price, setPrice] = useState(0);
-    const [discountType, setDiscountType] = useState("Rp");
-    const [discountValue, setDiscountValue] = useState(0);
     const [stock, setStock] = useState(0);
     const [images, setImages] = useState<File[]>([]);
     const [productName, setProductName] = useState("");
@@ -88,25 +53,8 @@ export const ProductEdit = () => {
         { name: "", options: [""] },
     ]);
 
-    const [variantMatrix, setVariantMatrix] = useState([
-        {
-            aroma: "Water Lily",
-            volumes: ["100 ml", "200 ml"],
-            prices: ["", ""],
-            stocks: ["", ""],
-            codes: ["", ""],
-        },
-        {
-            aroma: "Rose",
-            volumes: ["100 ml", "200 ml"],
-            prices: ["", ""],
-            stocks: ["", ""],
-            codes: ["", ""],
-        },
-    ]);
-
-    const labelClass = "block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2";
-    const isParfum = ["Parfum Malam", "Parfum Siang"].includes(category);
+    const [variantMatrix, setVariantMatrix] = useState<any[]>([]);
+    const [variantImages, setVariantImages] = useState<(File | string)[][]>([]);
 
     useEffect(() => {
         const Product = dummyProducts.find((u) => String(u.id) === String(id));
@@ -114,20 +62,115 @@ export const ProductEdit = () => {
             navigate("/products");
             Toaster('error', "Product not found");
         } else {
-            setProductName(Product.name);
-            setProductCode(Product.code);
-            setCategory(Product.category.name);
+            setProductName(Product.productName);
+            setProductCode(Product.productCode);
+            setCategory(Product.category);
             setPrice(Product.price);
-            setStock(Product.total_stock);
+            setStock(Product.stock);
             setComposition(Product.composition);
-            setVariations(
-                Product.variants.map((v) => ({
-                    name: v.name,
-                    options: [v.code],
-                }))
-            );
+            setImages(Product.images || []);
+            setVariations(Product.variations);
+
+            if (Product.variations && Product.variations.length >= 2) {
+                const aromaOptions = Product.variations[0].options.length > 0 ? Product.variations[0].options : [""];
+                const volumeOptions = Product.variations[1].options.length > 0 ? Product.variations[1].options : [""];
+                const newMatrix = aromaOptions.map((aroma, i) => ({
+                    aroma: aroma || `Aroma ${i + 1}`,
+                    volumes: volumeOptions,
+                    prices: volumeOptions.map(() => ""),
+                    stocks: volumeOptions.map(() => ""),
+                    codes: volumeOptions.map(() => ""),
+                }));
+                setVariantMatrix(newMatrix);
+            }
         }
     }, [id, navigate]);
+
+    useEffect(() => {
+        setVariantImages((prev) =>
+            variantMatrix.map((variant, i) =>
+                variant.volumes.map((_: any, j: number) => prev?.[i]?.[j] ?? "")
+            )
+        );
+    }, [variantMatrix]);
+
+    const getVariantMinStock = () => {
+        const allStocks = variantMatrix
+            .flatMap(variant => variant.stocks)
+            .map(s => Number(s))
+            .filter(s => !isNaN(s) && s >= 0);
+
+        if (allStocks.length === 0) return 0;
+        return Math.min(...allStocks);
+    };
+
+    const handleVariantImageUpload = (i: number, j: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setVariantImages(prev => {
+                const updated = prev.map(row => [...row]);
+                if (!updated[i]) updated[i] = [];
+                updated[i][j] = file;
+                return updated;
+            });
+        }
+    };
+
+    const handleRemoveVariantImage = (i: number, j: number) => () => {
+        setVariantImages(prev => {
+            const updated = prev.map(row => [...row]);
+            if (updated[i]) updated[i][j] = "";
+            return updated;
+        });
+    };
+
+    useEffect(() => {
+        if (variations.length < 2) return;
+        const aromaOptions = variations[0].options.length > 0 ? variations[0].options : [""];
+        const volumeOptions = variations[1].options.length > 0 ? variations[1].options : [""];
+        const newMatrix = aromaOptions.map((aroma, i) => ({
+            aroma: aroma || `Aroma ${i + 1}`,
+            volumes: volumeOptions,
+            prices: volumeOptions.map((_, j) => variantMatrix[i]?.prices?.[j] || ""),
+            stocks: volumeOptions.map((_, j) => variantMatrix[i]?.stocks?.[j] || ""),
+            codes: volumeOptions.map((_, j) => variantMatrix[i]?.codes?.[j] || ""),
+        }));
+        setVariantMatrix(newMatrix);
+    }, [variations]);
+
+    const applyToAllVariants = () => {
+        const updated = variantMatrix.map((variant) => ({
+            ...variant,
+            prices: variant.prices.map((old: any, idx: any) =>
+                globalPrice === "" || globalPrice === null ? old : globalPrice
+            ),
+            stocks: variant.stocks.map((old: any, idx: any) =>
+                globalStock === "" || globalStock === null ? old : globalStock
+            ),
+            codes: variant.codes.map((old: any, idx: any) =>
+                globalCode === "" || globalCode === null ? old : globalCode
+            ),
+        }));
+        setVariantMatrix(updated);
+        setGlobalPrice("");
+        setGlobalStock("");
+        setGlobalCode("");
+    };
+
+    const getVariantPriceRange = (): number | [number, number] => {
+        const allPrices = variantMatrix
+            .flatMap(variant => variant.prices)
+            .map(h => Number(h))
+            .filter(h => !isNaN(h) && h > 0);
+
+        if (allPrices.length === 0) return 0;
+        const min = Math.min(...allPrices);
+        const max = Math.max(...allPrices);
+        return min === max ? min : [min, max] as [number, number];
+    };
+
+    const labelClass = "block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2";
+    const isParfum = ["Parfum Malam", "Parfum Siang"].includes(category);
 
     return (
         <div className="p-4 md:p-6">
@@ -135,8 +178,6 @@ export const ProductEdit = () => {
                 onSubmit={(e) =>
                     handleSubmit(e, {
                         price,
-                        discountType,
-                        discountValue,
                         stock,
                         composition,
                         images,
@@ -179,7 +220,6 @@ export const ProductEdit = () => {
                                 options={[
                                     { value: "Parfum Malam", label: "Parfum Malam" },
                                     { value: "Parfum Siang", label: "Parfum Siang" },
-                                    { value: "Kategori A", label: "Kategori A" },
                                 ]}
                             />
                         </div>
@@ -271,7 +311,7 @@ export const ProductEdit = () => {
                                             <div className="flex gap-4 items-center">
                                                 <span className="font-medium">Variasi {i + 1}</span>
                                                 <input
-                                                    placeholder="Nama Variasi"
+                                                    placeholder={i === 0 ? "Aroma" : "Nama Variasi"}
                                                     value={variation.name}
                                                     onChange={(e) =>
                                                         handleVariationNameChange(
@@ -313,6 +353,7 @@ export const ProductEdit = () => {
                                     </div>
                                 ))}
                             </div>
+                            {/* MATRIX VARIANT */}
                             <div className="mt-6">
                                 <h3 className="text-md font-semibold mb-2">Daftar Varian</h3>
                                 <div className="flex items-center gap-4">
@@ -324,55 +365,98 @@ export const ProductEdit = () => {
                                             type="number"
                                             placeholder="Harga"
                                             className="w-1/3 px-3 py-2 focus:outline-none"
+                                            value={globalPrice}
+                                            onChange={e => setGlobalPrice(e.target.value)}
                                         />
                                         <input
                                             type="number"
                                             placeholder="Stok"
                                             className="w-1/3 px-3 py-2 focus:outline-none"
+                                            value={globalStock}
+                                            onChange={e => setGlobalStock(e.target.value)}
                                         />
                                         <input
                                             type="text"
                                             placeholder="Kode Varian"
                                             className="w-1/3 px-3 py-2 focus:outline-none"
+                                            value={globalCode}
+                                            onChange={e => setGlobalCode(e.target.value)}
                                         />
                                     </div>
                                     <button
                                         type="button"
-                                        className="bg-blue-600 text-white max-w-30 max-h-10 px-4 py-2 rounded-lg"
+                                        className="bg-blue-600 text-white max-w-30 max-h-15 px-3 rounded-lg"
+                                        onClick={applyToAllVariants}
                                     >
                                         Terapkan Ke Semua
                                     </button>
                                 </div>
 
                                 <div className="mt-8 rounded-xl overflow-hidden">
-                                    <div className="grid grid-cols-5 font-semibold bg-gray-400 text-white">
-                                        <div className="p-3">Aroma</div>
-                                        <div className="p-3">Volume</div>
+                                    <div
+                                        className={`grid font-semibold bg-gray-400 text-white`}
+                                        style={{
+                                            gridTemplateColumns: variations[1]?.options.length > 0
+                                                ? "repeat(5, minmax(0, 1fr))"
+                                                : "repeat(4, minmax(0, 1fr))"
+                                        }}
+                                    >
+                                        <div className="p-3">{variations[0]?.name}</div>
+                                        {variations[1]?.options.length > 0 && (
+                                            <div className="p-3">{variations[1]?.name}</div>
+                                        )}
+                                        <div className="p-3">Kode Varian</div>
                                         <div className="p-3">Harga</div>
                                         <div className="p-3">Stok</div>
                                     </div>
 
-                                    {[
-                                        { aroma: "Water Lily", volumes: ["100 ml", "200 ml"], stocks: ["1000", "2000"], prices: ["", ""] },
-                                        { aroma: "Rose", volumes: ["100 ml", "200 ml"], stocks: ["0", "0"], prices: ["", ""] },
-                                    ].map((variant, i) =>
-                                        variant.volumes.map((volume, j) => (
+                                    {variantMatrix.map((variant, i) =>
+                                        (variant.volumes.length > 0 ? variant.volumes : [null]).map((volume: any, j: number) => (
                                             <div
-                                                className="grid grid-cols-5 items-center bg-white"
-                                                key={`${variant.aroma}-${volume}`}
+                                                className="grid items-center bg-white"
+                                                style={{
+                                                    gridTemplateColumns: variations[1]?.options.length > 0
+                                                        ? "repeat(5, minmax(0, 1fr))"
+                                                        : "repeat(4, minmax(0, 1fr))"
+                                                }}
+                                                key={`${variant.aroma}-${volume ?? "single"}`}
                                             >
                                                 <div className="p-3 align-top">
                                                     {j === 0 && (
                                                         <div className="row-span-2">
-                                                            <p className="font-medium mb-2">{variant.aroma}</p>
-                                                            <div className="w-24 h-24 border-2 border-dashed flex items-center justify-center text-gray-400 rounded">
-                                                                <span className="text-sm text-center">+<br />Tambah Gambar</span>
-                                                            </div>
+                                                            <p className="font-medium mb-2">
+                                                                {variations[0]?.options[i] && variations[0]?.options[i].trim() !== ""
+                                                                    ? variations[0]?.options[i]
+                                                                    : ""}
+                                                            </p>
+                                                            <InputOneImage
+                                                                images={variantImages[i]?.[j] ? [variantImages[i][j]] : []}
+                                                                onImageUpload={handleVariantImageUpload(i, j)}
+                                                                onRemoveImage={handleRemoveVariantImage(i, j)}
+                                                                label="Unggah"
+                                                                className="mt-1"
+                                                            />
                                                         </div>
                                                     )}
                                                 </div>
-
-                                                <div className="p-3">{volume}</div>
+                                                {variations[1]?.options.length > 0 && (
+                                                    <div className="p-3">
+                                                        {variations[1]?.options[j]}
+                                                    </div>
+                                                )}
+                                                <div className="p-3">
+                                                    <input
+                                                        type="text"
+                                                        className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
+                                                        placeholder="Kode Varian"
+                                                        value={variant.codes[j]}
+                                                        onChange={e => {
+                                                            const updated = [...variantMatrix];
+                                                            updated[i].codes[j] = e.target.value;
+                                                            setVariantMatrix(updated);
+                                                        }}
+                                                    />
+                                                </div>
                                                 <div className="p-3">
                                                     <div className="flex items-center">
                                                         <span className="text-gray-500 mr-1">Rp.</span>
@@ -381,16 +465,25 @@ export const ProductEdit = () => {
                                                             className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
                                                             placeholder="Harga"
                                                             value={variant.prices[j]}
+                                                            onChange={e => {
+                                                                const updated = [...variantMatrix];
+                                                                updated[i].prices[j] = e.target.value;
+                                                                setVariantMatrix(updated);
+                                                            }}
                                                         />
                                                     </div>
                                                 </div>
-
                                                 <div className="p-3">
                                                     <input
                                                         type="number"
                                                         className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
                                                         placeholder="Stok"
                                                         value={variant.stocks[j]}
+                                                        onChange={e => {
+                                                            const updated = [...variantMatrix];
+                                                            updated[i].stocks[j] = e.target.value;
+                                                            setVariantMatrix(updated);
+                                                        }}
                                                     />
                                                 </div>
                                             </div>
@@ -421,14 +514,13 @@ export const ProductEdit = () => {
                 <div className="lg:col-span-4">
                     <PreviewCard
                         images={images}
-                        price={price}
-                        discountValue={discountValue}
-                        discountType={discountType}
+                        price={isParfum ? getVariantPriceRange() : price}
                         category={category}
                         productName={productName}
                         productCode={productCode}
-                        stock={stock}
+                        stock={isParfum ? getVariantMinStock() : stock}
                         composition={composition}
+                        variantImages={variantImages}
                     />
                 </div>
             </form>
