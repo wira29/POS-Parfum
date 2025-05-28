@@ -75,7 +75,7 @@ export default function ExpenseManagement() {
             </div>
 
 
-            <AddButton to="/expenses/create">Tambah Pengeluaran</AddButton>
+            <AddButton to="./create">Tambah Pengeluaran</AddButton>
           </div>
         </div>
 

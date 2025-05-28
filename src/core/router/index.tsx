@@ -38,6 +38,7 @@ import { DiscountEdit } from "@/views/pages/discount/edit";
 import BlendingIndex from "@/views/pages/blending"
 import ProfitLossReportPage from "@/views/pages/laporan";
 import ExpenseManagement from "@/views/pages/pengeluaran";
+import ExpenseCreate from "@/views/pages/pengeluaran/create";
 
 export const router = createBrowserRouter([
   {
@@ -129,7 +130,7 @@ export const router = createBrowserRouter([
             element: <UserEdit />,
           },
           {
-            path: "usersDetail",
+            path: "users/:id",
             element: <UserDetail />,
           },
           {
@@ -181,6 +182,10 @@ export const router = createBrowserRouter([
           {
             path: "pengeluaran",
             element: <ExpenseManagement />,
+          },
+          {
+            path: "pengeluaran/create",
+            element: <ExpenseCreate/>,
           },
         ],
       },

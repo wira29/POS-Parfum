@@ -64,7 +64,7 @@ const menuItems = [
     label: "Lainnya",
     children: [
       { label: "Retail", icon: <FaShop />, path: "/warehouses" },
-      { label: "Tambah Pengguna", icon: <FiUsers />, path: "/users" },
+      { label: "Pengguna", icon: <FiUsers />, path: "/users" },
       { label: "Laporan", icon: <TbCoinTakaFilled />, path: "/laporan" },
       { label: "Pengeluaran", icon: <Wallet2Icon />, path: "/pengeluaran" },
     ],
