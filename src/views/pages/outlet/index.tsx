@@ -25,7 +25,14 @@ interface Product {
 }
 
 export function CheckoutPreview() {
-  const [pendingItems, setPendingItems] = useState<(Product | ProductVariant)[]>([]);
+  const [pendingItems, setPendingItems] = useState<
+    (Product | ProductVariant)[]
+  >([]);
+  const [totalHarga, setTotalHarga] = useState(0);
+
+  const handleReset = () => {
+    setPendingItems([])
+  }
 
   return (
     <div className="flex w-full gap-5 py-5">
@@ -35,13 +42,14 @@ export function CheckoutPreview() {
             onAdd={(products) => {
               setPendingItems((prev) => [...prev, ...products]);
             }}
+            onReset={handleReset}
           />
-        
-          <ListPendingTransactions items={pendingItems} />
+
+          <ListPendingTransactions items={pendingItems}  onTotalChange={(total) => setTotalHarga(total)}/>
         </Card>
       </div>
 
-      <PayProduct />
+      <PayProduct totalHarga={totalHarga}/>
     </div>
   );
 }

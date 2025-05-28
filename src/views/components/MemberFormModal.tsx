@@ -3,7 +3,7 @@ import { useRef, useEffect, useState } from "react";
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  mode: "tambah" | "edit";
+  mode: "normal" | "tengah";
   defaultValues?: {
     name: string;
     email: string;
@@ -25,7 +25,6 @@ const MemberFormModal = ({
   mode,
   defaultValues,
   onSubmit,
-  onDelete,
 }: Props) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -55,17 +54,24 @@ const MemberFormModal = ({
 
   const handleSubmit = () => {
     onSubmit({ name, email, phone, address });
+    onClose()
   };
 
   if (!isOpen) return null;
 
   return (
     <div
-      className="bg-white absolute top-10 right-0 mt-2 w-[400px] rounded-xl shadow-lg p-5 z-50 space-y-5"
-      ref={modalRef}
+  className={`bg-white w-[400px] rounded-xl shadow-lg p-5 z-50 space-y-5
+    ${
+      mode === "tengah"
+        ? "fixed top-103 left-160 -translate-x-1/2 -translate-y-1/2"
+        : "absolute top-10 right-0 mt-2"
+    }
+  `}
+  ref={modalRef}
     >
       <h2 className="text-lg font-bold">
-        {mode === "edit" ? "Edit Member" : "Tambahkan Member"}
+        Tambahkan Member
       </h2>
 
       <div className="space-y-3">
@@ -74,7 +80,7 @@ const MemberFormModal = ({
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+            className="w-full border border-gray-300 outline-none rounded-md px-3 py-2 text-sm"
             placeholder="Nama lengkap"
           />
         </div>
@@ -84,7 +90,7 @@ const MemberFormModal = ({
           <input
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+            className="w-full border border-gray-300 outline-none rounded-md px-3 py-2 text-sm"
             placeholder="Email aktif"
           />
         </div>
@@ -98,8 +104,25 @@ const MemberFormModal = ({
             <input
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-              placeholder="8123-4567-8910"
+              className="w-full border border-gray-300 outline-none rounded-md px-3 py-2 text-sm"
+              placeholder="08****"
+                  onKeyDown={(e) => {
+              if (
+                [
+                  "Backspace",
+                  "Delete",
+                  "Tab",
+                  "Escape",
+                  "Enter",
+                  "ArrowLeft",
+                  "ArrowRight",
+                ].includes(e.key) ||
+                (e.ctrlKey &&
+                  ["a", "c", "v", "x"].includes(e.key.toLowerCase()))
+              )
+                return;
+              if (!/[0-9]/.test(e.key)) e.preventDefault();
+            }}
             />
           </div>
         </div>
@@ -109,24 +132,14 @@ const MemberFormModal = ({
           <textarea
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+            className="w-full border border-gray-300 outline-none rounded-md px-3 py-2 text-sm"
             rows={3}
             placeholder="Alamat lengkap"
           />
         </div>
       </div>
 
-      <div className="flex justify-between items-center pt-4 border-t">
-        {mode === "edit" && (
-          <button
-          type="button"
-            onClick={onDelete}
-            className="text-white text-sm bg-red-600 hover:bg-red-700 px-4 py-2 rounded-md cursor-pointer"
-          >
-            Hapus
-          </button>
-        )}
-
+      <div className="flex justify-between items-center pt-4 border-t border-t-slate-300">
         <button
         type="button"
           onClick={handleSubmit}

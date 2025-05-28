@@ -1,66 +1,258 @@
-import { Link, useLocation } from "react-router-dom"
-import { FiHome, FiBox, FiPercent, FiCoffee, FiTag, FiUsers, FiLayers } from "react-icons/fi"
-import { TbShoppingCart, TbBuildingWarehouse } from "react-icons/tb"
+import { Link, useLocation } from "react-router-dom";
+import {
+  FiHome,
+  FiBox,
+  FiPercent,
+  FiCoffee,
+  FiTag,
+  FiUsers,
+  FiLayers,
+  FiChevronDown,
+  FiChevronUp,
+} from "react-icons/fi";
+import { TbShoppingCart } from "react-icons/tb";
 import { FaShop } from "react-icons/fa6";
+import { useState } from "react";
 
 const menuItems = [
-    { label: 'Beranda', icon: <FiHome />, path: '/dashboard' },
-    {
-        label: 'Transaksi', children: [
-            { label: 'Penjualan', icon: <TbShoppingCart />, path: '/outlets' },
-            { label: 'Request Pembelian', icon: <FiTag />, path: '/request-stock' },
-        ]
-    },
-    {
-        label: 'Produk', children: [
-            { label: 'Kategori', icon: <FiLayers />, path: '/categories' },
-            { label: 'Bahan Baku', icon: <TbBuildingWarehouse />, path: '/bahan-baku' },
-            { label: 'Produk', icon: <FiBox />, path: '/products' },
-            { label: 'Blending Produk', icon: <FiCoffee />, path: '/blending-produk' },
-            { label: 'Diskon', icon: <FiPercent />, path: '/diskon' },
-        ]
-    },
-    {
-        label: 'Lainnya', children: [
-            { label: 'Retail', icon: <FaShop />, path: '/retail' },
-            { label: 'Tambah Akun', icon: <FiUsers />, path: '/retail' }
-        ]
-    },
-]
+  { label: "Beranda", icon: <FiHome />, path: "/dashboard" },
+  {
+    group: "Transaksi",
+    label: "Penjualan",
+    icon: <TbShoppingCart />,
+    path: "/outlets",
+    isDropdown: true,
+    children: [
+      {
+        label: "Kasir",
+        icon: <TbShoppingCart />,
+        path: "/outlets",
+      },
+      {
+        label: "Riwayat Penjualan",
+        icon: <FiTag />,
+        path: "/riwayat-penjualan",
+      },
+    ],
+  },
+  {
+    group: "Transaksi",
+    label: "Request Pembelian",
+    icon: <FiTag />,
+    path: "/request-stock",
+  },
+  {
+    label: "Produk",
+    children: [
+      { label: "Kategori", icon: <FiLayers />, path: "/categories" },
+      { label: "Produk", icon: <FiBox />, path: "/products" },
+      {
+        label: "Blending Produk",
+        icon: <FiCoffee />,
+        path: "/blending-produk",
+      },
+      { label: "Diskon", icon: <FiPercent />, path: "/discounts" },
+    ],
+  },
+  {
+    label: "Lainnya",
+    children: [
+      { label: "Retail", icon: <FaShop />, path: "/warehouses" },
+      { label: "Tambah Pengguna", icon: <FiUsers />, path: "/users" },
+    ],
+  },
+];
 
 export const Sidebar = ({ sidebar }: { sidebar: string }) => {
-    const location = useLocation()
-    const isCollapsed = sidebar === 'mini-sidebar'
+  const location = useLocation();
+  const isCollapsed = sidebar === "mini-sidebar";
+  const [openDropdowns, setOpenDropdowns] = useState<{
+    [key: string]: boolean;
+  }>({});
 
-    return (
-        <aside className={`h-screen fixed left-0 top-0 shadow-md z-20 transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'} bg-white`}>
-            <div className="flex items-center justify-between h-16 px-4">
-                <div className="flex items-center">
-                    <img src={isCollapsed ? "../../../../public/images/logos/logo-mini-new.png" : "../../../../public/images/logos/logo-new.png"} alt="Logo" className={`transition-all duration-300 ${isCollapsed ? 'w-16 h-11' : 'w-28 h-11'}`} />
-                </div>
-            </div>
-            <nav className="p-4 overflow-y-auto space-y-6">
-                {menuItems.map((group, i) => (
-                    <div key={i}>
-                        <p className={`text-xs font-bold uppercase mb-2 transition-all duration-300 ${isCollapsed ? 'text-gray-400 text-center text-[10px]' : 'text-gray-400'}`}>
-                            {group.label}
-                        </p>
-                        <ul className="space-y-1">
-                            {(group.children || [group]).map((item, idx) => {
-                                const isActive = location.pathname.startsWith(item.path)
-                                return (
-                                    <li key={idx}>
-                                        <Link to={item.path} className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${isActive ? 'bg-blue-600 text-white hover:bg-blue-600' : 'text-gray-700'} ${isCollapsed ? 'justify-center' : ''}`}>
-                                            <span className="text-lg">{item.icon}</span>
-                                            {!isCollapsed && item.label}
-                                        </Link>
-                                    </li>
-                                )
-                            })}
-                        </ul>
-                    </div>
-                ))}
-            </nav>
-        </aside>
-    )
-}
+  const toggleDropdown = (label: string) => {
+    setOpenDropdowns((prev) => ({
+      ...prev,
+      [label]: !prev[label],
+    }));
+  };
+
+  return (
+    <aside
+      className={`h-screen fixed left-0 top-0 shadow-md z-20 transition-all duration-300 ${
+        isCollapsed ? "w-20" : "w-64"
+      } bg-white`}
+    >
+      <div className="flex items-center justify-between h-16 px-4">
+        <div className="flex items-center">
+          <img
+            src={
+              isCollapsed
+                ? "../../../../public/images/logos/logo-mini-new.png"
+                : "../../../../public/images/logos/logo-new.png"
+            }
+            alt="Logo"
+            className={`transition-all duration-300 ${
+              isCollapsed ? "w-16 h-11" : "w-28 h-11"
+            }`}
+          />
+        </div>
+      </div>
+      <nav
+        className={`p-4 space-y-2.5 ${
+          isCollapsed ? "overflow-visible" : "overflow-y-auto"
+        } h-[calc(100vh-4rem)]`}
+      >
+        {menuItems.map((item, i) => (
+          <div key={i}>
+            {item.group ? (
+              <div>
+                {!isCollapsed &&
+                  i === menuItems.findIndex((m) => m.group === item.group) && (
+                    <p className="text-xs font-bold uppercase mb-2 text-gray-400">
+                      {item.group}
+                    </p>
+                  )}
+                {isCollapsed &&
+                  i === menuItems.findIndex((m) => m.group === item.group) && (
+                    <p className="text-xs font-bold uppercase mb-2 text-center text-[10px] text-gray-400">
+                      {item.group}
+                    </p>
+                  )}
+
+                {item.isDropdown ? (
+                  <div className="relative group">
+                    <button
+                      onClick={() => !isCollapsed && toggleDropdown(item.label)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${
+                        location.pathname.startsWith(item.path) ||
+                        (item.children &&
+                          item.children.some((child) =>
+                            location.pathname.startsWith(child.path)
+                          ))
+                          ? "bg-blue-600 text-white hover:bg-blue-600"
+                          : "text-gray-700"
+                      } ${isCollapsed ? "justify-center" : "justify-between"}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-lg">{item.icon}</span>
+                        {!isCollapsed && item.label}
+                      </div>
+                      {!isCollapsed && (
+                        <span className="text-lg">
+                          {openDropdowns[item.label] ? (
+                            <FiChevronUp />
+                          ) : (
+                            <FiChevronDown />
+                          )}
+                        </span>
+                      )}
+                    </button>
+
+                    {!isCollapsed && openDropdowns[item.label] && (
+                      <ul className="mt-2 space-y-1 ml-4">
+                        {item.children?.map((child, idx) => {
+                          const isActive = location.pathname.startsWith(
+                            child.path
+                          );
+                          return (
+                            <li key={idx}>
+                              <Link
+                                to={child.path}
+                                className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-50 text-sm transition-all duration-300 ${
+                                  isActive
+                                    ? "bg-blue-100 text-blue-600"
+                                    : "text-gray-600"
+                                }`}
+                              >
+                                <span
+                                  className={`w-2.5 h-2.5 rounded-full bg-blue-500 border-2 border-blue-300 ${
+                                    !isActive &&
+                                    "opacity-50 bg-white border-blue-300"
+                                  }`}
+                                ></span>
+                                {child.label}
+                              </Link>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+
+                    {isCollapsed && (
+                      <div className="absolute left-full overflow-hidden top-0 ml-2 bg-white shadow-lg rounded-lg z-[9999] min-w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                        {item.children?.map((child, idx) => {
+                          const isActive = location.pathname.startsWith(
+                            child.path
+                          );
+                          return (
+                            <Link
+                              key={idx}
+                              to={child.path}
+                              className={`flex items-center gap-3 px-4 py-3 hover:bg-blue-50 text-sm transition-all duration-300 ${
+                                isActive
+                                  ? "bg-blue-200 text-blue-600"
+                                  : "text-gray-600"
+                              }`}
+                            >
+                              <span className="text-lg">{child.icon}</span>
+                              {child.label}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <Link
+                    to={item.path}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${
+                      location.pathname.startsWith(item.path)
+                        ? "bg-blue-600 text-white hover:bg-blue-600"
+                        : "text-gray-700"
+                    } ${isCollapsed ? "justify-center" : ""}`}
+                  >
+                    <span className="text-lg">{item.icon}</span>
+                    {!isCollapsed && item.label}
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <div>
+                <p
+                  className={`text-xs font-bold uppercase mb-2 transition-all duration-300 ${
+                    isCollapsed
+                      ? "text-gray-400 text-center text-[10px]"
+                      : "text-gray-400"
+                  }`}
+                >
+                  {item.label}
+                </p>
+                <ul className="space-y-1">
+                  {(item.children || [item]).map((child, idx) => {
+                    const isActive = location.pathname.startsWith(child.path);
+                    return (
+                      <li key={idx}>
+                        <Link
+                          to={child.path}
+                          className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${
+                            isActive
+                              ? "bg-blue-600 text-white hover:bg-blue-600"
+                              : "text-gray-700"
+                          } ${isCollapsed ? "justify-center" : ""}`}
+                        >
+                          <span className="text-lg">{child.icon}</span>
+                          {!isCollapsed && child.label}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+          </div>
+        ))}
+      </nav>
+    </aside>
+  );
+};

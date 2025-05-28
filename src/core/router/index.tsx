@@ -1,5 +1,6 @@
 import { IsAuth } from "@/core/middlewares/is-auth";
 import { MainLayout } from "@/views/layouts/MainLayout";
+import { Register } from "@/views/pages/authentication/Registrasi";
 import DiscountIndex from "@/views/pages/discount";
 import { NotFoundPage } from "@/views/pages/errors";
 import { Home } from "@/views/pages/home";
@@ -15,7 +16,15 @@ import {
   UserPage,
   VariantIndex,
   WarehouseIndex,
-  WarehouseShow,
+  WarehouseDetail,
+  DiscountCreate,
+  DiscountEdit,
+  WarehouseCreate,
+  WarehouseEdit,
+  UserDetail,
+  UserCreate,
+  UserEdit,
+  RiwayatPenjualan
 } from "@/views/pages/pages";
 import RequestStockIndex from "@/views/pages/request-stock";
 import { RequestRestockIndex } from "@/views/pages/restock/request";
@@ -28,6 +37,10 @@ export const router = createBrowserRouter([
   {
     path: "/login",
     element: <LoginPage />,
+  },
+  {
+    path: "/register",
+    element: <Register />,
   },
   {
     path: "",
@@ -74,20 +87,52 @@ export const router = createBrowserRouter([
             element: <OutletIndex />,
           },
           {
+             path: "riwayat-penjualan",
+            element: <RiwayatPenjualan />,
+          },
+          {
             path: "warehouses",
             element: <WarehouseIndex />,
           },
           {
-            path: "warehouses/:id",
-            element: <WarehouseShow />,
+            path: "warehouses/create",
+            element: <WarehouseCreate />,
+          },
+          {
+            path: "warehouses/:id/edit",
+            element: <WarehouseEdit />,
+          },
+          {
+            path: "warehousesDetail",
+            element: <WarehouseDetail />,
           },
           {
             path: "users",
             element: <UserPage />,
           },
           {
+            path: "users/create",
+            element: <UserCreate />,
+          },
+          {
+            path: "users/:id/edit",
+            element: <UserEdit />,
+          },
+          {
+            path: "usersDetail",
+            element: <UserDetail />,
+          },
+          {
             path: "discounts",
             element: <DiscountIndex />,
+          },
+          {
+            path: "discounts/create",
+            element: <DiscountCreate />,
+          },
+          {
+            path: "discounts/:id/edit",
+            element: <DiscountEdit />,
           },
           {
             path: "request-stock",

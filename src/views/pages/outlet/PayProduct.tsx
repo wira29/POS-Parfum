@@ -1,8 +1,7 @@
 import Card from "@/views/components/Card/Card";
 import MemberFormModal from "@/views/components/MemberFormModal";
 import MemberListModal from "@/views/components/MemberListModal";
-import { SearchInput } from "@/views/components/SearchInput";
-import { ArrowDown, ChevronDown, User, UserPlus } from "lucide-react";
+import { CheckCircle, Ellipsis, User, UserPlus, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 
@@ -13,8 +12,12 @@ type FormData = {
   changeAmount: string;
   paymentMethod: "cash" | "transfer" | "qris";
 };
+function formatRupiah(value: string) {
+  const clean = value.replace(/\D/g, "");
+  return clean.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
 
-const PayProduct = () => {
+const PayProduct = ({ totalHarga }: { totalHarga: number }) => {
   const {
     register,
     handleSubmit,
@@ -22,15 +25,41 @@ const PayProduct = () => {
     watch,
     formState: { errors },
   } = useForm<FormData>({
-    defaultValues: { paymentMethod: "cash" },
+    defaultValues: {
+      paymentMethod: "cash",
+      payAmount: "",
+      changeAmount: "0",
+    },
   });
 
   const currentMethod = watch("paymentMethod");
   const isCashMethod = currentMethod === "cash";
+  const payAmount = watch("payAmount") || "";
+
+  useEffect(() => {
+    const bayarNum = Number(payAmount) || 0;
+    const kembali = bayarNum > totalHarga ? bayarNum - totalHarga : 0;
+    setValue("changeAmount", kembali.toString());
+  }, [payAmount, totalHarga, setValue]);
+
+  const handlePayAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value;
+    const numericValue = rawValue.replace(/[^0-9]/g, "");
+    if (/^\d*$/.test(numericValue)) {
+      setValue("payAmount", numericValue, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    }
+  };
   const [isOpenMiniModal, setIsOpenMiniModal] = useState(false);
   const [isOpenModalListMember, setIsOpenListMosdal] = useState(false);
   const [isOpenModalAdd, setIsOpenModalAdd] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [animateModal, setAnimateModal] = useState(false);
+  const [isMemberMode, setIsMemberMode] = useState(false);
+  const [members, setMembers] = useState<{ name: string; phone: string }[]>([]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -54,18 +83,28 @@ const PayProduct = () => {
     };
   }, [isOpenMiniModal, isOpenModalListMember]);
 
-  const inputClass = (prefixed = false) =>
-    `w-full bg-white py-1 px-3 text-lg font-normal focus:outline-none border rounded-lg border-gray-300/[0.5] ${
-      prefixed ? "rounded-none" : ""
-    }`;
+  const inputClass = (prefixed = false, isDisabled = false) =>
+    `w-full py-1 px-3 text-md font-normal focus:outline-none border  border-gray-300/[0.5]
+  ${prefixed ? "rounded-none" : ""}
+  ${isDisabled ? "bg-gray-100 cursor-not-allowed text-gray-500" : "bg-white"}`;
 
   const buttonClass = (m: FormData["paymentMethod"]) =>
     `w-full rounded text-white text-sm py-1.5 cursor-pointer font-semibold ${
       currentMethod === m ? "bg-green-500" : "bg-green-200"
     }`;
 
+  useEffect(() => {
+    if (showSuccessModal) {
+      const timeout = setTimeout(() => setAnimateModal(true), 10);
+      return () => clearTimeout(timeout);
+    } else {
+      setAnimateModal(false);
+    }
+  }, [showSuccessModal]);
+
   const onSubmit: SubmitHandler<FormData> = (data) => {
     console.log("DATA DUMMY:", data);
+    setShowSuccessModal(true);
   };
 
   return (
@@ -76,7 +115,6 @@ const PayProduct = () => {
       <Card>
         <div className="flex justify-between items-center">
           <div className="flex gap-3">
-            {/* Tetap pakai ikon SVG custom untuk judul */}
             <svg
               width="25"
               height="25"
@@ -94,18 +132,32 @@ const PayProduct = () => {
             </svg>
             <h2 className="mb-2 text-lg font-semibold">Data Pembeli</h2>
           </div>
-          <div>
+          {!isMemberMode ? (
+            <div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsOpenMiniModal((prev) => !prev);
+                }}
+                type="button"
+                className="text-blue-500 hover:text-blue-800 cursor-pointer font-medium flex gap-2 items-center -mt-2"
+              >
+                <Ellipsis />
+              </button>
+            </div>
+          ) : (
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsOpenMiniModal((prev) => !prev);
-              }}
               type="button"
-              className="text-blue-500 hover:text-blue-600 cursor-pointer font-medium flex gap-2 items-center -mt-2"
+              onClick={() => {
+                setValue("customerName", "");
+                setValue("customerPhone", "");
+                setIsMemberMode(false);
+              }}
+              className="text-red-600 hover:text-red-800 text-sm font-medium cursor-pointer"
             >
-              Member <ChevronDown size={16} className="text-blue-500" />
+              Reset
             </button>
-          </div>
+          )}
         </div>
 
         {isOpenMiniModal && (
@@ -142,21 +194,29 @@ const PayProduct = () => {
         <MemberListModal
           isOpen={isOpenModalListMember}
           onClose={() => setIsOpenListMosdal(false)}
+          onSelectMember={(member) => {
+            setValue("customerName", member.name);
+            setValue("customerPhone", member.phone.replace("+62", ""));
+            setIsMemberMode(true);
+          }}
+          members={members}
         />
 
         <MemberFormModal
           isOpen={isOpenModalAdd}
           onClose={() => setIsOpenModalAdd(false)}
-          mode="edit"
-          defaultValues={{
-            name: "Eurico Darline Ardiaksa",
-            email: "Eurico016@Email.com",
-            phone: "8123-4567-8910",
-            address:
-              "Perum Gpa No40, Blok 41, Kelurahan Ngijo, Kecamatan Karangploso, Kabupaten Malang",
+          mode="normal"
+          onSubmit={(data) => {
+            const newMember = {
+              name: data.name,
+              phone: `+62${data.phone}`,
+            };
+
+            setMembers((prev) => [...prev, newMember]);
+            setValue("customerName", newMember.name);
+            setValue("customerPhone", newMember.phone.replace("+62", ""));
+            setIsMemberMode(true);
           }}
-          onSubmit={(data) => console.log("Submit:", data)}
-          onDelete={() => console.log("Delete")}
         />
 
         <label htmlFor="customerName" className="block font-normal mb-2">
@@ -165,24 +225,48 @@ const PayProduct = () => {
         <input
           id="customerName"
           {...register("customerName", { required: true })}
-          className={inputClass()}
+          className={inputClass(false, isMemberMode)}
           placeholder="Nama pembeli"
+          readOnly={isMemberMode}
         />
         {errors.customerName && (
           <p className="text-sm text-red-600">Nama wajib diisi</p>
         )}
+
         <label htmlFor="customerPhone" className="mt-4 block font-normal mb-2">
           No Telepon
         </label>
-        <div className="flex overflow-hidden rounded-md border border-gray-300/[0.5]">
+        <div
+          className={`flex overflow-hidden rounded-md border border-gray-300/[0.5] ${
+            isMemberMode ? "bg-gray-100" : ""
+          }`}
+        >
           <span className="flex items-center bg-gray-100 px-4 text-lg font-normal text-gray-700">
             +62
           </span>
           <input
             id="customerPhone"
             {...register("customerPhone")}
-            className={inputClass(true)}
+            className={inputClass(false, isMemberMode)}
             placeholder="08****"
+            readOnly={isMemberMode}
+            onKeyDown={(e) => {
+              if (
+                [
+                  "Backspace",
+                  "Delete",
+                  "Tab",
+                  "Escape",
+                  "Enter",
+                  "ArrowLeft",
+                  "ArrowRight",
+                ].includes(e.key) ||
+                (e.ctrlKey &&
+                  ["a", "c", "v", "x"].includes(e.key.toLowerCase()))
+              )
+                return;
+              if (!/[0-9]/.test(e.key)) e.preventDefault();
+            }}
           />
         </div>
         {errors.customerPhone && (
@@ -199,7 +283,7 @@ const PayProduct = () => {
         <div className="mb-3">
           <span className="block font-normal mb-2">Subtotal Harga</span>
           <div className="mt-1 rounded-lg bg-blue-600 py-1.5 px-2.5 text-lg font-medium text-white">
-            Rp 1.000.000
+            Rp {totalHarga.toLocaleString("id-ID")}
           </div>
         </div>
 
@@ -230,43 +314,104 @@ const PayProduct = () => {
           </div>
         </div>
 
-        {isCashMethod && (
-          <>
-            <div className="mb-1">
-              <label htmlFor="payAmount" className="mb-2 block">
-                Bayar
-              </label>
-              <div className="flex overflow-hidden rounded-md border border-gray-300/[0.5]">
-                <span className="flex items-center bg-gray-100 px-4 text-lg font-normal text-gray-700">
-                  Rp
-                </span>
-                <input
-                  id="payAmount"
-                  {...register("payAmount")}
-                  className={inputClass(true)}
-                  placeholder="1.500.000"
-                />
-              </div>
-            </div>
+        <div className="mb-1">
+          <label htmlFor="payAmount" className="mb-2 block">
+            Bayar
+          </label>
+          <div className="flex overflow-hidden rounded-md border border-gray-300/[0.5]">
+            <span className="flex items-center bg-gray-100 px-4 text-lg font-normal text-gray-700">
+              Rp
+            </span>
+            <input
+              type="text"
+              id="payAmount"
+              {...register("payAmount")}
+              className={inputClass(true, !isCashMethod)}
+              placeholder={
+                isCashMethod
+                  ? `Masukan nominal uang, min: ${formatRupiah(
+                      totalHarga.toString()
+                    )}`
+                  : `${formatRupiah(totalHarga.toString())}`
+              }
+              readOnly={!isCashMethod}
+              disabled={!isCashMethod}
+              value={formatRupiah(payAmount)}
+              onChange={handlePayAmountChange}
+              onKeyDown={(e) => {
+                if (
+                  [
+                    "Backspace",
+                    "Delete",
+                    "Tab",
+                    "Escape",
+                    "Enter",
+                    "ArrowLeft",
+                    "ArrowRight",
+                  ].includes(e.key) ||
+                  (e.ctrlKey &&
+                    ["a", "c", "v", "x"].includes(e.key.toLowerCase()))
+                )
+                  return;
+                if (!/[0-9]/.test(e.key)) e.preventDefault();
+              }}
+            />
+          </div>
+        </div>
 
-            <div>
-              <label htmlFor="changeAmount" className="mb-2 block">
-                Kembali
-              </label>
-              <div className="flex overflow-hidden rounded-md border border-gray-300/[0.5]">
-                <span className="flex items-center bg-gray-100 px-4 text-lg font-normal text-gray-700">
-                  Rp
-                </span>
-                <input
-                  id="changeAmount"
-                  {...register("changeAmount")}
-                  className={inputClass(true)}
-                  placeholder="0"
-                  readOnly
-                />
+        <div>
+          <label htmlFor="changeAmount" className="mb-2 block">
+            Kembali
+          </label>
+          <div className="flex overflow-hidden rounded-md border border-gray-300/[0.5]">
+            <span className="flex items-center bg-gray-100 px-4 text-lg font-normal text-gray-700">
+              Rp
+            </span>
+            <input
+              id="changeAmount"
+              {...register("changeAmount")}
+              className={inputClass(true, true)}
+              placeholder="0"
+              readOnly
+              value={watch("changeAmount")}
+            />
+          </div>
+        </div>
+
+        {showSuccessModal && (
+          <div className="fixed top-25 right-4 z-[9999]">
+            <div
+              className={`bg-white border-l-4 border-green-500 rounded-lg p-5 shadow-lg max-w-xl w-full
+      transform transition-all duration-300 ease-out
+      ${
+        animateModal
+          ? "opacity-100 translate-x-0"
+          : "opacity-0 translate-x-full"
+      }`}
+            >
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <CheckCircle className="text-green-500" size={24} />
+                </div>
+                <div className="ml-3 flex-1">
+                  <h3 className="text-sm font-medium text-gray-900">
+                    Pembayaran Berhasil!
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Transaksi Anda telah diproses dengan sukses.
+                  </p>
+                </div>
+                <div className="ml-4 flex-shrink-0">
+                  <button
+                    onClick={() => setShowSuccessModal(false)}
+                    className="inline-flex text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 transition-colors"
+                  >
+                    <X size={20} className="cursor-pointer" />
+                  </button>
+                </div>
               </div>
             </div>
-          </>
+          </div>
         )}
 
         <button

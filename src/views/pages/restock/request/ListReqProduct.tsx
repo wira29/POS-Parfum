@@ -189,7 +189,7 @@ const ListReqProduct: React.FC = () => {
                   <img
                     src={req.image}
                     alt={req.retailName}
-                    className="mb-2 h-32 w-full rounded-lg border object-cover"
+                    className="mb-2 h-32 w-full rounded-lg object-cover"
                   />
                   <p className="font-medium text-gray-900">{req.retailName}</p>
                   <p className="text-sm font-normal text-gray-500">
@@ -212,10 +212,10 @@ const ListReqProduct: React.FC = () => {
                     </>
                   )}
 
-                  {req.status === "approved" && (
+                  {req.status === "rejected" && (
                     <>
-                      <Button className="bg-yellow-50 text-yellow-500">
-                        Diproses
+                      <Button className="bg-red-50 text-red-500">
+                        Ditolak
                       </Button>
                       <Button
                         onClick={() => HandleDetail(req.id)}
@@ -226,10 +226,10 @@ const ListReqProduct: React.FC = () => {
                     </>
                   )}
 
-                  {req.status === "rejected" && (
+                  {req.status === "approved" && (
                     <>
                       <Button className="bg-blue-50 text-blue-500">
-                        Dikirim
+                        Diproses
                       </Button>
                       <Button
                         onClick={() => HandleDetail(req.id)}
