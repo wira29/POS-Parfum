@@ -13,3 +13,4 @@ export { Dashboard as Dashboard } from './dashboard'
 export { default as DiscountIndex } from "./discount";
 export { DiscountCreate as DiscountCreate } from "./discount/create";
 export { DiscountEdit as DiscountEdit } from "./discount/edit";
+

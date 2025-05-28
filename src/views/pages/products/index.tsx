@@ -4,30 +4,70 @@ import { FiChevronDown, FiChevronUp } from "react-icons/fi"
 import { Breadcrumb } from "@/views/components/Breadcrumb"
 import { SearchInput } from "@/views/components/SearchInput"
 import { Filter } from "@/views/components/Filter"
-import { DeleteIcon } from "@/views/components/DeleteIcon"
+import DeleteIcon from "@/views/components/DeleteIcon"
 import { EditIcon } from "@/views/components/EditIcon"
 import AddButton from "@/views/components/AddButton"
 import ViewIcon from "@/views/components/ViewIcon"
 import dummyProducts from "./dummy/ProductDummy"
+import { Pagination } from "@/views/components/Pagination"
+import Swal from "sweetalert2"
+import { Toaster } from "@/core/helpers/BaseAlert"
+
+const FilterModal = ({
+  open,
+  onClose,
+  categoryFilter,
+  setCategoryFilter,
+  categoryOptions,
+}: {
+  open: boolean;
+  onClose: () => void;
+  categoryFilter: string;
+  setCategoryFilter: (val: string) => void;
+  categoryOptions: string[];
+}) => {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+      <div className="bg-white rounded-lg shadow-lg p-6 min-w-[700px] min-h-[600px]">
+        <div className="font-semibold text-lg mb-4">Filter Kategori Produk</div>
+        <div className="mb-4">
+          <label className="block mb-1 text-sm">Kategori Produk</label>
+          <select
+            className="border rounded px-2 py-1 w-full"
+            value={categoryFilter}
+            onChange={e => setCategoryFilter(e.target.value)}
+          >
+            <option value="">Semua Kategori</option>
+            {categoryOptions.map((cat, idx) => (
+              <option key={idx} value={cat}>{cat}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex justify-end gap-2">
+          <button
+            className="px-3 py-1 rounded border border-gray-300"
+            onClick={onClose}
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const ProductIndex = () => {
   const [searchQuery, setSearchQuery] = useState("")
   const [expandedProducts, setExpandedProducts] = useState<number[]>([])
   const expandRefs = useRef<Record<number, HTMLDivElement | null>>({})
+  const [showFilter, setShowFilter] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState("")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [variantPage, setVariantPage] = useState<Record<number, number>>({})
+  const pageSize = 3
+  const variantPageSize = 3
 
-  const toggleExpand = (productId: number) => {
-    setExpandedProducts(prev => {
-      const isExpanded = prev.includes(productId)
-      const newExpanded = isExpanded ? prev.filter(id => id !== productId) : [...prev, productId]
-
-      if (!isExpanded) {
-        setTimeout(() => {
-          expandRefs.current[productId]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        }, 200)
-      }
-      return newExpanded
-    })
-  }
 
   const products = dummyProducts.map((p: any) => ({
     id: p.id,
@@ -41,20 +81,65 @@ export const ProductIndex = () => {
     image: p.image,
     composition: p.composition,
     variants: p.variations && p.variations[0]?.options
-      ? p.variations[0].options.map((aroma: string, idx: number) => ({
+      ? p.variations[0].options.map((aroma: any, idx: number) => {
+        if (typeof aroma === "object") {
+          return {
+            id: `${p.id}-${aroma.value}`,
+            name: aroma.value,
+            code: aroma.code || `${aroma.value.toUpperCase().slice(0, 3)}-${p.productCode}`,
+            stock: aroma.stock ?? p.stock,
+            price: aroma.price ?? p.price,
+            image: p.variations[0].image || p.image,
+          }
+        }
+        return {
           id: `${p.id}-${aroma}`,
           name: aroma,
-          code: `${aroma.toUpperCase().slice(0,3)}-${p.productCode}`,
+          code: `${aroma.toUpperCase().slice(0, 3)}-${p.productCode}`,
           stock: p.stock,
           price: p.price,
           image: p.variations[0].image || p.image,
-        }))
+        }
+      })
       : []
   }))
+  const toggleExpand = (productId: number) => {
+    setExpandedProducts(prev => {
+      const isExpanded = prev.includes(productId)
+      if (!isExpanded) {
+        setVariantPage(vp => ({ ...vp, [productId]: 1 }))
+        setTimeout(() => {
+          expandRefs.current[productId]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }, 200)
+      }
+      return isExpanded ? prev.filter(id => id !== productId) : [...prev, productId]
+    })
+  }
 
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const categoryOptions = Array.from(new Set(products.map(product => product.category?.name ?? "-")));
+
+  const filteredData = products.filter((product) =>
+    product.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+    (categoryFilter ? product.category?.name === categoryFilter : true)
   )
+
+  const totalPages = Math.ceil(filteredData.length / pageSize)
+  const paginatedData = filteredData.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+
+  function dellete() {
+    Swal.fire({
+      title: "Apakah anda yakin?",
+      text: "Data product akan dihapus!",
+      icon: 'question'
+    }).then((result) => {
+      if (!result.isConfirmed) {
+        return;
+      }
+      if (result.isConfirmed) {
+        Toaster('success', "Product berhasil dihapus");
+      }
+    })
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -62,10 +147,13 @@ export const ProductIndex = () => {
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2 mb-4 w-full sm:w-auto max-w-lg">
-          <SearchInput value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+          <SearchInput value={searchQuery} onChange={(e) => {
+            setSearchQuery(e.target.value)
+            setCurrentPage(1)
+          }} />
         </div>
         <div className="w-full sm:w-auto">
-          <Filter />
+          <Filter onClick={() => setShowFilter(true)} />
         </div>
         <div className="w-full sm:w-auto">
           <AddButton to="/products/create">Tambah Produk</AddButton>
@@ -87,7 +175,7 @@ export const ProductIndex = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredProducts.map((product) => (
+              {paginatedData.map((product) => (
                 <React.Fragment key={product.id}>
                   <tr className="hover:bg-gray-50">
                     <td className="p-4 align-top"><input type="checkbox" /></td>
@@ -106,14 +194,14 @@ export const ProductIndex = () => {
                       <div className="flex gap-2">
                         <ViewIcon to={`/products/${product.id}`} />
                         <EditIcon to={`/products/${product.id}/edit`} />
-                        <DeleteIcon />
+                        <DeleteIcon onClick={dellete} />
                       </div>
                     </td>
                   </tr>
                   <tr>
                     <td colSpan={7} className="text-center text-gray-500 py-2 cursor-pointer" onClick={() => toggleExpand(product.id)}>
                       {expandedProducts.includes(product.id) ? (
-                        <><FiChevronUp className="inline" /> Tutup <FiChevronUp className="inline" /></>
+                        <><FiChevronUp className="inline" /> Close <FiChevronUp className="inline" /></>
                       ) : (
                         <><FiChevronDown className="inline" /> Expand <FiChevronDown className="inline" /></>
                       )}
@@ -125,21 +213,45 @@ export const ProductIndex = () => {
                         ref={el => (expandRefs.current[product.id] = el)}
                         className={`variant-slide ${expandedProducts.includes(product.id) ? 'variant-enter' : 'variant-leave'}`}
                       >
-                        {expandedProducts.includes(product.id) && product.variants.map((variant: { id: React.Key | null | undefined; image: string | undefined; name: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined; code: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined; price: { toLocaleString: () => string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined }; stock: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined }) => (
-                          <div key={variant.id} className="flex flex-wrap md:flex-nowrap items-center gap-4 p-4 bg-gray-50">
-                            <div className="w-1/2 md:w-1/12">
-                              <img src={variant.image} className="w-12 h-12 rounded object-cover" />
-                            </div>
-                            <div className="w-full md:w-3/12">
-                              <div className="font-medium">{variant.name}</div>
-                              <div className="text-xs text-gray-500">Kode Varian: {variant.code}</div>
-                            </div>
-                            <div className="w-1/2 md:w-2/12">-</div>
-                            <div className="w-1/2 md:w-2/12">-</div>
-                            <div className="w-1/2 md:w-2/12">Rp {variant.price.toLocaleString()}</div>
-                            <div className="w-1/2 md:w-2/12">{variant.stock} G</div>
-                          </div>
-                        ))}
+                        {expandedProducts.includes(product.id) && (() => {
+                          const variants = product.variants || [];
+                          const page = variantPage[product.id] || 1;
+                          const totalVariantPages = Math.ceil(variants.length / variantPageSize);
+                          const startIdx = (page - 1) * variantPageSize;
+                          const shownVariants = variants.slice(startIdx, startIdx + variantPageSize);
+
+                          return (
+                            <>
+                              <div className="ml-[72px] md:ml-[70px]">
+                                {shownVariants.map((variant: any) => (
+                                  <div key={variant.id} className="flex flex-wrap md:flex-nowrap items-center p-4 bg-gray-50">
+                                    <div className="w-1/2 md:w-1/18">
+                                      <img src={variant.image} className="w-12 h-12 rounded object-cover" />
+                                    </div>
+                                    <div className="w-full md:w-3/12">
+                                      <div className="font-medium">{variant.name}</div>
+                                      <div className="text-xs text-gray-500">Kode Varian: {variant.code}</div>
+                                    </div>
+                                    <div className="w-1/2 md:w-2/12">-</div>
+                                    <div className="w-1/2 md:w-2/16">-</div>
+                                    <div className="w-1/2 md:w-2/13">Rp {variant.price.toLocaleString()}</div>
+                                    <div className="w-1/2 md:w-2/12">{variant.stock} G</div>
+                                  </div>
+                                ))}
+                                {totalVariantPages > 1 && (
+                                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 text-sm text-muted-foreground py-2">
+                                    <span className="text-gray-700">{variants.length} Varian</span>
+                                    <Pagination
+                                      currentPage={page}
+                                      totalPages={totalVariantPages}
+                                      onPageChange={pg => setVariantPage(vp => ({ ...vp, [product.id]: pg }))}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            </>
+                          )
+                        })()}
                       </div>
                     </td>
                   </tr>
@@ -148,7 +260,22 @@ export const ProductIndex = () => {
             </tbody>
           </table>
         </div>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 text-sm text-muted-foreground">
+          <span className="text-gray-700">{filteredData.length} Data</span>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
+        </div>
       </div>
+      <FilterModal
+        open={showFilter}
+        onClose={() => setShowFilter(false)}
+        categoryFilter={categoryFilter}
+        setCategoryFilter={setCategoryFilter}
+        categoryOptions={categoryOptions}
+      />
     </div>
   )
 }

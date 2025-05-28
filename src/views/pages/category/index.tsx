@@ -4,9 +4,71 @@ import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { Pagination } from "@/views/components/Pagination";
 import AddButton from "@/views/components/AddButton";
 import { SearchInput } from "@/views/components/SearchInput";
-import { Filter } from "@/views/components/Filter";
-import { DeleteIcon } from "@/views/components/DeleteIcon";
+import DeleteIcon from "@/views/components/DeleteIcon";
 import { EditIcon } from "@/views/components/EditIcon";
+import { Filter } from "@/views/components/Filter";
+import Swal from "sweetalert2";
+import { Toaster } from "@/core/helpers/BaseAlert";
+
+const FilterModal = ({
+  open,
+  onClose,
+  statusFilter,
+  setStatusFilter,
+  nameFilter,
+  setNameFilter,
+  nameOptions,
+}: {
+  open: boolean;
+  onClose: () => void;
+  statusFilter: string;
+  setStatusFilter: (val: string) => void;
+  nameFilter: string;
+  setNameFilter: (val: string) => void;
+  nameOptions: string[];
+}) => {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+      <div className="bg-white rounded-lg shadow-lg p-6 min-w-[300px]">
+        <div className="font-semibold text-lg mb-4">Filter Kategori</div>
+        <div className="mb-4">
+          <label className="block mb-1 text-sm">Status</label>
+          <select
+            className="border rounded px-2 py-1 w-full"
+            value={statusFilter}
+            onChange={e => setStatusFilter(e.target.value)}
+          >
+            <option value="">Semua Status</option>
+            <option value="Berlaku">Berlaku</option>
+            <option value="Tidak Berlaku">Tidak Berlaku</option>
+          </select>
+        </div>
+        <div className="mb-4">
+          <label className="block mb-1 text-sm">Nama Kategori</label>
+          <select
+            className="border rounded px-2 py-1 w-full"
+            value={nameFilter}
+            onChange={e => setNameFilter(e.target.value)}
+          >
+            <option value="">Semua Nama</option>
+            {nameOptions.map((name, idx) => (
+              <option key={idx} value={name}>{name}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex justify-end gap-2">
+          <button
+            className="px-3 py-1 rounded border border-gray-300"
+            onClick={onClose}
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 interface Category {
   name: string;
@@ -21,6 +83,10 @@ export const CategoryIndex = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
+  const [showFilter, setShowFilter] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [nameFilter, setNameFilter] = useState("");
+
   const itemsPerPage = 5;
 
   const mockData: Category[] = [
@@ -31,10 +97,17 @@ export const CategoryIndex = () => {
     { name: "Parfum Subuh", jumlahItem: "18 item", dibuatTanggal: "13 Mei 2025", status: "Berlaku" },
     { name: "Parfum Pria", jumlahItem: "18 item", dibuatTanggal: "13 Mei 2025", status: "Berlaku" },
     { name: "Parfum Wanita", jumlahItem: "18 item", dibuatTanggal: "13 Mei 2025", status: "Berlaku" },
+    { name: "Parfum Tidak Berlaku", jumlahItem: "10 item", dibuatTanggal: "14 Mei 2025", status: "Tidak Berlaku" },
   ];
 
+  const nameOptions = Array.from(new Set(mockData.map(d => d.name)));
+
   const filteredData = mockData.filter((item) =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+    (item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.status.toLowerCase().includes(searchQuery.toLowerCase())
+    ) &&
+    (statusFilter ? item.status === statusFilter : true) &&
+    (nameFilter ? item.name === nameFilter : true)
   );
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -69,6 +142,21 @@ export const CategoryIndex = () => {
     closeModal();
   };
 
+  function dellete() {
+    Swal.fire({
+      title: "Apakah anda yakin?",
+      text: "Data category akan dihapus!",
+      icon: 'question'
+    }).then((result) => {
+      if (!result.isConfirmed) {
+        return;
+      }
+      if (result.isConfirmed) {
+        Toaster('success', "Category berhasil dihapus");
+      }
+    })
+  }
+
   return (
     <div className="p-6 space-y-6">
       <Breadcrumb title="Kategori" desc="List kategori yang ada pada toko anda" />
@@ -85,7 +173,7 @@ export const CategoryIndex = () => {
             />
           </div>
           <div className="w-full sm:w-auto">
-            <Filter />
+            <Filter onClick={() => setShowFilter(true)} />
           </div>
           <div className="w-full sm:w-auto">
             <AddButton onClick={openCreateModal}>Tambah Category</AddButton>
@@ -122,7 +210,7 @@ export const CategoryIndex = () => {
                         <button onClick={() => openEditModal(item)}>
                           <EditIcon className="text-blue-500 hover:text-blue-700" />
                         </button>
-                        <DeleteIcon />
+                        <DeleteIcon onClick={dellete}/>
                       </div>
                     </td>
                   </tr>
@@ -149,11 +237,20 @@ export const CategoryIndex = () => {
         initialData={
           editingCategory
             ? {
-                name: editingCategory.name,
-                status: editingCategory.status === "Berlaku",
-              }
+              name: editingCategory.name,
+              status: editingCategory.status === "Berlaku",
+            }
             : null
         }
+      />
+      <FilterModal
+        open={showFilter}
+        onClose={() => setShowFilter(false)}
+        statusFilter={statusFilter}
+        setStatusFilter={val => setStatusFilter(val)}
+        nameFilter={nameFilter}
+        setNameFilter={val => setNameFilter(val)}
+        nameOptions={nameOptions}
       />
     </div>
   );

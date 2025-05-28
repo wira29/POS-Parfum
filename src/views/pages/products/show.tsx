@@ -5,6 +5,8 @@ import { useNavigate, useParams, Link } from "react-router-dom"
 import DetailDelleteBtn from "@/views/components/Button/DetailDelleteBtn"
 import DetailEditBtn from "@/views/components/Button/DetailEditBtn"
 import { BiSolidDiscount } from "react-icons/bi"
+import Swal from "sweetalert2"
+import { Toaster } from "@/core/helpers/BaseAlert"
 
 interface Variant {
     id: number
@@ -24,7 +26,7 @@ interface Product {
     sales: number
     price: number
     total_stock: number
-    image: string
+    image: string[] // array of images
     composition: string[]
     variants: Variant[]
 }
@@ -39,7 +41,10 @@ const dummyProducts: Product[] = [
         sales: 120,
         price: 150000,
         total_stock: 5000,
-        image: "/images/logos/logo-mini-new.png",
+        image: [
+            "/images/logos/logo-mini-new.png",
+            "/images/logos/logo.png",
+        ],
         composition: ["Alkohol", "Essential Oil", "Air"],
         variants: [
             { id: 101, name: "Varian A1", code: "VR1-PRO001", stock: 100, price: 100000, image: "/images/logos/logo-mini-new.png" },
@@ -57,10 +62,14 @@ const dummyProducts: Product[] = [
         sales: 100,
         price: 140000,
         total_stock: 4000,
-        image: "/images/logos/logo-mini-new.png",
+        image: [
+            "/images/logos/logo-mini-new.png",
+            "/images/logos/logo.png"
+        ],
         composition: ["Alkohol", "Essential Oil"],
         variants: [
-            { id: 201, name: "Varian B1", code: "VR1-PRO002", stock: 80, price: 95000, image: "/images/logos/logo-mini-new.png" }
+            { id: 201, name: "Rose", code: "VR1-PRO002", stock: 80, price: 95000, image: "/images/logos/logo-mini-new.png" },
+            { id: 201, name: "Lily", code: "VR1-PRO002", stock: 80, price: 95000, image: "/images/logos/logo-mini-new.png" }
         ]
     }
 ]
@@ -69,17 +78,40 @@ export const ProductShow = () => {
     const { id } = useParams()
     const navigate = useNavigate()
     const [product, setProduct] = useState<Product | null>(null)
+    const [mainImage, setMainImage] = useState<string | null>(null)
 
     useEffect(() => {
         const foundProduct = dummyProducts.find(p => p.id === Number(id))
         if (foundProduct) {
             setProduct(foundProduct)
+            setMainImage(Array.isArray(foundProduct.image) ? foundProduct.image[0] : foundProduct.image)
         } else {
             navigate("/products")
         }
     }, [id, navigate])
 
     if (!product) return null
+
+    const allImages: string[] = [
+        ...(Array.isArray(product.image) ? product.image : [product.image]),
+        ...product.variants.map(v => v.image)
+    ].filter((img, idx, arr) => arr.indexOf(img) === idx)
+
+    function dellete() {
+        Swal.fire({
+            title: "Apakah anda yakin?",
+            text: "Data product akan dihapus!",
+            icon: 'question'
+        }).then((result) => {
+            if (!result.isConfirmed) {
+                return;
+            }
+            if (result.isConfirmed) {
+                navigate("/products")
+                Toaster('success', "Product berhasil dihapus");
+            }
+        })
+    }
 
     return (
         <>
@@ -97,17 +129,18 @@ export const ProductShow = () => {
                 <div className="flex flex-col md:flex-row gap-6">
                     <div className="flex flex-col items-start gap-2">
                         <img
-                            src={product.image}
+                            src={mainImage || allImages[0]}
                             alt={product.name}
                             className="w-full md:w-48 h-64 md:h-72 object-contain rounded"
                         />
                         <div className="flex gap-2 mt-2 flex-wrap">
-                            {product.variants.map((v) => (
+                            {allImages.map((img, idx) => (
                                 <img
-                                    key={v.id}
-                                    src={v.image}
-                                    alt={v.name}
-                                    className="w-10 h-10 object-cover rounded border border-gray-300"
+                                    key={idx}
+                                    src={img}
+                                    alt={`thumb-${idx}`}
+                                    className={`w-10 h-10 object-cover rounded border cursor-pointer ${mainImage === img ? "border-blue-600 ring-2 ring-blue-400" : "border-gray-300"}`}
+                                    onClick={() => setMainImage(img)}
                                 />
                             ))}
                         </div>
@@ -122,7 +155,7 @@ export const ProductShow = () => {
                             <span className="text-blue-600 font-bold text-3xl">
                                 Rp {formatNum(product.price, true)}
                             </span>
-                            <BiSolidDiscount className="size-6 text-blue-600"/>
+                            <BiSolidDiscount className="size-6 text-blue-600" />
                             <span className="text-gray-400 line-through text-sm">
                                 Rp 1.500.000
                             </span>
@@ -164,14 +197,20 @@ export const ProductShow = () => {
                                 </ol>
                             </div>
                             <div className="md:col-span-2 flex justify-start items-start gap-2 pt-4">
-                                <DetailDelleteBtn />
+                                <DetailDelleteBtn onClick={dellete}/>
                                 <DetailEditBtn />
+                                <button
+                                    className="bg-gray-600 text-white px-4 py-1 w-25 h-8 rounded hover:bg-gray-400"
+                                    onClick={() => navigate(-1)}
+                                    type="button"
+                                >
+                                    Kembali
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-
         </>
     )
 }

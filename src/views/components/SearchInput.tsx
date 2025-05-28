@@ -14,7 +14,7 @@ export const SearchInput = ({ value, onChange }: SearchInputProps) => {
       <input
         type="text"
         className="w-full px-4 py-2 outline-none"
-        placeholder="Cari Produk"
+        placeholder="Cari..."
         value={value}
         onChange={onChange}
       />

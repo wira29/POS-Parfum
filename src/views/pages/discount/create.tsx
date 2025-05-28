@@ -1,12 +1,107 @@
 import { Breadcrumb } from "@/views/components/Breadcrumb";
+import InputText from "@/views/components/Input-v2/InputText";
 import InputDiscountSelect from "@/views/components/Input-v2/InputDiscountSelect";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import InputNumber from "@/views/components/Input-v2/InputNumber";
+
+const outletOptions = [
+  "Outlet 1", "Outlet 2", "Outlet 3", "Outlet 4", "Outlet 5",
+  "Outlet 6", "Outlet 7", "Outlet 8", "Outlet 9", "Outlet 10",
+  "Outlet 11", "Outlet 12", "Outlet 13", "Outlet 14", "Outlet 15"
+];
+const barangOptions = [
+  "Parfum A", "Parfum B", "Parfum C", "Parfum D", "Parfum E",
+  "Parfum F", "Parfum G", "Parfum H", "Parfum I", "Parfum J",
+  "Parfum K", "Parfum L", "Parfum M", "Parfum N", "Parfum O"
+];
+
+function SearchableSelect({
+  label,
+  options,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  options: string[];
+  value: string;
+  onChange: (val: string) => void;
+  placeholder?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredOptions = options.filter((opt) =>
+    opt.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="relative" ref={ref}>
+      <label className="block mb-1 text-sm text-gray-700">{label}</label>
+      <div
+        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 bg-white cursor-pointer"
+        onClick={() => setOpen((v) => !v)}
+        tabIndex={0}
+      >
+        {value || placeholder || "Pilih"}
+      </div>
+      {open && (
+        <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg">
+          <input
+            type="text"
+            className="w-full px-3 py-2 text-sm border-b border-gray-200 focus:outline-none"
+            placeholder={`Cari ${label.toLowerCase()}...`}
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            autoFocus
+            onClick={e => e.stopPropagation()}
+          />
+          <div className="max-h-40 overflow-y-auto">
+            {filteredOptions.length === 0 && (
+              <div className="px-3 py-2 text-gray-400 text-sm">Tidak ditemukan</div>
+            )}
+            {filteredOptions.map((opt, idx) => (
+              <div
+                key={idx}
+                className={`px-3 py-2 text-sm hover:bg-blue-50 cursor-pointer ${opt === value ? "bg-blue-100" : ""}`}
+                onClick={() => {
+                  onChange(opt);
+                  setOpen(false);
+                  setSearch("");
+                }}
+              >
+                {opt}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export const DiscountCreate = () => {
   const [discountType, setDiscountType] = useState("Rp");
   const [discountValue, setDiscountValue] = useState(0);
+  const [minPurchase, setMinPurchase] = useState(0);
+  const [selectedOutlet, setSelectedOutlet] = useState("");
+  const [selectedBarang, setSelectedBarang] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const navigate = useNavigate();
+  const labelClass = "block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2";
 
   return (
     <div className="p-6 space-y-6">
@@ -15,27 +110,11 @@ export const DiscountCreate = () => {
       <div className="bg-white p-6 rounded-lg shadow-md space-y-4">
         <h2 className="text-lg font-semibold text-gray-800">Buat Diskon</h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block mb-1 text-sm text-gray-700">Kategori Barang</label>
-            <select className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option>Parfum Siang</option>
-              <option>Parfum Malam</option>
-              <option>Parfum Sore</option>
-            </select>
+            <label className="block mb-1 text-sm text-gray-700">Nama Diskon</label>
+            <input type="text" className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
-
-          <div>
-            <label className="block mb-1 text-sm text-gray-700">Nama Barang</label>
-            <select className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option>Parfum A</option>
-              <option>Parfum B</option>
-              <option>Parfum C</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <InputDiscountSelect
               label="Atur Diskon"
@@ -47,25 +126,66 @@ export const DiscountCreate = () => {
               placeholder="Masukkan nilai diskon"
             />
           </div>
+        </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
           <div>
-            <label className="block mb-1 text-sm text-gray-700">Waktu Dimulai</label>
-            <div className="flex items-center border border-gray-300 rounded-md overflow-hidden">
-              <input
-                type="date"
-                className="w-full px-3 py-2 text-sm text-gray-700 focus:outline-none"
-              />
-            </div>
+            <label className="block mb-1 text-sm text-gray-700">Digunakan Maksimal</label>
+            <InputNumber
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Masukkan jumlah maksimal"
+              value={discountValue}
+              onChange={(e) => setDiscountValue(Number(e.target.value))}
+            />
           </div>
-
           <div>
-            <label className="block mb-1 text-sm text-gray-700">Waktu Berakhir</label>
-            <div className="flex items-center border border-gray-300 rounded-md overflow-hidden">
-              <input
-                type="date"
-                className="w-full px-3 py-2 text-sm text-gray-700 focus:outline-none"
-              />
-            </div>
+            <label className="block mb-1 text-sm text-gray-700">Minimum pembelian</label>
+            <InputNumber
+              labelClass={labelClass}
+              placeholder="500.000"
+              prefix="Rp"
+              value={minPurchase}
+              onChange={e => setMinPurchase(Number(e.target.value))}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+          <SearchableSelect
+            label="Outlet"
+            options={outletOptions}
+            value={selectedOutlet}
+            onChange={setSelectedOutlet}
+            placeholder="Pilih Outlet"
+          />
+          <SearchableSelect
+            label="Nama Barang"
+            options={barangOptions}
+            value={selectedBarang}
+            onChange={setSelectedBarang}
+            placeholder="Pilih Barang"
+          />
+        </div>
+
+        {/* Input tanggal dimulai dan tanggal berakhir */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+          <div>
+            <label className="block mb-1 text-sm text-gray-700">Tanggal Dimulai</label>
+            <input
+              type="date"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={startDate}
+              onChange={e => setStartDate(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block mb-1 text-sm text-gray-700">Tanggal Berakhir</label>
+            <input
+              type="date"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={endDate}
+              onChange={e => setEndDate(e.target.value)}
+            />
           </div>
         </div>
 

@@ -1,4 +1,6 @@
-import { FiHome, FiBox, FiPercent, FiCoffee, FiTag, FiUsers, FiLayers } from "react-icons/fi"
+import { FiHome, FiBox, FiPercent, FiCoffee, FiTag, FiUsers, FiLayers, } from "react-icons/fi"
+import { AiOutlineFileSearch } from "react-icons/ai";
+import { FaBoxesPacking } from "react-icons/fa6";
 import { TbShoppingCart } from "react-icons/tb"
 import { FaShop } from "react-icons/fa6"
 
@@ -14,7 +16,9 @@ export const SidebarItem = [
         label: 'Produk', roles: ['admin', 'warehouse'], children: [
             { label: 'Produk', icon: <FiBox />, path: '/products', roles: ['admin', 'warehouse'] },
             { label: 'Kategori', icon: <FiLayers />, path: '/categories', roles: ['admin', 'warehouse'] },
-            { label: 'Blending Produk', icon: <FiCoffee />, path: '/variants', roles: ['admin', 'warehouse'] },
+            { label: 'Blending Produk', icon: <FiCoffee />, path: '/blendings', roles: ['admin', 'warehouse'] },
+            { label: 'Restock Produk', icon: <FaBoxesPacking />, path: '/restock', roles: ['admin', 'warehouse'] },
+            { label: 'Audit', icon: <AiOutlineFileSearch />, path: '/audit', roles: ['admin', 'warehouse'] },
             { label: 'Diskon', icon: <FiPercent />, path: '/discounts', roles: ['admin', 'warehouse'] },
         ]
     },
