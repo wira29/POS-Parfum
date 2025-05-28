@@ -1,14 +1,5 @@
 import { useEffect, useState } from "react";
-
-interface Product {
-  id: number;
-  name: string;
-  code: string;
-  stock: number;
-  pricePerGram: number;
-  qty: number;
-  totalPrice: number;
-}
+import { ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 
 interface ProductVariant {
   id: number;
@@ -29,40 +20,80 @@ interface RawProduct {
   variants?: ProductVariant[];
 }
 
-interface Props {
-  items: RawProduct[];
+interface TransformedProduct {
+  id: number;
+  name: string;
+  code: string;
+  stock: number;
+  pricePerGram: number;
+  qty: number;
+  totalPrice: number;
+  category: string;
+  parentProductName: string;
+  parentProductId: number;
+  image: string;
+  unit?: string;
+  isVariant: boolean;
 }
 
-export function ListPendingTransactions({ items }: Props) {
-  const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
+interface Props {
+  items: RawProduct[];
+  onTotalChange?: (total: number) => void;
+}
 
-  const transformProducts = (rawProducts: RawProduct[]): Product[] => {
-    const result: Product[] = [];
+export function ListPendingTransactions({ items, onTotalChange }: Props) {
+  const [transformedProducts, setTransformedProducts] = useState<
+    TransformedProduct[]
+  >([]);
+  const [expandedProducts, setExpandedProducts] = useState<Set<number>>(
+    new Set()
+  );
 
-    for (const p of rawProducts) {
-      if (p.hasVariants && p.variants && p.variants.length > 0) {
-        p.variants.forEach((v) => {
-          const stockNum = Number(v.stock) || 0;
-          result.push({
-            id: v.id,
-            name: v.name,
-            code: v.code,
-            stock: stockNum,
-            pricePerGram: 1000,
-            qty: 10,
-            totalPrice: 1000 * 10,
+  const transformProducts = (
+    rawProducts: RawProduct[]
+  ): TransformedProduct[] => {
+    const result: TransformedProduct[] = [];
+
+    for (const product of rawProducts) {
+      if (
+        product.hasVariants &&
+        product.variants &&
+        product.variants.length > 0
+      ) {
+        product.variants
+          .filter((variant) => variant.selected)
+          .forEach((variant) => {
+            const stockNum = Number(variant.stock) || 0;
+            result.push({
+              id: variant.id,
+              name: variant.name,
+              code: variant.code,
+              stock: stockNum,
+              pricePerGram: 0,
+              qty: 0,
+              totalPrice: 0 * 5000,
+              category: "Bahan Parfum",
+              parentProductName: product.name,
+              parentProductId: product.id,
+              image: variant.image,
+              isVariant: true,
+            });
           });
-        });
       } else {
-        const stockNum = Number(p.stock) || 0;
+        const stockNum = Number(product.stock) || 0;
         result.push({
-          id: p.id,
-          name: p.name,
-          code: p.code,
+          id: product.id,
+          name: product.name,
+          code: product.code,
           stock: stockNum,
-          pricePerGram: 1000,
-          qty: 10,
-          totalPrice: 1000 * 10,
+          pricePerGram: 0,
+          qty: 0,
+          totalPrice: 0 * 5000,
+          category: "Bahan Parfum",
+          parentProductName: product.name,
+          parentProductId: product.id,
+          image: product.image,
+          isVariant: false,
         });
       }
     }
@@ -72,141 +103,295 @@ export function ListPendingTransactions({ items }: Props) {
 
   useEffect(() => {
     const transformed = transformProducts(items);
-    setSelectedProducts(transformed);
+    setTransformedProducts(transformed);
   }, [items]);
 
   const updateProduct = (
     id: number,
-    field: "qty" | "pricePerGram",
-    value: number
+    field: "qty" | "pricePerGram" | "unit",
+    value: number | string
   ) => {
-    setSelectedProducts((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? {
-              ...p,
-              [field]: value,
-              totalPrice:
-                field === "qty" ? value * p.pricePerGram : p.qty * value,
-            }
-          : p
-      )
+    setTransformedProducts((prev) =>
+      prev.map((p) => {
+        if (p.id !== id) return p;
+
+        if (field === "qty" || field === "pricePerGram") {
+          const newQty = field === "qty" ? Number(value) : p.qty;
+          const newPrice =
+            field === "pricePerGram" ? Number(value) : p.pricePerGram;
+
+          return {
+            ...p,
+            [field]: Number(value),
+            totalPrice: newQty * newPrice,
+          };
+        }
+
+        return {
+          ...p,
+          unit: String(value),
+        };
+      })
     );
   };
 
+  const toggleExpanded = (parentProductId: number) => {
+    setExpandedProducts((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(parentProductId)) {
+        newSet.delete(parentProductId);
+      } else {
+        newSet.add(parentProductId);
+      }
+      return newSet;
+    });
+  };
+
+  const removeProduct = (id: number) => {
+    setTransformedProducts((prev) => prev.filter((x) => x.id !== id));
+  };
+
+  const groupedProducts = transformedProducts.reduce((acc, product) => {
+    const parentId = product.parentProductId;
+    if (!acc[parentId]) {
+      acc[parentId] = {
+        parentName: product.parentProductName,
+        parentId: parentId,
+        variants: [],
+      };
+    }
+    acc[parentId].variants.push(product);
+    return acc;
+  }, {} as Record<number, { parentName: string; parentId: number; variants: TransformedProduct[] }>);
+
+  const totalHargaKeseluruhan = transformedProducts.reduce(
+    (acc, item) => acc + (item.totalPrice || 0),
+    0
+  );
+
+  useEffect(() => {
+    const total = transformedProducts.reduce(
+      (acc, item) => acc + (item.totalPrice || 0),
+      0
+    );
+    if (onTotalChange) {
+      onTotalChange(total);
+    }
+  }, [transformedProducts, onTotalChange]);
+
   return (
-    <div className="overflow-hidden rounded-xl">
-      <table className="w-full text-sm border border-slate-300/[0.5]">
-        <thead className="bg-gray-50 text-gray-700 h-16 font-medium border-b border-b-slate-300">
-          <tr className="whitespace-nowrap">
-            <th className="px-4 py-2 text-left w-2/5">Produk</th>
-            <th className="px-4 py-2 text-center">Stock</th>
-            <th className="px-4 py-2 text-center">Harga Pergram</th>
-            <th className="px-4 py-2 text-center">Quantity</th>
-            <th className="px-4 py-2 text-center">Harga Total</th>
-            <th className="px-4 py-2 text-center">Aksi</th>
-          </tr>
-        </thead>
+    <div className="bg-white rounded-lg border border-gray-200">
+      <div className="p-4 border-b border-gray-200">
+        <h2 className="text-lg font-semibold text-gray-900">
+          Pending Transactions
+        </h2>
+      </div>
 
-        <tbody>
-          {selectedProducts.map((p) => (
-            <tr
-              key={p.id}
-              className="border-b border-b-slate-400/[0.5] last:border-b-0"
+      {Object.entries(groupedProducts).map(([parentId, group]) => {
+        const isExpanded = expandedProducts.has(Number(parentId));
+        const firstVariant = group.variants[0];
+
+        return (
+          <div
+            key={parentId}
+            className="border-b border-gray-100 last:border-b-0"
+          >
+            <div className="p-4 bg-gray-50 hover:bg-gray-100 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 flex-shrink-0">
+                    <div className="w-full h-full rounded-lg flex items-center justify-center">
+                      <img
+                        src="/assets/images/products/parfume.png"
+                        alt="Parfume"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 text-lg">
+                      {group.parentName}
+                    </h3>
+                    <div className="mt-1">
+                      <div className="flex items-center text-sm text-gray-600 space-x-6">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-medium">Category:</span>
+                          <span>{firstVariant.category}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="font-medium">Kode Produk:</span>
+                          <span>{firstVariant.code}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="font-medium">Varian Dipilih:</span>
+                          <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                            {group.variants.length} Varian
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => toggleExpanded(Number(parentId))}
+                  className="flex items-center space-x-2 px-4 cursor-pointer py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-colors"
+                >
+                  <span>Detail</span>
+                  {isExpanded ? (
+                    <ChevronUp className="w-4 h-4" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {isExpanded && (
+              <div className="bg-white">
+                <div className="px-4 py-2 bg-gray-25 border-b border-gray-200">
+                  <div className="grid grid-cols-6 gap-4 text-sm font-medium text-gray-700">
+                    <div>Nama Varian</div>
+                    <div>Quantity</div>
+                    <div>Harga/Gram</div>
+                    <div>Harga Total</div>
+                    <div>Stock</div>
+                    <div className="text-center">Actions</div>
+                  </div>
+                </div>
+
+                {group.variants.map((variant) => (
+                  <div
+                    key={variant.id}
+                    className="px-4 py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50"
+                  >
+                    <div className="grid grid-cols-6 gap-4 items-center">
+                      <div>
+                        <div className="font-medium text-gray-900">
+                          {variant.name}
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex">
+                          <input
+                            type="text"
+                            value={variant.qty?.toString() || ""}
+                            onChange={(e) => {
+                              let onlyNumbers = e.target.value.replace(
+                                /[^0-9]/g,
+                                ""
+                              );
+                              let qtyValue =
+                                onlyNumbers === "" ? 0 : Number(onlyNumbers);
+                              if (qtyValue > variant.stock) {
+                                qtyValue = variant.stock;
+                              }
+                              updateProduct(variant.id, "qty", qtyValue);
+                            }}
+                            className="w-16 px-2 py-1.5 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            maxLength={10}
+                          />
+                          <select
+                            value={variant.unit || "g"}
+                            onChange={(e) => {
+                              updateProduct(variant.id, "unit", e.target.value);
+                            }}
+                            className="px-0 py-1.5 text-sm border border-l-0 border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="g">g</option>
+                            <option value="ml">ml</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div>
+                        <input
+                          type="text"
+                          value={
+                            variant.pricePerGram?.toLocaleString("id-ID") || ""
+                          }
+                          onChange={(e) => {
+                            const rawValue = e.target.value.replace(
+                              /[^0-9]/g,
+                              ""
+                            );
+                            const numericValue =
+                              rawValue === "" ? 0 : Number(rawValue);
+                            updateProduct(
+                              variant.id,
+                              "pricePerGram",
+                              numericValue
+                            );
+                          }}
+                          className="w-24 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          maxLength={15}
+                        />
+                      </div>
+
+                      <div className="text-sm font-medium text-gray-900">
+                        Rp{" "}
+                        {(
+                          (variant.qty || 0) * (variant.pricePerGram || 0)
+                        ).toLocaleString("id-ID")}
+                      </div>
+
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span className="text-sm text-gray-600">
+                            {variant.stock} unit
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-center">
+                        <button
+                          onClick={() => removeProduct(variant.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors group"
+                          title="Hapus varian"
+                        >
+                          <Trash2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {Object.keys(groupedProducts).length === 0 && (
+        <div className="p-8 text-center">
+          <div className="text-gray-400 mb-2">
+            <svg
+              className="w-12 h-12 mx-auto"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <td className="px-4 py-3">
-                <p className="font-semibold leading-5">{p.name}</p>
-                <span className="text-xs text-gray-500">{p.code}</span>
-              </td>
-
-              <td className="px-4 py-3 text-center w-full">{p.stock} G</td>
-
-              <td className="px-4 py-3 text-center">
-                <input
-                  type="text"
-                  value={p.pricePerGram}
-                  onChange={(e) =>
-                    updateProduct(p.id, "pricePerGram", Number(e.target.value))
-                  }
-                  className="w-32 bg-gray-100 border border-gray-300 rounded-lg py-1 px-2 text-center focus:bg-white focus:outline-none"
-                />
-              </td>
-
-              <td className="px-4 py-3 text-center">
-                <input
-                  type="number"
-                  value={p.qty}
-                  onChange={(e) =>
-                    updateProduct(p.id, "qty", Number(e.target.value))
-                  }
-                  className="w-24 bg-gray-100 border border-gray-300 rounded-lg py-1 px-2 text-center focus:bg-white focus:outline-none"
-                />
-              </td>
-
-              <td className="px-4 py-3 text-center w-full font-medium">
-                Rp {p.totalPrice.toLocaleString()}
-              </td>
-
-              <td className="px-4 py-3 flex justify-center gap-2">
-                <button
-                  type="button"
-                  className="h-8 w-8 cursor-pointer rounded-full bg-blue-600 flex items-center justify-center text-white hover:bg-blue-700"
-                  title="Total"
-                >
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 20 20"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M1.66699 3.75H7.29783C7.62624 3.74996 7.95145 3.81463 8.25487 3.94032C8.55829 4.066 8.83397 4.25024 9.06616 4.4825L11.667 7.08333M4.16699 11.25H1.66699M7.08366 6.25L8.75033 7.91667C8.85976 8.0261 8.94657 8.15602 9.00579 8.299C9.06502 8.44199 9.0955 8.59524 9.0955 8.75C9.0955 8.90476 9.06502 9.05801 9.00579 9.201C8.94657 9.34398 8.85976 9.4739 8.75033 9.58333C8.64089 9.69277 8.51097 9.77958 8.36799 9.8388C8.22501 9.89803 8.07176 9.92851 7.91699 9.92851C7.76223 9.92851 7.60898 9.89803 7.466 9.8388C7.32301 9.77958 7.19309 9.69277 7.08366 9.58333L5.83366 8.33333C5.11699 9.05 3.98116 9.13083 3.16949 8.5225L2.91699 8.33333"
-                      stroke="white"
-                      stroke-width="1.3"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M4.16699 9.16927V12.9193C4.16699 14.4909 4.16699 15.2759 4.65533 15.7643C5.14366 16.2526 5.92866 16.2526 7.50033 16.2526H15.0003C16.572 16.2526 17.357 16.2526 17.8453 15.7643C18.3337 15.2759 18.3337 14.4909 18.3337 12.9193V10.4193C18.3337 8.8476 18.3337 8.0626 17.8453 7.57427C17.357 7.08594 16.572 7.08594 15.0003 7.08594H7.91699"
-                      stroke="white"
-                      stroke-width="1.3"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M12.7087 11.6693C12.7087 12.056 12.555 12.427 12.2815 12.7005C12.008 12.974 11.6371 13.1276 11.2503 13.1276C10.8636 13.1276 10.4926 12.974 10.2191 12.7005C9.94564 12.427 9.79199 12.056 9.79199 11.6693C9.79199 11.2825 9.94564 10.9116 10.2191 10.6381C10.4926 10.3646 10.8636 10.2109 11.2503 10.2109C11.6371 10.2109 12.008 10.3646 12.2815 10.6381C12.555 10.9116 12.7087 11.2825 12.7087 11.6693Z"
-                      stroke="white"
-                      stroke-width="1.3"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setSelectedProducts((prev) =>
-                      prev.filter((x) => x.id !== p.id)
-                    )
-                  }
-                  className="h-8 w-8 cursor-pointer rounded-full bg-red-600 flex items-center justify-center text-white hover:bg-red-700"
-                  title="Hapus"
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    className="h-4 w-4"
-                  >
-                    <path d="M9 3h6v1h5v2H4V4h5V3Zm1 5v10h2V8h-2Zm4 0v10h2V8h-2Zm-8 0h12v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8Z" />
-                  </svg>
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2 2v-5m16 0h-2M4 13h2m0 0V9a2 2 0 012-2h2m0 0V6a2 2 0 012-2h2.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V9a2 2 0 012 2v2m0 0v2a2 2 0 01-2 2h-2m0 0H9a2 2 0 01-2-2V9a2 2 0 012-2h2m0 0V6a2 2 0 012-2h1.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V9a2 2 0 012 2v2"
+              />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-1">
+            Tidak ada product yang di pilih
+          </h3>
+          <p className="text-gray-500">
+            pilih produk , maka data akan muncuk disini
+          </p>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,8 +1,7 @@
-import { useState, ChangeEvent, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import Card from "@/views/components/Card/Card";
-import { SearchInput } from "@/views/components/SearchInput";
 import { requests } from "@/core/data/requestRestock";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { RetailRequestModal } from "@/views/components/UpdateStatusModal";
 
 interface Product {
@@ -12,15 +11,26 @@ interface Product {
   qtyRequest: string;
   stock: string;
   qtyShipped: string;
+  unitPrice: string;
   subtotal: string;
+}
+
+interface ProdFromRequest {
+  name: string;
+  totalOrder: string;
+  stockAvailable: string;
+  qtyShipped?: string;
+  unitPrice?: string;
 }
 
 const DetailReqProduct = () => {
   const { id } = useParams<{ id: string }>();
   const [productData, setProductData] = useState<Product[]>([]);
-  const [searchQuery, setSearchQuery] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const modalRef = useRef<HTMLDivElement | null>(null);
+  const [requestDetail, setRequestDetail] = useState<
+    (typeof requests)[0] | null
+  >(null);
 
   const handleModalClose = () => {
     setIsModalOpen(false);
@@ -53,30 +63,29 @@ const DetailReqProduct = () => {
     const requestId = Number(id);
     const foundRequest = requests.find((req) => req.id === requestId);
     if (foundRequest) {
-      const mappedProducts = foundRequest.products.map((prod, index) => ({
-        id: index + 1,
-        name: prod.name,
-        code: `PR${String(index + 1).padStart(3, "0")}`,
-        qtyRequest: prod.totalOrder,
-        stock: prod.stockAvailable,
-        qtyShipped: "0",
-        subtotal: prod.totalPrice,
-      }));
+      setRequestDetail(foundRequest);
+      const mappedProducts: Product[] = foundRequest.products.map(
+        (prod: ProdFromRequest, index) => ({
+          id: index + 1,
+          name: prod.name,
+          code: `PR${String(index + 1).padStart(3, "0")}`,
+          qtyRequest: prod.totalOrder,
+          stock: prod.stockAvailable,
+          qtyShipped: prod.qtyShipped ?? "",
+          unitPrice: prod.unitPrice ?? "",
+          subtotal:
+            prod.qtyShipped && prod.unitPrice
+              ? (Number(prod.qtyShipped) * Number(prod.unitPrice)).toString()
+              : "0",
+        })
+      );
+
       setProductData(mappedProducts);
     } else {
+      setRequestDetail(null);
       setProductData([]);
     }
   }, [id]);
-
-  const filteredProducts = productData.filter(
-    (product) =>
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.code.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
 
   const handleApprove = () => {
     setIsModalOpen(true);
@@ -86,23 +95,54 @@ const DetailReqProduct = () => {
     setIsModalOpen(false);
   };
 
+  const handleInputChange = (
+    index: number,
+    field: "qtyShipped" | "unitPrice",
+    value: string
+  ) => {
+    const updatedProducts = [...productData];
+    updatedProducts[index][field] = value;
+
+    const qty = parseInt(updatedProducts[index].qtyShipped, 10);
+    const price = parseInt(updatedProducts[index].unitPrice, 10);
+
+    const qtyNumber = isNaN(qty) ? 0 : qty;
+    const priceNumber = isNaN(price) ? 0 : price;
+
+    updatedProducts[index].subtotal = (qtyNumber * priceNumber).toString();
+
+    setProductData(updatedProducts);
+  };
+
+  const statusLabel: Record<string, string> = {
+    pending: "Menunggu",
+    approved: "Disetujui",
+    rejected: "Ditolak",
+  };
+
+  const statusStyle: Record<string, string> = {
+    pending: "text-yellow-600 bg-yellow-100 border-yellow-300",
+    approved: "text-green-600 bg-green-100 border-green-300",
+    rejected: "text-red-600 bg-red-100 border-red-300",
+  };
+
   return (
     <div className="min-h-screen py-5 space-y-5">
       <Card>
-        <div className="flex justify-start gap-18 items-start bg-white rounded-2xl">
+        <div className="flex justify-start gap-18 items-start py-3">
           <div className="flex gap-4">
             <img
-              src="/assets/images/products/image.png"
+              src={requestDetail?.image ?? "/assets/images/products/image.png"}
               alt="Store front"
               className="h-36 w-64 rounded-lg object-cover"
             />
             <div className="flex flex-col gap-1 text-left">
               <h1 className="text-2xl font-medium text-gray-800">Outlet</h1>
               <h2 className="text-lg font-medium text-gray-800">
-                Retail Mandalika
+                {requestDetail?.retailName ?? "-"}
               </h2>
               <p className="text-sm font-normal text-gray-500">
-                Jl Ahmad Yani No 23 RT 4 Rw 5...
+                {requestDetail?.retailAddress ?? "-"}
               </p>
               <p className="text-sm font-normal text-gray-500">
                 (+62) 811-0220-0010
@@ -118,8 +158,12 @@ const DetailReqProduct = () => {
             </div>
             <div className="flex gap-2 items-center text-sm">
               <span className="font-medium text-gray-800">Status:</span>
-              <span className="border border-gray-300 rounded-md font-normal py-1 px-5 text-gray-500">
-                Status
+              <span
+                className={`rounded-md font-normal py-1 px-5 capitalize text-sm border ${
+                  statusStyle[requestDetail?.status ?? "pending"]
+                }`}
+              >
+                {statusLabel[requestDetail?.status ?? "pending"]}
               </span>
             </div>
           </div>
@@ -127,29 +171,6 @@ const DetailReqProduct = () => {
       </Card>
 
       <Card>
-        <div className="flex justify-between items-center mb-5">
-          <div className="w-1/4">
-            <SearchInput onChange={handleSearchChange} value={searchQuery} />
-          </div>
-          <button className="p-2 border border-blue-500 cursor-pointer rounded-md flex items-center justify-center">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M21.25 12.0057H8.895M4.534 12.0057H2.75M4.534 12.0057C4.534 11.4276 4.76368 10.8731 5.17251 10.4643C5.58134 10.0554 6.13583 9.82575 6.714 9.82575C7.29217 9.82575 7.84666 10.0554 8.25549 10.4643C8.66432 10.8731 8.894 11.4276 8.894 12.0057C8.894 12.5839 8.66432 13.1384 8.25549 13.5472C7.84666 13.9561 7.29217 14.1858 6.714 14.1858C6.13583 14.1858 5.58134 13.9561 5.17251 13.5472C4.76368 13.1384 4.534 12.5839 4.534 12.0057ZM21.25 18.6128H15.502M15.502 18.6128C15.502 19.1911 15.2718 19.7462 14.8628 20.1551C14.4539 20.564 13.8993 20.7938 13.321 20.7938C12.7428 20.7938 12.1883 20.5631 11.7795 20.1542C11.3707 19.7454 11.141 19.1909 11.141 18.6128M15.502 18.6128C15.502 18.0344 15.2718 17.4803 14.8628 17.0714C14.4539 16.6625 13.8993 16.4327 13.321 16.4327C12.7428 16.4327 12.1883 16.6624 11.7795 17.0713C11.3707 17.4801 11.141 18.0346 11.141 18.6128M11.141 18.6128H2.75M21.25 5.39875H18.145M13.784 5.39875H2.75M13.784 5.39875C13.784 4.82058 14.0137 4.26609 14.4225 3.85726C14.8313 3.44843 15.3858 3.21875 15.964 3.21875C16.2503 3.21875 16.5338 3.27514 16.7983 3.38469C17.0627 3.49425 17.3031 3.65483 17.5055 3.85726C17.7079 4.05969 17.8685 4.30001 17.9781 4.5645C18.0876 4.82899 18.144 5.11247 18.144 5.39875C18.144 5.68503 18.0876 5.96851 17.9781 6.233C17.8685 6.49749 17.7079 6.73781 17.5055 6.94024C17.3031 7.14267 17.0627 7.30325 16.7983 7.41281C16.5338 7.52236 16.2503 7.57875 15.964 7.57875C15.3858 7.57875 14.8313 7.34907 14.4225 6.94024C14.0137 6.53141 13.784 5.97692 13.784 5.39875Z"
-                stroke="#0059FF"
-                strokeWidth="1.5"
-                strokeMiterlimit="10"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
-        </div>
-
         <div className="w-full overflow-x-auto rounded-xl">
           <table className="w-full border border-slate-300/[0.5]">
             <thead>
@@ -158,22 +179,24 @@ const DetailReqProduct = () => {
                   Produk
                 </th>
                 <th className="p-5 text-center text-gray-800 font-bold">
-                  Qty Request
+                  Quantity Request
                 </th>
                 <th className="p-5 text-center text-gray-800 font-bold">
                   Stock
                 </th>
                 <th className="p-5 text-center text-gray-800 font-bold">
-                  Qty Dikirim
+                  Quantity Dikirim
+                </th>
+                <th className="p-5 text-center text-gray-800 font-bold">
+                  Harga
                 </th>
                 <th className="p-5 text-right text-gray-800 font-bold">
                   Subtotal Harga
                 </th>
               </tr>
             </thead>
-
             <tbody>
-              {filteredProducts.map((product) => (
+              {productData.map((product, index) => (
                 <tr
                   key={product.id}
                   className="border-b border-slate-400/[0.5]"
@@ -193,9 +216,46 @@ const DetailReqProduct = () => {
                   </td>
                   <td className="py-4 px-4 text-center">{product.stock}</td>
                   <td className="py-4 px-4 text-center">
-                    {product.qtyShipped}
+                    <input
+                      type="text"
+                      placeholder="0"
+                      value={product.qtyShipped}
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/[^0-9]/g, "");
+                        if (val.length > 1 && val.startsWith("0")) {
+                          val = val.replace(/^0+/, "");
+                        }
+                        handleInputChange(index, "qtyShipped", val);
+                      }}
+                      disabled={requestDetail?.status !== "pending"}
+                      className="w-20 px-2 py-1 border border-slate-400/[0.5] outline-none rounded-md text-center disabled:bg-gray-100"
+                    />
                   </td>
-                  <td className="py-4 px-4 text-right">{product.subtotal}</td>
+
+                  <td className="py-4 px-4 text-center">
+                    <input
+                      type="text"
+                      placeholder="0"
+                      value={
+                        product.unitPrice === ""
+                          ? ""
+                          : Number(product.unitPrice).toLocaleString("id-ID")
+                      }
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/[^0-9]/g, "");
+                        if (val.length > 1 && val.startsWith("0")) {
+                          val = val.replace(/^0+/, "");
+                        }
+                        handleInputChange(index, "unitPrice", val);
+                      }}
+                      disabled={requestDetail?.status !== "pending"}
+                      className="w-24 px-2 py-1 border border-slate-400/[0.5] outline-none rounded-md text-center disabled:bg-gray-100"
+                    />
+                  </td>
+
+                  <td className="py-4 px-4 text-right">
+                    Rp {Number(product.subtotal).toLocaleString("id-ID")}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -203,17 +263,25 @@ const DetailReqProduct = () => {
         </div>
 
         <div className="flex justify-between items-center mt-5">
-          <div className="text-gray-500 text-sm">
-            {filteredProducts.length} Data
-          </div>
+          <div className="text-gray-500 text-sm">{productData.length} Data</div>
+          <div className="flex gap-5">
+          <Link
+            to={`/request-stock`}
+            className="bg-slate-50 hover:bg-slate-100 border border-slate-500/[0.5] text-slate-500 py-2 px-10 rounded-md cursor-pointer"
+          >
+            Kembali
+          </Link>
           <button
             onClick={handleApprove}
             className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-10 rounded-md cursor-pointer"
           >
             Tanggapi
           </button>
+
+          </div>
         </div>
       </Card>
+
       <RetailRequestModal
         isOpen={isModalOpen}
         onClose={handleModalClose}

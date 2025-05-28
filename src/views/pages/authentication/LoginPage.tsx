@@ -91,9 +91,9 @@ export const LoginPage = () => {
         />
       </div>
 
-      <div className="w-full lg:w-[40%] flex justify-center items-start pt-36">
+      <div className="w-full lg:w-[40%] flex justify-center items-start pt-32">
         <div className="w-[350px]">
-          <div className="flex flex-col items-center mb-24">
+          <div className="flex flex-col items-center mb-16">
             <img
               src="images/logos/logo-new.png"
               alt="Logo"
@@ -119,7 +119,7 @@ export const LoginPage = () => {
                   placeholder="Email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className={`w-full border rounded-md px-3 py-2 mt-1 text-sm ${
+                  className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                     formErrorMsg.email ? "border-gray-300" : "border-gray-300"
                   }`}
                   autoFocus
@@ -144,7 +144,7 @@ export const LoginPage = () => {
                 placeholder="Kata Sandi (min. 8 karakter)"
                 value={formData.password}
                 onChange={handleInputChange}
-                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm ${
+                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                     formErrorMsg.password ? "border-gray-300" : "border-gray-300"
                 }`}
                 />
@@ -166,7 +166,7 @@ export const LoginPage = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="bg-[#2d50ff] disabled:opacity-50 text-white w-full py-2 rounded-md font-medium"
+              className="bg-blue-500 hover:bg-blue-700 cursor-pointer disabled:opacity-50 text-white w-full py-2 rounded-md font-medium"
             >
               {isLoading ? (
                 <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>

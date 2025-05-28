@@ -1,27 +1,26 @@
 import { useRef, useEffect, useState } from "react";
 import { Search } from "lucide-react";
 
-const generateDummyMembers = () => {
-  return Array.from({ length: 100 }, (_, i) => ({
-    name: `Eurico Darline Ardiaksa ${i + 1}`,
-    phone: `+6281234567${(1000 + i).toString().slice(-4)}`,
-  }));
-};
 
 const MemberListModal = ({
   isOpen,
   onClose,
+  onSelectMember,
+  members,
 }: {
   isOpen: boolean;
   onClose: () => void;
+  onSelectMember: (member: { name: string; phone: string }) => void;
+  members: { name: string; phone: string }[];
 }) => {
+
+
   const modalRef = useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
   const itemsPerPage = 10;
-  const members = generateDummyMembers();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -46,13 +45,19 @@ const MemberListModal = ({
     currentPage * itemsPerPage
   );
 
-  const handleSelect = (index: number) => {
-    if (selectedIndex === index) {
-      setSelectedIndex(null); // unselect
-    } else {
-      setSelectedIndex(index); // select
+const handleSelect = (globalIndex: number) => {
+  if (selectedIndex === globalIndex) {
+    setSelectedIndex(null)
+  } else {
+    const member = filteredMembers[globalIndex]
+    if (member) {
+      setSelectedIndex(globalIndex)
+      onSelectMember(member)
+      onClose()
     }
-  };
+  }
+}
+
 
   const absoluteIndex = (localIndex: number) =>
     (currentPage - 1) * itemsPerPage + localIndex;

@@ -37,7 +37,7 @@ export const MainLayout = () => {
     <div className="flex">
       <Sidebar sidebar={sidebar} />
       <div
-        className={`flex-1 min-h-screen bg-gray-100 transition-all duration-300 ${
+        className={`flex-1 min-h-screen bg-gray-50 transition-all duration-300 ${
           sidebar === 'full' ? 'ml-0' : 'ml-2'
         }`}
       >

@@ -1,161 +1,130 @@
-import { useApiClient } from "@/core/helpers/ApiClient";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { FiPlus, FiMoreHorizontal } from "react-icons/fi";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
-import { useEffect, useState } from "react";
-import { ModalAddUser } from "./widgets/index-modal-add-user";
-import Swal from "sweetalert2";
-import { Toaster } from "@/core/helpers/BaseAlert";
-import { Pagination } from "@/views/components/Pagination";
-import { useUserStore } from "@/core/stores/UserStore";
 import { SearchInput } from "@/views/components/SearchInput";
-import { BtnModalEditUser, ModalEditUser } from "./widgets/index-modal-edit-user";
-import { BtnModalDetailUser, ModalDetailUser } from "./widgets/index-modal-detail-user";
 
 export default function UserPage() {
-    const apiClient = useApiClient();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dropdownOpenId, setDropdownOpenId] = useState<number | null>(null);
+  const navigate = useNavigate();
 
-    const {users, setCurrentUser, getUsers, pagination, firstGet, setPage, setSearch, setRole, setOutlet} = useUserStore()
-    const [outlets, setOutlets] = useState<{[key:string]:any}[]>([])
-    const [roles, setRoles] = useState<{[key:string]:any}[]>([])
+  const users = [
+    { id: 1, name: "Ahmad Fulan", email: "fulan@gmail.com", role: "Admin", image: "/images/profile/user-8.jpg" },
+    { id: 2, name: "Ahmad Fulan", email: "fulan@gmail.com", role: "Admin", image: "/images/profile/user-8.jpg" },
+    { id: 3, name: "Ahmad Fulan", email: "fulan@gmail.com", role: "Admin", image: "/images/profile/user-8.jpg" },
+  ];
 
-    const deleteUser = (user_id:string) => {
-        Swal.fire({
-            title: 'Apakah anda yakin?',
-            text: "Data pengguna ini akan dihapus!",
-            icon: 'question',
-            showCancelButton: true,
-            cancelButtonText: 'Batal',
-            confirmButtonText: 'Ya'
-        }).then((res) => {
-            if(res.isConfirmed) {
-                apiClient.delete(`/users/${user_id}`).then(res => {
-                    Toaster('success', res.data.message)
-                    getUsers()
-                }).catch(err => {
-                    Toaster('error', err.response.data.message)
-                })
-            }
-        })
-    }
-    const getOutlets = () => {
-        apiClient.get('/outlets/no-paginate')
-        .then(res => {
-            setOutlets(res.data.data)
-        }).catch(() => {
-            setOutlets([])
-        })
-    }
-    const getRoles = () => {
-        apiClient.get('/roles')
-        .then(res => {
-            setRoles(res.data.data)
-        }).catch(() => {
-            setRoles([])
-        })
-    }
+  const filteredUsers = users.filter(
+    user =>
+      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-    useEffect(() => {
-        firstGet()
-        getOutlets()
-        getRoles()
-    }, [])
+  const handleDropdownToggle = (id: number) => {
+    setDropdownOpenId(dropdownOpenId === id ? null : id);
+  };
 
-    return (
-        <>
-            <ModalAddUser />
-            <ModalEditUser/>
-            <ModalDetailUser />
-            <Breadcrumb title="Pengguna" desc="Daftar pengguna yang ada pada toko anda" button={
-                <button className="mt-2 btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddUser">
-                    Tambah Pengguna
+  const handleDetail = (user: typeof users[0]) => {
+    navigate(`/users/${user.id}`);
+  };
+
+  const handleEdit = (user: typeof users[0]) => {
+    navigate(`/users/${user.id}/edit`);
+  };
+
+  const handleDelete = (user: User) => {
+    console.log("Delete", user);
+  };
+
+  return (
+    <div className="p-6 space-y-6">
+      <Breadcrumb
+        title="Daftar Pengguna"
+        desc="Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, voluptatibus."
+      />
+
+      {/* Search dan Tambah Akun */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+        <div className="flex items-center gap-2 mb-4 w-full sm:w-auto max-w-lg">
+          <SearchInput
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <div className="w-full sm:w-auto">
+          <button
+            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center sm:justify-start gap-2 px-4 py-2 rounded-lg font-medium"
+            onClick={() => navigate("/users/create")}
+          >
+            <FiPlus /> Tambah Akun
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {filteredUsers.map(user => (
+          <div
+            key={user.id}
+            className="bg-white rounded-lg shadow p-4 flex justify-between items-center relative"
+          >
+            {/* Titik tiga pojok kanan */}
+            <button
+              className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-100"
+              onClick={() => handleDropdownToggle(user.id)}
+            >
+              <FiMoreHorizontal size={22} />
+            </button>
+            {dropdownOpenId === user.id && (
+              <div className="absolute right-2 top-10 w-36 bg-white border rounded shadow-lg z-20">
+                <button
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                  onClick={() => {
+                    setDropdownOpenId(null);
+                    handleDetail(user);
+                  }}
+                >
+                  Detail
                 </button>
-            } />
-            <div className="row mb-2">
-                <div className="col-4">
-                    <SearchInput setSearch={setSearch} />
-                </div>
-                <div className="col"></div>
-                <div className="col-3">
-                    <select className="form-select bg-white" onChange={(e) => setOutlet(e.target.value)}>
-                        <option value="">Semua Outlet</option>
-                        {
-                            outlets.map((outles:any, index:number) => (
-                                <option key={index} value={outles.id}>{outles.name}</option>
-                            ))
-                        }
-                    </select>
-                </div>
-                <div className="col-3">
-                    <select className="form-select bg-white" onChange={(e) => setRole(e.target.value)}>
-                        <option value="">Semua Posisi</option>
-                        {
-                            roles.map((role:any, index:number) => (
-                                <option key={index} value={role.name}>{role.name}</option>
-                            ))
-                        }
-                    </select>
-                </div>
+                <button
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                  onClick={() => {
+                    setDropdownOpenId(null);
+                    handleEdit(user);
+                  }}
+                >
+                  Edit
+                </button>
+                <button
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-red-600"
+                  onClick={() => {
+                    setDropdownOpenId(null);
+                    handleDelete(user);
+                  }}
+                >
+                  Hapus
+                </button>
+              </div>
+            )}
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                <img
+                  src={user.image}
+                  alt={user.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div>
+                <h3 className="font-medium">{user.name}</h3>
+                <p className="text-sm text-gray-500">{user.email}</p>
+                <span className="px-3 py-1 text-xs bg-blue-100 text-blue-600 rounded-full">
+                  {user.role}
+                </span>
+              </div>
             </div>
-            <div className="card">
-                <div className="card-body">
-                    <div className="table-responsive mb-4 border rounded-1">
-                        <table className="table text-nowrap align-middle m-0">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Nama</th>
-                                    <th>Posisi</th>
-                                    <th>Alamat Kantor</th>
-                                    <th>Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {
-                                    users.length
-                                    ? users.map((user, index) => {
-                                        return (
-                                            <tr key={index}>
-                                                <th>{index + 1}</th>
-                                                <td>{user.name}</td>
-                                                <td>
-                                                    {user.roles.map((role:any, index:number) => (
-                                                        <span key={index} className="badge bg-light-primary text-primary me-1">{role.name}</span>
-                                                    ))}
-                                                </td>
-                                                <td>{user.related_store.address}</td>
-                                                <td>
-                                                    <div className="dropdown dropstart">
-                                                        <a href="" className="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                                                            <i className="ti ti-dots-vertical fs-6"></i>
-                                                        </a>
-                                                        <ul className="dropdown-menu" aria-labelledby="dropdownMenuButton" style={{ "zIndex": 100, "position": "absolute", "top": "100%", "left": "0", "transform": "translateY(-100%)" }}>
-                                                            <li>
-                                                                <BtnModalDetailUser onClick={() => setCurrentUser(user)} />
-                                                            </li>
-
-                                                            <li>
-                                                                <BtnModalEditUser onClick={() => setCurrentUser(user)} /> 
-                                                            </li>
-                                                            <li>
-                                                                <button type="button" onClick={() => deleteUser(user.id)} className="dropdown-item d-flex align-items-center gap-3">
-                                                                    <i className="fs-4 ti ti-trash"></i>Hapus
-                                                                </button>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        )
-                                    })
-                                    : <tr>
-                                        <th className="text-center text-muted" colSpan={5}>-- belum ada data --</th>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                    <Pagination paginationData={pagination} updatePage={setPage}/>
-                </div>
-            </div>
-        </>
-    )
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }

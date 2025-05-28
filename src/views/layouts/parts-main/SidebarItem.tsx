@@ -24,7 +24,7 @@ export const SidebarItem = [
     },
     {
         label: 'Lainya', roles: ['admin', 'warehouse'], children: [
-            { label: 'Retail', icon: <FaShop />, path: '/retail', roles: ['admin', 'warehouse'] },
+            { label: 'Retail', icon: <FaShop />, path: '/warehouses', roles: ['admin', 'warehouse'] },
             { label: 'Akun', icon: <FiUsers />, path: '/users', roles: ['admin', 'warehouse'] },
         ]
     },

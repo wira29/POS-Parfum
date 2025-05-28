@@ -81,7 +81,7 @@ const ScoreCardItem = ({ title, value, color, icon,border }: ScoreCardItemProps)
   const bgColor = `${color}`;
 
   return (
-    <div className={`bg-white rounded-xl shadow p-4 flex flex-col gap-3 hover:border ${border} hover:scale-105 transition-all ease-in-out duration-100`}>
+    <div className={`bg-white rounded-xl shadow p-4 flex flex-col gap-3 hover:border ${border} hover:scale-105 transition-all ease-in-out duration-500`}>
       <div className="flex items-center justify-between">
         <span
           ref={counterRef}
