@@ -10,10 +10,13 @@ import {
   FiChevronDown,
   FiChevronUp,
 } from "react-icons/fi";
-import { TbShoppingCart } from "react-icons/tb";
+import { TbCoinTakaFilled, TbShoppingCart } from "react-icons/tb";
 import { FaBoxesPacking, FaShop } from "react-icons/fa6";
 import { useState } from "react";
 import { AiOutlineFileSearch } from "react-icons/ai";
+import { HiDocument } from "react-icons/hi";
+import { BiMoneyWithdraw } from "react-icons/bi";
+import { Wallet2Icon } from "lucide-react";
 
 const menuItems = [
   { label: "Beranda", icon: <FiHome />, path: "/dashboard" },
@@ -62,8 +65,8 @@ const menuItems = [
     children: [
       { label: "Retail", icon: <FaShop />, path: "/warehouses" },
       { label: "Tambah Pengguna", icon: <FiUsers />, path: "/users" },
-      { label: "Laporan", icon: <FiUsers />, path: "/laporan" },
-      { label: "Pengeluaran", icon: <FiUsers />, path: "/pengeluaran" },
+      { label: "Laporan", icon: <TbCoinTakaFilled />, path: "/laporan" },
+      { label: "Pengeluaran", icon: <Wallet2Icon />, path: "/pengeluaran" },
     ],
   },
 ];

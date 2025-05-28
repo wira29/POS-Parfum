@@ -219,9 +219,9 @@ export const Register = () => {
   
   const renderStep1 = () => {
     return (
-      <div className="w-full lg:w-[40%] flex justify-center items-start pt-36">
+      <div className="w-full lg:w-[40%] flex justify-center items-start pt-16">
         <div className="w-[350px]">
-          <div className="flex flex-col items-center mb-24">
+          <div className="flex flex-col items-center mb-12">
             <img
               src="images/logos/logo-new.png"
               alt="Logo"
@@ -234,7 +234,7 @@ export const Register = () => {
             Silahkan masukkan data anda untuk melanjutkan.
           </p>
 
-          <form className="space-y-4" onSubmit={handleStep1Submit} noValidate>
+          <form className="space-y-2" onSubmit={handleStep1Submit} noValidate>
             <div>
               <label className="text-sm font-medium" htmlFor="username">
                 Username
