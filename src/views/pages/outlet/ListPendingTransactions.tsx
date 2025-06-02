@@ -193,8 +193,9 @@ export function ListPendingTransactions({ items, onTotalChange }: Props) {
 
         return (
           <div
+            onClick={() => toggleExpanded(Number(parentId))}
             key={parentId}
-            className="border-b border-gray-100 last:border-b-0"
+            className="border-b border-gray-100 last:border-b-0 cursor-pointer"
           >
             <div className="p-4 bg-gray-50 hover:bg-gray-100 transition-colors">
               <div className="flex items-center justify-between">
@@ -234,7 +235,10 @@ export function ListPendingTransactions({ items, onTotalChange }: Props) {
                 </div>
 
                 <button
-                  onClick={() => toggleExpanded(Number(parentId))}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    toggleExpanded(Number(parentId))
+                  }}
                   className="flex items-center space-x-2 px-4 cursor-pointer py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-colors"
                 >
                   <span>Detail</span>
