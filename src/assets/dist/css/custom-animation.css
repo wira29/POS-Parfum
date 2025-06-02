@@ -17,11 +17,12 @@
 }
 
 .variant-slide {
+  max-height: 0;
   overflow: hidden;
-  transition: max-height 0.4s ease-in-out;
+  transition: max-height 0.4s ease;
 }
 .variant-enter {
-  max-height: 1000px;
+  max-height: 500px; /* atau lebih jika banyak konten */
 }
 .variant-leave {
   max-height: 0;

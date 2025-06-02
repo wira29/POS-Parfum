@@ -2,8 +2,6 @@ import { formatNum } from "@/core/helpers/FormatNumber"
 import { Breadcrumb } from "@/views/components/Breadcrumb"
 import { useEffect, useState } from "react"
 import { useNavigate, useParams, Link } from "react-router-dom"
-import DetailDelleteBtn from "@/views/components/Button/DetailDelleteBtn"
-import DetailEditBtn from "@/views/components/Button/DetailEditBtn"
 import { BiSolidDiscount } from "react-icons/bi"
 import Swal from "sweetalert2"
 import { Toaster } from "@/core/helpers/BaseAlert"
@@ -26,7 +24,7 @@ interface Product {
     sales: number
     price: number
     total_stock: number
-    image: string[] // array of images
+    image: string[]
     composition: string[]
     variants: Variant[]
 }
@@ -197,8 +195,6 @@ export const ProductShow = () => {
                                 </ol>
                             </div>
                             <div className="md:col-span-2 flex justify-start items-start gap-2 pt-4">
-                                <DetailDelleteBtn onClick={dellete}/>
-                                <DetailEditBtn />
                                 <button
                                     className="bg-gray-600 text-white px-4 py-1 w-25 h-8 rounded hover:bg-gray-400"
                                     onClick={() => navigate(-1)}

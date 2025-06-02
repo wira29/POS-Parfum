@@ -5,7 +5,6 @@ import InputNumber from "@/views/components/Input-v2/InputNumber";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-// 15 data outlet & barang
 const outletOptions = [
   "Outlet 1", "Outlet 2", "Outlet 3", "Outlet 4", "Outlet 5",
   "Outlet 6", "Outlet 7", "Outlet 8", "Outlet 9", "Outlet 10",

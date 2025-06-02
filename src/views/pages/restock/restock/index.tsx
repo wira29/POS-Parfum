@@ -160,7 +160,7 @@ function RestockModal({
             </button>
             <button
               type="submit"
-              className={initialData ?  "px-4 py-2 rounded  bg-yellow-600 text-white hover:bg-yellow-700" : "px-4 py-2 rounded  bg-blue-600 text-white hover:bg-blue-700" }
+              className={initialData ? "px-4 py-2 rounded  bg-yellow-600 text-white hover:bg-yellow-700" : "px-4 py-2 rounded  bg-blue-600 text-white hover:bg-blue-700"}
             >
               {initialData ? "Simpan" : "Tambah"}
             </button>
@@ -436,7 +436,7 @@ export const RestockIndex = () => {
           </div>
         </div>
 
-                <div className="flex flex-wrap items-center gap-4 mb-2">
+        <div className="flex flex-wrap items-center gap-4 mb-2">
           <span className="text-sm text-gray-700">Tampilkan Hanya:</span>
           <label className="flex items-center gap-1 text-sm">
             <input
@@ -506,7 +506,6 @@ export const RestockIndex = () => {
                 <th className="px-6 py-4 font-medium">Stok</th>
                 <th className="px-6 py-4 font-medium">Quantity</th>
                 <th className="px-6 py-4 font-medium">Status</th>
-                <th className="px-6 py-4 font-medium text-center">Aksi</th>
               </tr>
             </thead>
             <tbody>
@@ -541,22 +540,6 @@ export const RestockIndex = () => {
                       >
                         {item.status}
                       </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex justify-center gap-2">
-                        {item.status === "Menunggu" && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setEditingData(item);
-                              setModalOpen(true);
-                            }}
-                          >
-                            <EditIcon className="text-blue-500 hover:text-blue-700" />
-                          </button>
-                        )}
-                        <DeleteIcon onClick={dellete} />
-                      </div>
                     </td>
                   </tr>
                 ))

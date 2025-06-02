@@ -225,21 +225,6 @@ export default function BlendingIndex() {
         currentPage * itemsPerPage
     );
 
-    function dellete() {
-        Swal.fire({
-            title: "Apakah anda yakin?",
-            text: "Data blending akan dihapus!",
-            icon: 'question'
-        }).then((result) => {
-            if (!result.isConfirmed){
-                return;
-            }
-            if (result.isConfirmed) {
-                Toaster('success', "Blending berhasil dihapus");
-            }
-        })
-    }
-
     return (
         <div className="p-6 space-y-6">
             <Breadcrumb title="Blending Produk" desc="Menampilkan blending yang aktif" />
@@ -256,6 +241,9 @@ export default function BlendingIndex() {
                     </div>
                     <div className="w-full sm:w-auto">
                         <Filter onClick={() => setShowFilter(true)} />
+                    </div>
+                    <div className="w-full sm:w-auto">
+                        <AddButton to="/">Tambah Blending</AddButton>
                     </div>
                 </div>
 
@@ -282,7 +270,7 @@ export default function BlendingIndex() {
                                         key={index}
                                         className="border-b border-gray-200 text-gray-600 hover:bg-gray-50"
                                     >
-                                        <td className="px-6 py-4"> <span className="text-black text-base font-semibold">{item.nama}</span><br/> Terdiri dari {item.products.length} Product</td>
+                                        <td className="px-6 py-4"> <span className="text-black text-base font-semibold">{item.nama}</span><br /> Terdiri dari {item.products.length} Product</td>
                                         <td className="px-6 py-4">
                                             {item.tanggalPembuatan
                                                 ? new Date(item.tanggalPembuatan).toLocaleDateString("id-ID", {
@@ -302,7 +290,6 @@ export default function BlendingIndex() {
                                                     to={`/blendings/${item.id}/edit`}
                                                     className="text-blue-500 hover:text-blue-700"
                                                 />
-                                                <DeleteIcon onClick={dellete} />
                                             </div>
                                         </td>
                                     </tr>

@@ -1,16 +1,11 @@
-import { Toaster } from "@/core/helpers/BaseAlert";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { useNavigate, useParams } from "react-router-dom";
-import Swal from "sweetalert2";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 import { useState } from "react";
 
 export const DiscountDetail = () => {
     const navigate = useNavigate();
     const [showProduk, setShowProduk] = useState(false);
-    const [expanded, setExpanded] = useState<{ [key: number]: boolean }>({}); 
-    const variantPageSize = 2;
-    const [variantPage, setVariantPage] = useState<Record<number, number>>({});
     const { id } = useParams<{ id: string }>();
 
     const detail = {
@@ -61,22 +56,6 @@ export const DiscountDetail = () => {
             varian: []
         }
     ];
-
-    function dellete() {
-        Swal.fire({
-            title: "Apakah anda yakin?",
-            text: "Data Diskon akan dihapus!",
-            icon: 'question'
-        }).then((result) => {
-            if (!result.isConfirmed) {
-                return;
-            }
-            if (result.isConfirmed) {
-                navigate("/discounts");
-                Toaster('success', "Diskon berhasil dihapus");
-            }
-        })
-    }
 
     const collapseAnim = (show: boolean) =>
         show
@@ -177,18 +156,6 @@ export const DiscountDetail = () => {
                             >
                                 Kembali
                             </button>
-                            <button
-                                className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-md text-sm font-semibold"
-                                onClick={dellete}
-                            >
-                                Dellete
-                            </button>
-                            <button
-                                onClick={() => navigate(`/discounts/${id}/edit`)}
-                                className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-md text-sm font-semibold"
-                            >
-                                Edit
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -214,11 +181,6 @@ export const DiscountDetail = () => {
                                     </thead>
                                     <tbody>
                                         {produkTerkait.map((produk, idx) => {
-                                            const variants = produk.varian || [];
-                                            const page = variantPage[produk.id] || 1;
-                                            const totalVariantPages = Math.ceil(variants.length / variantPageSize);
-                                            const startIdx = (page - 1) * variantPageSize;
-                                            const shownVariants = variants.slice(startIdx, startIdx + variantPageSize);
 
                                             return (
                                                 <tr key={produk.id} className="align-top border-b border-dashed border-gray-100">
@@ -229,61 +191,6 @@ export const DiscountDetail = () => {
                                                             <div>
                                                                 <div className="font-semibold">{produk.nama}</div>
                                                                 <div className="text-xs text-gray-500">Kode : {produk.kode}</div>
-                                                                {variants.length > 0 && (
-                                                                    <button
-                                                                        className="flex items-center gap-1 text-xs text-blue-600 mt-2"
-                                                                        onClick={() =>
-                                                                            setExpanded(e => ({
-                                                                                ...e,
-                                                                                [produk.id]: !expanded[produk.id]
-                                                                            }))
-                                                                        }
-                                                                    >
-                                                                        {expanded[produk.id] ? (
-                                                                            <>
-                                                                                <FiChevronUp /> Tutup Varian
-                                                                            </>
-                                                                        ) : (
-                                                                            <>
-                                                                                <FiChevronDown /> Lihat Varian
-                                                                            </>
-                                                                        )}
-                                                                    </button>
-                                                                )}
-                                                                <div className={collapseAnim(expanded[produk.id] && variants.length > 0)}>
-                                                                    {variants.length > 0 && expanded[produk.id] && (
-                                                                        <div>
-                                                                            {shownVariants.map((v, i) => (
-                                                                                <div key={v.id} className="flex items-center gap-2 mt-2 ml-2">
-                                                                                    <img src={v.image} alt={v.nama} className="w-8 h-8 rounded object-cover border" />
-                                                                                    <div>
-                                                                                        <div className="text-xs font-medium">{v.nama}</div>
-                                                                                        <div className="text-xs text-gray-400">Kode : {v.kode}</div>
-                                                                                    </div>
-                                                                                    <div className="text-xs text-gray-400">{v.kategori}</div>
-                                                                                </div>
-                                                                            ))}
-                                                                            {totalVariantPages > 1 && (
-                                                                                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 text-xs text-muted-foreground py-2">
-                                                                                    <span className="text-gray-700">{variants.length} Varian</span>
-                                                                                    <div className="flex gap-1">
-                                                                                        <button
-                                                                                            className="px-2 py-1 rounded border border-gray-200"
-                                                                                            disabled={page === 1}
-                                                                                            onClick={() => setVariantPage(vp => ({ ...vp, [produk.id]: page - 1 }))}
-                                                                                        >Prev</button>
-                                                                                        <span>{page} / {totalVariantPages}</span>
-                                                                                        <button
-                                                                                            className="px-2 py-1 rounded border border-gray-200"
-                                                                                            disabled={page === totalVariantPages}
-                                                                                            onClick={() => setVariantPage(vp => ({ ...vp, [produk.id]: page + 1 }))}
-                                                                                        >Next</button>
-                                                                                    </div>
-                                                                                </div>
-                                                                            )}
-                                                                        </div>
-                                                                    )}
-                                                                </div>
                                                             </div>
                                                         </div>
                                                     </td>
