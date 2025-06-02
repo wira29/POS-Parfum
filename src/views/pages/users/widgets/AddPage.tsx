@@ -83,7 +83,13 @@ export default function UserCreate() {
                                 Foto Profil
                             </label>
                             <div className="flex">
-                                <div className="w-32 h-32 border rounded flex items-center justify-center bg-gray-50 mr-4 overflow-hidden">
+                                {/* Kotak upload yang bisa diklik, border dashed abu-abu */}
+                                <div
+                                    className="w-32 h-32 border-2 border-dashed border-gray-300 rounded flex items-center justify-center bg-gray-50 mr-4 overflow-hidden cursor-pointer transition"
+                                    onClick={handleUploadClick}
+                                    tabIndex={0}
+                                    role="button"
+                                >
                                     {previewUrl ? (
                                         <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
                                     ) : (
@@ -102,15 +108,8 @@ export default function UserCreate() {
                                     />
                                 </div>
                                 <div className="flex flex-col justify-center">
-                                    <button
-                                        type="button"
-                                        className="bg-blue-600 text-white px-4 py-2 rounded mb-2 w-32 cursor-pointer"
-                                        onClick={handleUploadClick}
-                                    >
-                                        Unggah
-                                    </button>
                                     <p className="text-gray-500 text-sm">
-                                        Unggah gambar di bawah 2 MB. Format File yang Diterima JPG, PNG
+                                        unggah gambar di bawah 2 MB. Format JPG, PNG
                                     </p>
                                 </div>
                             </div>

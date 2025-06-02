@@ -219,7 +219,7 @@ export const Register = () => {
   
   const renderStep1 = () => {
     return (
-      <div className="w-full lg:w-[40%] flex justify-center items-start pt-16">
+      <div className="w-full lg:w-[40%] flex justify-center items-start pt-32">
         <div className="w-[350px]">
           <div className="flex flex-col items-center mb-12">
             <img
@@ -229,12 +229,12 @@ export const Register = () => {
             />
           </div>
 
-          <h3 className="text-xl font-semibold mb-1">Register</h3>
+          <h3 className="text-xl font-semibold mb-1">Pendaftaran</h3>
           <p className="text-gray-500 text-sm mb-4">
-            Silahkan masukkan data anda untuk melanjutkan.
+            Silahkan masukkan Email anda untuk melanjutkan.
           </p>
 
-          <form className="space-y-2" onSubmit={handleStep1Submit} noValidate>
+          <form className="space-y-4" onSubmit={handleStep1Submit} noValidate>
             <div>
               <label className="text-sm font-medium" htmlFor="username">
                 Username
@@ -363,9 +363,9 @@ export const Register = () => {
   
   const renderStep2 = () => {
     return (
-      <div className="w-full lg:w-[40%] flex justify-center items-start pt-36">
+      <div className="w-full lg:w-[40%] flex justify-center items-start pt-32">
         <div className="w-[350px]">
-          <div className="flex flex-col items-center mb-24">
+          <div className="flex flex-col items-center mb-12">
             <img
               src="images/logos/logo-new.png"
               alt="Logo"
@@ -373,9 +373,9 @@ export const Register = () => {
             />
           </div>
 
-          <h3 className="text-xl font-semibold mb-1">Informasi Toko</h3>
+          <h3 className="text-xl font-semibold mb-1">Pendaftaran</h3>
           <p className="text-gray-500 text-sm mb-4">
-            Silahkan lengkapi informasi toko anda.
+            Silahkan masukkan identitas toko anda untuk mendaftar.
           </p>
 
           <form className="space-y-4" onSubmit={handleStep2Submit} noValidate>
@@ -482,13 +482,6 @@ export const Register = () => {
               {isLoading ? "Memproses..." : "Lanjutkan"}
             </button>
           </form>
-
-          <p className="text-center text-sm mt-8">
-            Sudah punya akun?{" "}
-            <Link to="/login" className="text-[#2d50ff] hover:underline">
-              Login
-            </Link>
-          </p>
         </div>
       </div>
     );
@@ -496,9 +489,9 @@ export const Register = () => {
 
   const renderStep3 = () => {
     return (
-      <div className="w-full lg:w-[40%] flex justify-center items-start pt-36">
+      <div className="w-full lg:w-[40%] flex justify-center items-start pt-32">
         <div className="w-[350px]">
-          <div className="flex flex-col items-center mb-24">
+          <div className="flex flex-col items-center mb-12">
             <img
               src="images/logos/logo-new.png"
               alt="Logo"
@@ -566,13 +559,6 @@ export const Register = () => {
               {isLoading ? "Memproses..." : "Daftar Sekarang"}
             </button>
           </div>
-
-          <p className="text-center text-sm mt-8">
-            Sudah punya akun?{" "}
-            <Link to="/login" className="text-[#2d50ff] hover:underline">
-              Login
-            </Link>
-          </p>
         </div>
       </div>
     );
@@ -582,7 +568,9 @@ export const Register = () => {
     <div className="flex h-screen">
       <Toaster position="top-right" richColors />
       
+      
       {renderLeftSidebar()}
+      
       
       {currentStep === 1 && renderStep1()}
       {currentStep === 2 && renderStep2()}
