@@ -45,7 +45,8 @@ const menuItems = [
   {
     label: "Lainnya",
     children: [
-      { label: "Retail", icon: <FaShop />, path: "/warehouses", roles: ["owner", "warehouse"] },
+      { label: "Retail", icon: <FaShop />, path: "/retails", roles: ["owner", "warehouse"] },
+      { label: "Warehouse", icon: <FaShop />, path: "/warehouses", roles: ["owner", "warehouse"] },
       { label: "Tambah Pengguna", icon: <FiUsers />, path: "/users", roles: ["owner", "warehouse","retail"] },
       { label: "Laporan", icon: <TbCoinTakaFilled />, path: "/laporan", roles: ["owner","retail"] },
       { label: "Pengeluaran", icon: <Wallet2Icon />, path: "/pengeluaran", roles: ["owner","retail"] },

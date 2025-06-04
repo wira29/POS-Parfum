@@ -19,3 +19,6 @@ export { default as DiscountIndex } from "./discount";
 export { DiscountCreate as DiscountCreate } from "./discount/create";
 export { DiscountEdit as DiscountEdit } from "./discount/edit";
 export { RiwayatPenjualan as RiwayatPenjualan } from "./outlet/RiwayatPenjualan";
+export { RetailIndex as RetailIndex} from "./retail/index";
+export {BlendingCreate as BlendingCreate} from "./blending/create"
+export {BlendingEdit as BlendingEdit} from "./blending/edit"
