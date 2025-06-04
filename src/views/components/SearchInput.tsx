@@ -1,24 +1,23 @@
-import { IoSearch } from "react-icons/io5"
-import { Dispatch, SetStateAction, SyntheticEvent } from "react"
+import { FiSearch } from "react-icons/fi"
 
-export type TSetSearch = Dispatch<SetStateAction<string>>|((search:string) => void)
+interface SearchInputProps {
+  value: string
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+}
 
-export const SearchInput = ({setSearch}:{setSearch:TSetSearch}) => {
-
-    let searchTimeout:NodeJS.Timeout
-
-    const onSearchInput = (e: SyntheticEvent<HTMLInputElement>) => {
-        if(searchTimeout) clearTimeout(searchTimeout)
-        searchTimeout = setTimeout(() => {
-            const {value} = e.target as HTMLInputElement
-            setSearch(value)
-        }, 500)
-    }
-
-    return (
-        <div className="input-group">
-            <div className="input-group-text"><IoSearch/></div>
-            <input className="form-control bg-white" placeholder="cari..." onInput={onSearchInput} />
-        </div>
-    )
+export const SearchInput = ({ value, onChange }: SearchInputProps) => {
+  return (
+    <div className="flex border border-gray-400/[0.5] rounded-md overflow-hidden w-full max-w-lg">
+      <div className="bg-blue-600 p-3">
+        <FiSearch className="text-white" />
+      </div>
+      <input
+        type="text"
+        className="w-full px-4 py-2 outline-none"
+        placeholder="Cari..."
+        value={value}
+        onChange={onChange}
+      />
+    </div>
+  )
 }

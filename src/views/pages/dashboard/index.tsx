@@ -1,11 +1,11 @@
 import { ScoreCard } from "@/views/pages/dashboard/ScoreCard"
-import { ProductTable } from '@/views/pages/dashboard/ProductTable'
+import { Statistik } from '@/views/pages/dashboard/Statistik'
 
 export const Dashboard = () => {
     return (
         <div className="flex gap-6 flex-col">
             <ScoreCard />
-            <ProductTable />
+            <Statistik />
         </div>
     )
 }
