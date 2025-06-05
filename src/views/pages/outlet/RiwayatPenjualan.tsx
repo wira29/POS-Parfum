@@ -2,13 +2,15 @@ import { Breadcrumb } from "@/views/components/Breadcrumb";
 import Card from "@/views/components/Card/Card";
 import { SearchInput } from "@/views/components/SearchInput";
 import { useState, useRef } from "react";
+import React from "react";
 import {
-  Eye,
   ChevronLeft,
   ChevronRight,
   X,
   SlidersHorizontal,
+  ArrowBigDownDash,
 } from "lucide-react";
+import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 
 interface SalesData {
   id: string;
@@ -32,11 +34,14 @@ interface FilterState {
   maxQuantity: string;
 }
 
+
 export const RiwayatPenjualan: React.FC = () => {
   const [searchValue, setSearchValue] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const [expandedRows, setExpandedRows] = useState<string[]>([]);
+  const expandRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const [tempFilters, setTempFilters] = useState<FilterState>({
     status: "",
@@ -61,416 +66,6 @@ export const RiwayatPenjualan: React.FC = () => {
     minQuantity: "",
     maxQuantity: "",
   });
-
-  const data: SalesData[] = [
-    {
-      id: "#12345",
-      produk: "Parfum Siang",
-      namaPembeli: "Ahmad Sutrisno",
-      estimasi: "13-Mei-2025",
-      quantity: "5.000G",
-      total: "Rp 5.000.000",
-      status: "Berhasil",
-    },
-    {
-      id: "#12346",
-      produk: "Parfum Malam",
-      namaPembeli: "Sari Wulandari",
-      estimasi: "14-Mei-2025",
-      quantity: "3.000G",
-      total: "Rp 3.000.000",
-      status: "Gagal",
-    },
-    {
-      id: "#12347",
-      produk: "Parfum Rose",
-      namaPembeli: "Budi Santoso",
-      estimasi: "15-Mei-2025",
-      quantity: "2.500G",
-      total: "Rp 2.750.000",
-      status: "Berhasil",
-    },
-    {
-      id: "#12348",
-      produk: "Parfum Lavender",
-      namaPembeli: "Dewi Kartika",
-      estimasi: "16-Mei-2025",
-      quantity: "4.200G",
-      total: "Rp 4.620.000",
-      status: "Berhasil",
-    },
-    {
-      id: "#12349",
-      produk: "Parfum Citrus",
-      namaPembeli: "Andi Pratama",
-      estimasi: "17-Mei-2025",
-      quantity: "1.800G",
-      total: "Rp 1.980.000",
-      status: "Gagal",
-    },
-    {
-      id: "#12350",
-      produk: "Parfum Vanilla",
-      namaPembeli: "Maya Sari",
-      estimasi: "18-Mei-2025",
-      quantity: "3.600G",
-      total: "Rp 3.960.000",
-      status: "Berhasil",
-    },
-    {
-      id: "#12351",
-      produk: "Parfum Jasmine",
-      namaPembeli: "Riko Handoko",
-      estimasi: "19-Mei-2025",
-      quantity: "2.100G",
-      total: "Rp 2.310.000",
-      status: "Berhasil",
-    },
-    {
-      id: "#12352",
-      produk: "Parfum Mint",
-      namaPembeli: "Lina Permata",
-      estimasi: "20-Mei-2025",
-      quantity: "2.800G",
-      total: "Rp 3.080.000",
-      status: "Gagal",
-    },
-    {
-      id: "#12353",
-      produk: "Parfum Ocean",
-      namaPembeli: "Fajar Nugroho",
-      estimasi: "21-Mei-2025",
-      quantity: "4.500G",
-      total: "Rp 4.950.000",
-      status: "Berhasil",
-    },
-    {
-      id: "#12354",
-      produk: "Parfum Wood",
-      namaPembeli: "Indira Sari",
-      estimasi: "22-Mei-2025",
-      quantity: "3.300G",
-      total: "Rp 3.630.000",
-      status: "Berhasil",
-    },
-    {
-      id: "#12355",
-      produk: "Parfum Floral",
-      namaPembeli: "Hendra Wijaya",
-      estimasi: "23-Mei-2025",
-      quantity: "1.500G",
-      total: "Rp 1.650.000",
-      status: "Gagal",
-    },
-    {
-      id: "#12356",
-      produk: "Parfum Musk",
-      namaPembeli: "Rina Maharani",
-      estimasi: "24-Mei-2025",
-      quantity: "4.000G",
-      total: "Rp 4.400.000",
-      status: "Berhasil",
-    },
-    {
-      id: "#12357",
-      produk: "Parfum Fresh",
-      namaPembeli: "Arief Rahman",
-      estimasi: "25-Mei-2025",
-      quantity: "2.700G",
-      total: "Rp 2.970.000",
-      status: "Berhasil",
-    },
-    {
-      id: "#12358",
-      produk: "Parfum Amber",
-      namaPembeli: "Siska Dewi",
-      estimasi: "26-Mei-2025",
-      quantity: "3.900G",
-      total: "Rp 4.290.000",
-      status: "Gagal",
-    },
-    {
-      id: "#12359",
-      produk: "Parfum Spice",
-      namaPembeli: "Doni Setiawan",
-      estimasi: "27-Mei-2025",
-      quantity: "2.200G",
-      total: "Rp 2.420.000",
-      status: "Berhasil",
-    },
-    {
-      id: "#12360",
-      produk: "Parfum Berry",
-      namaPembeli: "Yuni Astuti",
-      estimasi: "28-Mei-2025",
-      quantity: "3.700G",
-      total: "Rp 4.070.000",
-      status: "Berhasil",
-    },
-    {
-      id: "#12361",
-      produk: "Parfum Classic",
-      namaPembeli: "Teguh Santoso",
-      estimasi: "29-Mei-2025",
-      quantity: "1.900G",
-      total: "Rp 2.090.000",
-      status: "Gagal",
-    },
-    {
-      id: "#12362",
-      produk: "Parfum Oriental",
-      namaPembeli: "Fitri Handayani",
-      estimasi: "30-Mei-2025",
-      quantity: "4.100G",
-      total: "Rp 4.510.000",
-      status: "Berhasil",
-    },
-    {
-      id: "#12363",
-      produk: "Parfum Green",
-      namaPembeli: "Wahyu Pratama",
-      estimasi: "31-Mei-2025",
-      quantity: "2.600G",
-      total: "Rp 2.860.000",
-      status: "Berhasil",
-    },
-    {
-      id: "#12364",
-      produk: "Parfum Premium",
-      namaPembeli: "Nana Suryani",
-      estimasi: "01-Jun-2025",
-      quantity: "5.200G",
-      total: "Rp 5.720.000",
-      status: "Berhasil",
-    },
-  ];
-
-  const perPage = 5;
-
-  const applyFilters = (data: SalesData[]): SalesData[] => {
-    return data.filter((item) => {
-      const matchesSearch =
-        !searchValue ||
-        Object.values(item).some((val) =>
-          val.toString().toLowerCase().includes(searchValue.toLowerCase())
-        );
-
-      const matchesStatus =
-        !appliedFilters.status || item.status === appliedFilters.status;
-      const matchesProduk =
-        !appliedFilters.produk ||
-        item.produk.toLowerCase().includes(appliedFilters.produk.toLowerCase());
-      const matchesNamaPembeli =
-        !appliedFilters.namaPembeli ||
-        item.namaPembeli
-          .toLowerCase()
-          .includes(appliedFilters.namaPembeli.toLowerCase());
-
-      const itemQuantity = parseInt(item.quantity.replace(/[^\d]/g, ""));
-      const minQuantity = appliedFilters.minQuantity
-        ? parseInt(appliedFilters.minQuantity)
-        : 0;
-      const maxQuantity = appliedFilters.maxQuantity
-        ? parseInt(appliedFilters.maxQuantity)
-        : Infinity;
-      const matchesQuantity =
-        itemQuantity >= minQuantity && itemQuantity <= maxQuantity;
-
-      const itemPrice = parseInt(item.total.replace(/[^\d]/g, ""));
-      const minPrice = appliedFilters.minHarga
-        ? parseInt(appliedFilters.minHarga)
-        : 0;
-      const maxPrice = appliedFilters.maxHarga
-        ? parseInt(appliedFilters.maxHarga)
-        : Infinity;
-      const matchesPrice = itemPrice >= minPrice && itemPrice <= maxPrice;
-
-      let matchesDate = true;
-      if (appliedFilters.startDate || appliedFilters.endDate) {
-        const itemDate = new Date(item.estimasi.split("-").reverse().join("-"));
-        const startDate = appliedFilters.startDate
-          ? new Date(appliedFilters.startDate)
-          : new Date("1900-01-01");
-        const endDate = appliedFilters.endDate
-          ? new Date(appliedFilters.endDate)
-          : new Date("2100-12-31");
-        matchesDate = itemDate >= startDate && itemDate <= endDate;
-      }
-
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesProduk &&
-        matchesNamaPembeli &&
-        matchesQuantity &&
-        matchesPrice &&
-        matchesDate
-      );
-    });
-  };
-
-  const filteredData = applyFilters(data);
-  const totalPages = Math.ceil(filteredData.length / perPage);
-  const paginatedData = filteredData.slice(
-    (currentPage - 1) * perPage,
-    currentPage * perPage
-  );
-
-  const getStatusStyle = (status: string): string => {
-    return status === "Berhasil"
-      ? "bg-green-50 text-green-500 border-green-200"
-      : "bg-red-50 text-red-500 border-red-200";
-  };
-
-  const handleTempFilterChange = (
-    field: keyof FilterState,
-    value: string
-  ): void => {
-    setTempFilters((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const resetFilters = (): void => {
-    const resetValues: FilterState = {
-      status: "",
-      produk: "",
-      namaPembeli: "",
-      minHarga: "",
-      maxHarga: "",
-      startDate: "",
-      endDate: "",
-      minQuantity: "",
-      maxQuantity: "",
-    };
-    setTempFilters(resetValues);
-    setAppliedFilters(resetValues);
-  };
-
-  const applyFilterAndClose = (): void => {
-    setAppliedFilters(tempFilters);
-    setIsOpen(false);
-    setCurrentPage(1);
-  };
-
-  const handleShowDetail = (item: SalesData): void => {
-    alert(
-      `Detail Order:\nID: ${item.id}\nProduk: ${item.produk}\nNama Pembeli: ${item.namaPembeli}\nEstimasi: ${item.estimasi}\nQuantity: ${item.quantity}\nTotal: ${item.total}\nStatus: ${item.status}`
-    );
-  };
-
-  const handlePageChange = (page: number): void => {
-    setCurrentPage(page);
-  };
-
-  const cancelFilterAndClose = (): void => {
-    setTempFilters(appliedFilters);
-    setIsOpen(false);
-  };
-
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>): void => {
-    if (e.target === e.currentTarget) {
-      cancelFilterAndClose();
-    }
-  };
-
-  const renderPagination = (): JSX.Element => {
-    const pageNumbers = [];
-    const maxVisiblePages = 5;
-
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-    if (endPage - startPage < maxVisiblePages - 1) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pageNumbers.push(i);
-    }
-
-    if (totalPages <= 1) {
-      return <></>;
-    }
-
-    return (
-      <div className="flex items-center justify-between mt-6 px-4">
-        <div className="text-sm text-gray-700">
-          Menampilkan {(currentPage - 1) * perPage + 1} sampai{" "}
-          {Math.min(currentPage * perPage, filteredData.length)} dari{" "}
-          {filteredData.length} data
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
-              currentPage === 1
-                ? "text-gray-400 cursor-not-allowed"
-                : "text-gray-700 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
-            }`}
-          >
-            <ChevronLeft className="w-4 h-4 mr-1" />
-            Sebelumnya
-          </button>
-
-          {startPage > 1 && (
-            <>
-              <button
-                onClick={() => handlePageChange(1)}
-                className="px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100"
-              >
-                1
-              </button>
-              {startPage > 2 && (
-                <span className="px-2 py-2 text-sm text-gray-500">...</span>
-              )}
-            </>
-          )}
-
-          {pageNumbers.map((page) => (
-            <button
-              key={page}
-              onClick={() => handlePageChange(page)}
-              className={`w-8 h-8 text-sm font-medium rounded-lg cursor-pointer ${
-                currentPage === page
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              {page}
-            </button>
-          ))}
-
-          {endPage < totalPages && (
-            <>
-              {endPage < totalPages - 1 && (
-                <span className="px-2 py-2 text-sm text-gray-500">...</span>
-              )}
-              <button
-                onClick={() => handlePageChange(totalPages)}
-                className="px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100"
-              >
-                {totalPages}
-              </button>
-            </>
-          )}
-
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
-              currentPage === totalPages
-                ? "text-gray-400 cursor-not-allowed"
-                : "text-gray-700 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
-            }`}
-          >
-            Selanjutnya
-            <ChevronRight className="w-4 h-4 ml-1" />
-          </button>
-        </div>
-      </div>
-    );
-  };
 
   const FilterModal: React.FC = () => (
     <>
@@ -663,6 +258,421 @@ export const RiwayatPenjualan: React.FC = () => {
     </>
   );
 
+  const data: SalesData[] = [
+    {
+      id: "#12345",
+      produk: "Parfum Siang",
+      namaPembeli: "Ahmad Sutrisno",
+      estimasi: "13-Mei-2025",
+      quantity: "5.000G",
+      total: "Rp 5.000.000",
+      status: "Berhasil",
+    },
+    {
+      id: "#12346",
+      produk: "Parfum Malam",
+      namaPembeli: "Sari Wulandari",
+      estimasi: "14-Mei-2025",
+      quantity: "3.000G",
+      total: "Rp 3.000.000",
+      status: "Gagal",
+    },
+    {
+      id: "#12347",
+      produk: "Parfum Rose",
+      namaPembeli: "Budi Santoso",
+      estimasi: "15-Mei-2025",
+      quantity: "2.500G",
+      total: "Rp 2.750.000",
+      status: "Berhasil",
+    },
+    {
+      id: "#12348",
+      produk: "Parfum Lavender",
+      namaPembeli: "Dewi Kartika",
+      estimasi: "16-Mei-2025",
+      quantity: "4.200G",
+      total: "Rp 4.620.000",
+      status: "Berhasil",
+    },
+    {
+      id: "#12349",
+      produk: "Parfum Citrus",
+      namaPembeli: "Andi Pratama",
+      estimasi: "17-Mei-2025",
+      quantity: "1.800G",
+      total: "Rp 1.980.000",
+      status: "Gagal",
+    },
+    {
+      id: "#12350",
+      produk: "Parfum Vanilla",
+      namaPembeli: "Maya Sari",
+      estimasi: "18-Mei-2025",
+      quantity: "3.600G",
+      total: "Rp 3.960.000",
+      status: "Berhasil",
+    },
+    {
+      id: "#12351",
+      produk: "Parfum Jasmine",
+      namaPembeli: "Riko Handoko",
+      estimasi: "19-Mei-2025",
+      quantity: "2.100G",
+      total: "Rp 2.310.000",
+      status: "Berhasil",
+    },
+    {
+      id: "#12352",
+      produk: "Parfum Mint",
+      namaPembeli: "Lina Permata",
+      estimasi: "20-Mei-2025",
+      quantity: "2.800G",
+      total: "Rp 3.080.000",
+      status: "Gagal",
+    },
+    {
+      id: "#12353",
+      produk: "Parfum Ocean",
+      namaPembeli: "Fajar Nugroho",
+      estimasi: "21-Mei-2025",
+      quantity: "4.500G",
+      total: "Rp 4.950.000",
+      status: "Berhasil",
+    },
+    {
+      id: "#12354",
+      produk: "Parfum Wood",
+      namaPembeli: "Indira Sari",
+      estimasi: "22-Mei-2025",
+      quantity: "3.300G",
+      total: "Rp 3.630.000",
+      status: "Berhasil",
+    },
+    {
+      id: "#12355",
+      produk: "Parfum Floral",
+      namaPembeli: "Hendra Wijaya",
+      estimasi: "23-Mei-2025",
+      quantity: "1.500G",
+      total: "Rp 1.650.000",
+      status: "Gagal",
+    },
+    {
+      id: "#12356",
+      produk: "Parfum Musk",
+      namaPembeli: "Rina Maharani",
+      estimasi: "24-Mei-2025",
+      quantity: "4.000G",
+      total: "Rp 4.400.000",
+      status: "Berhasil",
+    },
+    {
+      id: "#12357",
+      produk: "Parfum Fresh",
+      namaPembeli: "Arief Rahman",
+      estimasi: "25-Mei-2025",
+      quantity: "2.700G",
+      total: "Rp 2.970.000",
+      status: "Berhasil",
+    },
+    {
+      id: "#12358",
+      produk: "Parfum Amber",
+      namaPembeli: "Siska Dewi",
+      estimasi: "26-Mei-2025",
+      quantity: "3.900G",
+      total: "Rp 4.290.000",
+      status: "Gagal",
+    },
+    {
+      id: "#12359",
+      produk: "Parfum Spice",
+      namaPembeli: "Doni Setiawan",
+      estimasi: "27-Mei-2025",
+      quantity: "2.200G",
+      total: "Rp 2.420.000",
+      status: "Berhasil",
+    },
+    {
+      id: "#12360",
+      produk: "Parfum Berry",
+      namaPembeli: "Yuni Astuti",
+      estimasi: "28-Mei-2025",
+      quantity: "3.700G",
+      total: "Rp 4.070.000",
+      status: "Berhasil",
+    },
+    {
+      id: "#12361",
+      produk: "Parfum Classic",
+      namaPembeli: "Teguh Santoso",
+      estimasi: "29-Mei-2025",
+      quantity: "1.900G",
+      total: "Rp 2.090.000",
+      status: "Gagal",
+    },
+    {
+      id: "#12362",
+      produk: "Parfum Oriental",
+      namaPembeli: "Fitri Handayani",
+      estimasi: "30-Mei-2025",
+      quantity: "4.100G",
+      total: "Rp 4.510.000",
+      status: "Berhasil",
+    },
+    {
+      id: "#12363",
+      produk: "Parfum Green",
+      namaPembeli: "Wahyu Pratama",
+      estimasi: "31-Mei-2025",
+      quantity: "2.600G",
+      total: "Rp 2.860.000",
+      status: "Berhasil",
+    },
+    {
+      id: "#12364",
+      produk: "Parfum Premium",
+      namaPembeli: "Nana Suryani",
+      estimasi: "01-Jun-2025",
+      quantity: "5.200G",
+      total: "Rp 5.720.000",
+      status: "Berhasil",
+    },
+  ];
+
+  const perPage = 5;
+
+  const toggleExpand = (id: string) => {
+    setExpandedRows(prev =>
+      prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]
+    );
+  };
+
+  const applyFilters = (data: SalesData[]): SalesData[] => {
+    return data.filter((item) => {
+      const matchesSearch =
+        !searchValue ||
+        Object.values(item).some((val) =>
+          val.toString().toLowerCase().includes(searchValue.toLowerCase())
+        );
+
+      const matchesStatus =
+        !appliedFilters.status || item.status === appliedFilters.status;
+      const matchesProduk =
+        !appliedFilters.produk ||
+        item.produk.toLowerCase().includes(appliedFilters.produk.toLowerCase());
+      const matchesNamaPembeli =
+        !appliedFilters.namaPembeli ||
+        item.namaPembeli
+          .toLowerCase()
+          .includes(appliedFilters.namaPembeli.toLowerCase());
+
+      const itemQuantity = parseInt(item.quantity.replace(/[^\d]/g, ""));
+      const minQuantity = appliedFilters.minQuantity
+        ? parseInt(appliedFilters.minQuantity)
+        : 0;
+      const maxQuantity = appliedFilters.maxQuantity
+        ? parseInt(appliedFilters.maxQuantity)
+        : Infinity;
+      const matchesQuantity =
+        itemQuantity >= minQuantity && itemQuantity <= maxQuantity;
+
+      const itemPrice = parseInt(item.total.replace(/[^\d]/g, ""));
+      const minPrice = appliedFilters.minHarga
+        ? parseInt(appliedFilters.minHarga)
+        : 0;
+      const maxPrice = appliedFilters.maxHarga
+        ? parseInt(appliedFilters.maxHarga)
+        : Infinity;
+      const matchesPrice = itemPrice >= minPrice && itemPrice <= maxPrice;
+
+      let matchesDate = true;
+      if (appliedFilters.startDate || appliedFilters.endDate) {
+        const itemDate = new Date(item.estimasi.split("-").reverse().join("-"));
+        const startDate = appliedFilters.startDate
+          ? new Date(appliedFilters.startDate)
+          : new Date("1900-01-01");
+        const endDate = appliedFilters.endDate
+          ? new Date(appliedFilters.endDate)
+          : new Date("2100-12-31");
+        matchesDate = itemDate >= startDate && itemDate <= endDate;
+      }
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesProduk &&
+        matchesNamaPembeli &&
+        matchesQuantity &&
+        matchesPrice &&
+        matchesDate
+      );
+    });
+  };
+
+  const filteredData = applyFilters(data);
+  const totalPages = Math.ceil(filteredData.length / perPage);
+  const paginatedData = filteredData.slice(
+    (currentPage - 1) * perPage,
+    currentPage * perPage
+  );
+
+  const getStatusStyle = (status: string): string => {
+    return status === "Berhasil"
+      ? "bg-green-50 text-green-500 border-green-200"
+      : "bg-red-50 text-red-500 border-red-200";
+  };
+
+  const handleTempFilterChange = (
+    field: keyof FilterState,
+    value: string
+  ): void => {
+    setTempFilters((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const resetFilters = (): void => {
+    const resetValues: FilterState = {
+      status: "",
+      produk: "",
+      namaPembeli: "",
+      minHarga: "",
+      maxHarga: "",
+      startDate: "",
+      endDate: "",
+      minQuantity: "",
+      maxQuantity: "",
+    };
+    setTempFilters(resetValues);
+    setAppliedFilters(resetValues);
+  };
+
+  const applyFilterAndClose = (): void => {
+    setAppliedFilters(tempFilters);
+    setIsOpen(false);
+    setCurrentPage(1);
+  };
+
+  const handleShowDetail = (item: SalesData): void => {
+    alert(
+      `Detail Order:\nID: ${item.id}\nProduk: ${item.produk}\nNama Pembeli: ${item.namaPembeli}\nEstimasi: ${item.estimasi}\nQuantity: ${item.quantity}\nTotal: ${item.total}\nStatus: ${item.status}`
+    );
+  };
+
+  const handlePageChange = (page: number): void => {
+    setCurrentPage(page);
+  };
+
+  const cancelFilterAndClose = (): void => {
+    setTempFilters(appliedFilters);
+    setIsOpen(false);
+  };
+
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>): void => {
+    if (e.target === e.currentTarget) {
+      cancelFilterAndClose();
+    }
+  };
+
+  const renderPagination = (): JSX.Element => {
+    const pageNumbers = [];
+    const maxVisiblePages = 5;
+
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage < maxVisiblePages - 1) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(i);
+    }
+
+    if (totalPages <= 1) {
+      return <></>;
+    }
+
+    return (
+      <div className="flex items-center justify-between mt-6 px-4">
+        <div className="text-sm text-gray-700">
+          Menampilkan {(currentPage - 1) * perPage + 1} sampai{" "}
+          {Math.min(currentPage * perPage, filteredData.length)} dari{" "}
+          {filteredData.length} data
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg ${currentPage === 1
+              ? "text-gray-400 cursor-not-allowed"
+              : "text-gray-700 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
+              }`}
+          >
+            <ChevronLeft className="w-4 h-4 mr-1" />
+            Sebelumnya
+          </button>
+
+          {startPage > 1 && (
+            <>
+              <button
+                onClick={() => handlePageChange(1)}
+                className="px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100"
+              >
+                1
+              </button>
+              {startPage > 2 && (
+                <span className="px-2 py-2 text-sm text-gray-500">...</span>
+              )}
+            </>
+          )}
+
+          {pageNumbers.map((page) => (
+            <button
+              key={page}
+              onClick={() => handlePageChange(page)}
+              className={`w-8 h-8 text-sm font-medium rounded-lg cursor-pointer ${currentPage === page
+                ? "bg-blue-600 text-white"
+                : "text-gray-700 hover:bg-gray-100"
+                }`}
+            >
+              {page}
+            </button>
+          ))}
+
+          {endPage < totalPages && (
+            <>
+              {endPage < totalPages - 1 && (
+                <span className="px-2 py-2 text-sm text-gray-500">...</span>
+              )}
+              <button
+                onClick={() => handlePageChange(totalPages)}
+                className="px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100"
+              >
+                {totalPages}
+              </button>
+            </>
+          )}
+
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg ${currentPage === totalPages
+              ? "text-gray-400 cursor-not-allowed"
+              : "text-gray-700 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
+              }`}
+          >
+            Selanjutnya
+            <ChevronRight className="w-4 h-4 ml-1" />
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+
+
   return (
     <div className="py-5 px-6 bg-gray-50 min-h-screen">
       <Breadcrumb title="Riwayat Penjualan" desc="Riwayat penjualan pusat" />
@@ -715,46 +725,108 @@ export const RiwayatPenjualan: React.FC = () => {
             </thead>
             <tbody>
               {paginatedData.map((item) => (
-                <tr
-                  key={item.id}
-                  className="border-b border-gray-100 hover:bg-gray-50"
-                >
-                  <td className="py-4 px-4 text-gray-900">{item.id}</td>
-                  <td className="py-4 px-4 text-gray-700">{item.produk}</td>
-                  <td className="py-4 px-4 text-gray-700">
-                    {item.namaPembeli}
-                  </td>
-                  <td className="py-4 px-4 text-gray-700">{item.estimasi}</td>
-                  <td className="py-4 px-4 text-gray-700">{item.quantity}</td>
-                  <td className="py-4 px-4 text-gray-700">{item.total}</td>
-                  <td className="py-4 px-4">
-                    <span
-                      className={`px-3 py-1 rounded text-sm font-medium border ${getStatusStyle(
-                        item.status
-                      )}`}
+                <React.Fragment key={item.id}>
+                  <tr
+                    key={item.id}
+                    className="border-b border-gray-100 hover:bg-gray-50"
+                  >
+                    <td className="py-4 px-4 text-gray-900">{item.id}</td>
+                    <td className="py-4 px-4 text-gray-700">{item.produk}</td>
+                    <td className="py-4 px-4 text-gray-700">
+                      {item.namaPembeli}
+                    </td>
+                    <td className="py-4 px-4 text-gray-700">{item.estimasi}</td>
+                    <td className="py-4 px-4 text-gray-700">{item.quantity}</td>
+                    <td className="py-4 px-4 text-gray-700">{item.total}</td>
+                    <td className="py-4 px-4">
+                      <span
+                        className={`px-3 py-1 rounded text-sm font-medium border ${getStatusStyle(
+                          item.status
+                        )}`}
+                      >
+                        {item.status}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4">
+                      <button
+                        onClick={() => toggleExpand(item.id)}
+                        className="flex items-center justify-center p-2 bg-white border text-blue-500 hover:bg-blue-600 font-medium hover:text-white w-20 h-8 cursor-pointer rounded-lg transition-colors"
+                      >
+                        Detail
+
+                        {expandedRows.includes(item.id) ? (
+                          <>
+                            <FiChevronUp />
+                          </>
+                        ) : (
+                          <>
+                            <FiChevronDown />
+                          </>
+                        )}
+                      </button>
+                    </td>
+                  </tr>
+                  <td colSpan={8} className="p-0 bg-white">
+                    <div
+                      ref={el => (expandRefs.current[item.id] = el)}
+                      className={`variant-slide ${expandedRows.includes(item.id) ? 'variant-enter' : 'variant-leave'}`}
                     >
-                      {item.status}
-                    </span>
+                      <div className="p-6 space-y-4">
+                        <h2 className="font-semibold text-gray-800">Detail Riwayat Penjualan</h2>
+
+                        <div className="flex gap-4">
+                          <div className="w-40 h-40 overflow-hidden rounded-xl bg-gray-100 flex-shrink-0">
+                            <img
+                              src={item.image || "/placeholder.png"}
+                              alt={item.produk}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+
+                          <div className="flex-1 space-y-1 text-sm text-gray-600">
+                            <div className="text-base font-semibold text-gray-800">ID#{item.id}</div>
+                            <div>
+                              <div className="font-medium text-gray-700">Tujuan</div>
+                              <p className="text-gray-500 text-sm line-clamp-3">
+                                Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                          <div className="bg-gray-50 rounded-xl shadow p-3">
+                            <div className="font-medium text-gray-800">Nama Barang</div>
+                            <div className=" text-gray-400">{item.produk}</div>
+                          </div>
+                          <div className="bg-gray-50 rounded-xl shadow p-3">
+                            <div className="font-medium text-gray-800">Estimasi Tanggal</div>
+                            <div className=" text-gray-400">{item.estimasi}</div>
+                          </div>
+                          <div className="bg-gray-50 rounded-xl shadow p-3">
+                            <div className="font-medium text-gray-800">Quantity</div>
+                            <div className="text-gray-400">{item.quantity}</div>
+                          </div>
+                          <div className="bg-gray-50 rounded-xl shadow p-3">
+                            <div className="font-medium text-gray-800">Total Harga</div>
+                            <div className=" text-gray-400">{item.total}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </td>
-                  <td className="py-4 px-4">
-                    <button
-                      onClick={() => handleShowDetail(item)}
-                      className="flex items-center justify-center p-2 bg-blue-500 text-white hover:bg-blue-600 cursor-pointer rounded-lg transition-colors"
-                      title="Lihat Detail"
-                    >
-                      <Eye className="w-5 h-5" />
-                    </button>
-                  </td>
-                </tr>
+                </React.Fragment>
               ))}
             </tbody>
           </table>
         </div>
 
         {renderPagination()}
+
+        <FilterModal />
+
       </Card>
 
-      <FilterModal />
     </div>
   );
 };

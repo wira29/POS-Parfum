@@ -1,17 +1,18 @@
-import { useState, useRef } from "react"
-import React from "react"
-import { FiChevronDown, FiChevronUp } from "react-icons/fi"
-import { Breadcrumb } from "@/views/components/Breadcrumb"
-import { SearchInput } from "@/views/components/SearchInput"
-import { Filter } from "@/views/components/Filter"
-import DeleteIcon from "@/views/components/DeleteIcon"
-import { EditIcon } from "@/views/components/EditIcon"
-import AddButton from "@/views/components/AddButton"
-import ViewIcon from "@/views/components/ViewIcon"
-import dummyProducts from "./dummy/ProductDummy"
-import { Pagination } from "@/views/components/Pagination"
-import Swal from "sweetalert2"
-import { Toaster } from "@/core/helpers/BaseAlert"
+import { useState, useRef, useEffect } from "react";
+import React from "react";
+import { FiChevronDown, FiChevronUp } from "react-icons/fi";
+import { X } from "lucide-react";
+import { Breadcrumb } from "@/views/components/Breadcrumb";
+import { SearchInput } from "@/views/components/SearchInput";
+import { Filter } from "@/views/components/Filter";
+import DeleteIcon from "@/views/components/DeleteIcon";
+import { EditIcon } from "@/views/components/EditIcon";
+import AddButton from "@/views/components/AddButton";
+import ViewIcon from "@/views/components/ViewIcon";
+import dummyProducts from "./dummy/ProductDummy";
+import { Pagination } from "@/views/components/Pagination";
+import Swal from "sweetalert2";
+import { Toaster } from "@/core/helpers/BaseAlert";
 
 const FilterModal = ({
   open,
@@ -27,29 +28,64 @@ const FilterModal = ({
   categoryOptions: string[];
 }) => {
   if (!open) return null;
+
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) onClose();
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-      <div className="bg-white rounded-lg shadow-lg p-6 min-w-[700px] min-h-[600px]">
-        <div className="font-semibold text-lg mb-4">Filter Kategori Produk</div>
-        <div className="mb-4">
-          <label className="block mb-1 text-sm">Kategori Produk</label>
-          <select
-            className="border rounded px-2 py-1 w-full"
-            value={categoryFilter}
-            onChange={e => setCategoryFilter(e.target.value)}
-          >
-            <option value="">Semua Kategori</option>
-            {categoryOptions.map((cat, idx) => (
-              <option key={idx} value={cat}>{cat}</option>
-            ))}
-          </select>
-        </div>
-        <div className="flex justify-end gap-2">
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      onClick={handleBackdropClick}
+    >
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <h3 className="text-xl font-semibold text-gray-900">
+            Filter Kategori Produk
+          </h3>
           <button
-            className="px-3 py-1 rounded border border-gray-300"
             onClick={onClose}
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            Tutup
+            <X className="w-6 h-6 cursor-pointer" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Kategori Produk
+            </label>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Semua Kategori</option>
+              {categoryOptions.map((cat, idx) => (
+                <option key={idx} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2 p-4 border-t border-gray-200">
+          <button
+            onClick={() => {
+              setCategoryFilter("");
+              onClose();
+            }}
+            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100"
+          >
+            Reset
+          </button>
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
+          >
+            Terapkan
           </button>
         </div>
       </div>
@@ -58,16 +94,19 @@ const FilterModal = ({
 };
 
 export const ProductIndex = () => {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [expandedProducts, setExpandedProducts] = useState<number[]>([])
-  const expandRefs = useRef<Record<number, HTMLDivElement | null>>({})
+  const [searchQuery, setSearchQuery] = useState("");
+  const [expandedProducts, setExpandedProducts] = useState<number[]>([]);
+  const expandRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const [showFilter, setShowFilter] = useState(false);
-  const [categoryFilter, setCategoryFilter] = useState("")
-  const [currentPage, setCurrentPage] = useState(1)
-  const [variantPage, setVariantPage] = useState<Record<number, number>>({})
-  const pageSize = 3
-  const variantPageSize = 3
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [variantPage, setVariantPage] = useState<Record<number, number>>({});
+  const pageSize = 3;
+  const variantPageSize = 3;
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [categoryFilter]);
 
   const products = dummyProducts.map((p: any) => ({
     id: p.id,
@@ -80,65 +119,68 @@ export const ProductIndex = () => {
     total_stock: p.stock,
     image: p.image,
     composition: p.composition,
-    variants: p.variations && p.variations[0]?.options
-      ? p.variations[0].options.map((aroma: any, idx: number) => {
-        if (typeof aroma === "object") {
-          return {
-            id: `${p.id}-${aroma.value}`,
-            name: aroma.value,
-            code: aroma.code || `${aroma.value.toUpperCase().slice(0, 3)}-${p.productCode}`,
-            stock: aroma.stock ?? p.stock,
-            price: aroma.price ?? p.price,
-            image: p.variations[0].image || p.image,
-          }
-        }
-        return {
-          id: `${p.id}-${aroma}`,
-          name: aroma,
-          code: `${aroma.toUpperCase().slice(0, 3)}-${p.productCode}`,
-          stock: p.stock,
-          price: p.price,
-          image: p.variations[0].image || p.image,
-        }
-      })
-      : []
-  }))
+    variants:
+      p.variations && p.variations[0]?.options
+        ? p.variations[0].options.map((aroma: any, idx: number) => {
+            if (typeof aroma === "object") {
+              return {
+                id: `${p.id}-${aroma.value}`,
+                name: aroma.value,
+                code:
+                  aroma.code || `${aroma.value.toUpperCase().slice(0, 3)}-${p.productCode}`,
+                stock: aroma.stock ?? p.stock,
+                price: aroma.price ?? p.price,
+                image: p.variations[0].image || p.image,
+              };
+            }
+            return {
+              id: `${p.id}-${aroma}`,
+              name: aroma,
+              code: `${aroma.toUpperCase().slice(0, 3)}-${p.productCode}`,
+              stock: p.stock,
+              price: p.price,
+              image: p.variations[0].image || p.image,
+            };
+          })
+        : [],
+  }));
+
   const toggleExpand = (productId: number) => {
-    setExpandedProducts(prev => {
-      const isExpanded = prev.includes(productId)
+    setExpandedProducts((prev) => {
+      const isExpanded = prev.includes(productId);
       if (!isExpanded) {
-        setVariantPage(vp => ({ ...vp, [productId]: 1 }))
+        setVariantPage((vp) => ({ ...vp, [productId]: 1 }));
         setTimeout(() => {
-          expandRefs.current[productId]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        }, 200)
+          expandRefs.current[productId]?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }, 200);
       }
-      return isExpanded ? prev.filter(id => id !== productId) : [...prev, productId]
-    })
-  }
+      return isExpanded ? prev.filter((id) => id !== productId) : [...prev, productId];
+    });
+  };
 
-  const categoryOptions = Array.from(new Set(products.map(product => product.category?.name ?? "-")));
+  const categoryOptions = Array.from(new Set(products.map((product) => product.category?.name ?? "-")));
 
-  const filteredData = products.filter((product) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-    (categoryFilter ? product.category?.name === categoryFilter : true)
-  )
+  const filteredData = products.filter(
+    (product) =>
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      (categoryFilter ? product.category?.name === categoryFilter : true)
+  );
 
-  const totalPages = Math.ceil(filteredData.length / pageSize)
-  const paginatedData = filteredData.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+  const totalPages = Math.ceil(filteredData.length / pageSize);
+  const paginatedData = filteredData.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   function dellete() {
     Swal.fire({
       title: "Apakah anda yakin?",
       text: "Data product akan dihapus!",
-      icon: 'question'
+      icon: "question",
     }).then((result) => {
-      if (!result.isConfirmed) {
-        return;
-      }
-      if (result.isConfirmed) {
-        Toaster('success', "Product berhasil dihapus");
-      }
-    })
+      if (!result.isConfirmed) return;
+      Toaster("success", "Product berhasil dihapus");
+    });
   }
 
   return (
@@ -147,10 +189,13 @@ export const ProductIndex = () => {
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2 mb-4 w-full sm:w-auto max-w-lg">
-          <SearchInput value={searchQuery} onChange={(e) => {
-            setSearchQuery(e.target.value)
-            setCurrentPage(1)
-          }} />
+          <SearchInput
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
+          />
         </div>
         <div className="w-full sm:w-auto">
           <Filter onClick={() => setShowFilter(true)} />
@@ -210,7 +255,7 @@ export const ProductIndex = () => {
                   <tr>
                     <td colSpan={7} className="p-0">
                       <div
-                        ref={el => (expandRefs.current[product.id] = el)}
+                        ref={(el) => (expandRefs.current[product.id] = el)}
                         className={`variant-slide ${expandedProducts.includes(product.id) ? 'variant-enter' : 'variant-leave'}`}
                       >
                         {expandedProducts.includes(product.id) && (() => {
@@ -244,13 +289,13 @@ export const ProductIndex = () => {
                                     <Pagination
                                       currentPage={page}
                                       totalPages={totalVariantPages}
-                                      onPageChange={pg => setVariantPage(vp => ({ ...vp, [product.id]: pg }))}
+                                      onPageChange={(pg) => setVariantPage((vp) => ({ ...vp, [product.id]: pg }))}
                                     />
                                   </div>
                                 )}
                               </div>
                             </>
-                          )
+                          );
                         })()}
                       </div>
                     </td>
@@ -262,13 +307,10 @@ export const ProductIndex = () => {
         </div>
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 text-sm text-muted-foreground">
           <span className="text-gray-700">{filteredData.length} Data</span>
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={(page) => setCurrentPage(page)}
-          />
+          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
         </div>
       </div>
+
       <FilterModal
         open={showFilter}
         onClose={() => setShowFilter(false)}
@@ -277,5 +319,5 @@ export const ProductIndex = () => {
         categoryOptions={categoryOptions}
       />
     </div>
-  )
-}
+  );
+};

@@ -1,42 +1,27 @@
 import { Link, useLocation } from "react-router-dom";
 import {
-  FiHome,
-  FiBox,
-  FiPercent,
-  FiCoffee,
-  FiTag,
-  FiUsers,
-  FiLayers,
-  FiChevronDown,
-  FiChevronUp,
+  FiHome, FiBox, FiPercent, FiCoffee, FiTag,
+  FiUsers, FiLayers, FiChevronDown, FiChevronUp,
 } from "react-icons/fi";
 import { TbCoinTakaFilled, TbShoppingCart } from "react-icons/tb";
 import { FaBoxesPacking, FaShop } from "react-icons/fa6";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AiOutlineFileSearch } from "react-icons/ai";
-import { HiDocument } from "react-icons/hi";
-import { BiMoneyWithdraw } from "react-icons/bi";
 import { Wallet2Icon } from "lucide-react";
+import { useApiClient } from "@/core/helpers/ApiClient";
 
 const menuItems = [
-  { label: "Beranda", icon: <FiHome />, path: "/dashboard" },
+  { label: "Beranda", icon: <FiHome />, path: "/dashboard", roles: ["admin", "warehouse", "owner", "retail"] },
   {
     group: "Transaksi",
     label: "Penjualan",
     icon: <TbShoppingCart />,
     path: "/outlets",
     isDropdown: true,
+    roles:["warehouse"],
     children: [
-      {
-        label: "Kasir",
-        icon: <TbShoppingCart />,
-        path: "/outlets",
-      },
-      {
-        label: "Riwayat Penjualan",
-        icon: <FiTag />,
-        path: "/riwayat-penjualan",
-      },
+      { label: "Kasir", icon: <TbShoppingCart />, path: "/outlets" },
+      { label: "Riwayat Penjualan", icon: <FiTag />, path: "/riwayat-penjualan" },
     ],
   },
   {
@@ -44,39 +29,27 @@ const menuItems = [
     label: "Request Pembelian",
     icon: <FiTag />,
     path: "/request-stock",
+    roles: [ "warehouse" ]
   },
   {
     label: "Produk",
     children: [
-      { label: "Kategori", icon: <FiLayers />, path: "/categories" },
-      { label: "Produk", icon: <FiBox />, path: "/products" },
-      {
-        label: "Blending Produk",
-        icon: <FiCoffee />,
-        path: "/blendings",
-      },
-      {
-        label: "Restock Produk",
-        icon: <FaBoxesPacking />,
-        path: "/restock",
-        roles: ["admin", "warehouse"],
-      },
-      {
-        label: "Audit",
-        icon: <AiOutlineFileSearch />,
-        path: "/audit",
-        roles: ["admin", "warehouse"],
-      },
-      { label: "Diskon", icon: <FiPercent />, path: "/discounts" },
+      { label: "Kategori", icon: <FiLayers />, path: "/categories",roles: ["warehous","retail"] },
+      { label: "Produk", icon: <FiBox />, path: "/products", roles:["owner", "warehouse","retail"] },
+      { label: "Blending Produk", icon: <FiCoffee />, path: "/blendings", roles: ["warehouse"] },
+      { label: "Restock Produk", icon: <FaBoxesPacking />, path: "/restock", roles: ["admin", "warehouse", "retail"] },
+      { label: "Audit", icon: <AiOutlineFileSearch />, path: "/audit", roles: ["admin", "warehouse","retail"] },
+      { label: "Diskon", icon: <FiPercent />, path: "/discounts", roles: ["owner", "warehouse", "retail"] },
     ],
   },
   {
     label: "Lainnya",
     children: [
-      { label: "Retail", icon: <FaShop />, path: "/warehouses" },
-      { label: "Pengguna", icon: <FiUsers />, path: "/users" },
-      { label: "Laporan", icon: <TbCoinTakaFilled />, path: "/laporan" },
-      { label: "Pengeluaran", icon: <Wallet2Icon />, path: "/pengeluaran" },
+      { label: "Retail", icon: <FaShop />, path: "/retails", roles: ["owner", "warehouse"] },
+      { label: "Warehouse", icon: <FaShop />, path: "/warehouses", roles: ["owner", "warehouse"] },
+      { label: "Tambah Pengguna", icon: <FiUsers />, path: "/users", roles: ["owner", "warehouse","retail"] },
+      { label: "Laporan", icon: <TbCoinTakaFilled />, path: "/laporan", roles: ["owner","retail"] },
+      { label: "Pengeluaran", icon: <Wallet2Icon />, path: "/pengeluaran", roles: ["owner","retail"] },
     ],
   },
 ];
@@ -84,9 +57,40 @@ const menuItems = [
 export const Sidebar = ({ sidebar }: { sidebar: string }) => {
   const location = useLocation();
   const isCollapsed = sidebar === "mini-sidebar";
-  const [openDropdowns, setOpenDropdowns] = useState<{
-    [key: string]: boolean;
-  }>({});
+  const [openDropdowns, setOpenDropdowns] = useState<{ [key: string]: boolean }>({});
+  //const [userRoles, setUserRoles] = useState<string[]>([]);
+  const apiClient = useApiClient();
+  const userRoles = "warehouse"
+
+  /*useEffect(() => {
+    const fetchUserRoles = async () => {
+      try {
+        const res = await apiClient.get("/me");
+        const roles = res.data.data.roles.map((role: any) => role.name);
+        setUserRoles(roles);
+      } catch (error) {
+        console.error("Gagal mengambil data user:", error);
+      }
+    };
+    fetchUserRoles();
+  }, []);*/
+
+  const hasAccess = (itemRoles?: string[]) => {
+    if (!itemRoles || itemRoles.length === 0) return true;
+    return itemRoles.some((role) => userRoles.includes(role));
+  };
+
+  const filteredMenuItems = menuItems
+    .map((item) => {
+      if (!hasAccess(item.roles)) return null;
+      if (item.children) {
+        const filteredChildren = item.children.filter((child) => hasAccess(child.roles));
+        if (filteredChildren.length === 0) return null;
+        return { ...item, children: filteredChildren };
+      }
+      return item;
+    })
+    .filter(Boolean);
 
   const toggleDropdown = (label: string) => {
     setOpenDropdowns((prev) => ({
@@ -116,23 +120,18 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
           />
         </div>
       </div>
-      <nav
-        className={`p-4 space-y-2.5 ${
-          isCollapsed ? "overflow-visible" : "overflow-y-auto"
-        } h-[calc(100vh-4rem)]`}
-      >
-        {menuItems.map((item, i) => (
+
+      <nav className={`p-4 space-y-2.5 ${isCollapsed ? "overflow-visible" : "overflow-y-auto"} h-[calc(100vh-4rem)]`}>
+        {filteredMenuItems.map((item, i) => (
           <div key={i}>
             {item.group ? (
               <div>
                 {!isCollapsed &&
-                  i === menuItems.findIndex((m) => m.group === item.group) && (
-                    <p className="text-xs font-bold uppercase mb-2 text-gray-400">
-                      {item.group}
-                    </p>
+                  i === filteredMenuItems.findIndex((m: any) => m.group === item.group) && (
+                    <p className="text-xs font-bold uppercase mb-2 text-gray-400">{item.group}</p>
                   )}
                 {isCollapsed &&
-                  i === menuItems.findIndex((m) => m.group === item.group) && (
+                  i === filteredMenuItems.findIndex((m: any) => m.group === item.group) && (
                     <p className="text-xs font-bold uppercase mb-2 text-center text-[10px] text-gray-400">
                       {item.group}
                     </p>
@@ -145,9 +144,7 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                       className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${
                         location.pathname.startsWith(item.path) ||
                         (item.children &&
-                          item.children.some((child) =>
-                            location.pathname.startsWith(child.path)
-                          ))
+                          item.children.some((child) => location.pathname.startsWith(child.path)))
                           ? "bg-blue-600 text-white hover:bg-blue-600"
                           : "text-gray-700"
                       } ${isCollapsed ? "justify-center" : "justify-between"}`}
@@ -158,11 +155,7 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                       </div>
                       {!isCollapsed && (
                         <span className="text-lg">
-                          {openDropdowns[item.label] ? (
-                            <FiChevronUp />
-                          ) : (
-                            <FiChevronDown />
-                          )}
+                          {openDropdowns[item.label] ? <FiChevronUp /> : <FiChevronDown />}
                         </span>
                       )}
                     </button>
@@ -170,23 +163,18 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                     {!isCollapsed && openDropdowns[item.label] && (
                       <ul className="mt-2 space-y-1 ml-4">
                         {item.children?.map((child, idx) => {
-                          const isActive = location.pathname.startsWith(
-                            child.path
-                          );
+                          const isActive = location.pathname.startsWith(child.path);
                           return (
                             <li key={idx}>
                               <Link
                                 to={child.path}
                                 className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-50 text-sm transition-all duration-300 ${
-                                  isActive
-                                    ? "bg-blue-100 text-blue-600"
-                                    : "text-gray-600"
+                                  isActive ? "bg-blue-100 text-blue-600" : "text-gray-600"
                                 }`}
                               >
                                 <span
                                   className={`w-2.5 h-2.5 rounded-full bg-blue-500 border-2 border-blue-300 ${
-                                    !isActive &&
-                                    "opacity-50 bg-white border-blue-300"
+                                    !isActive && "opacity-50 bg-white border-blue-300"
                                   }`}
                                 ></span>
                                 {child.label}
@@ -200,17 +188,13 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                     {isCollapsed && (
                       <div className="absolute left-full overflow-hidden top-0 ml-2 bg-white shadow-lg rounded-lg z-[9999] min-w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                         {item.children?.map((child, idx) => {
-                          const isActive = location.pathname.startsWith(
-                            child.path
-                          );
+                          const isActive = location.pathname.startsWith(child.path);
                           return (
                             <Link
                               key={idx}
                               to={child.path}
                               className={`flex items-center gap-3 px-4 py-3 hover:bg-blue-50 text-sm transition-all duration-300 ${
-                                isActive
-                                  ? "bg-blue-200 text-blue-600"
-                                  : "text-gray-600"
+                                isActive ? "bg-blue-200 text-blue-600" : "text-gray-600"
                               }`}
                             >
                               <span className="text-lg">{child.icon}</span>
@@ -239,9 +223,7 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
               <div>
                 <p
                   className={`text-xs font-bold uppercase mb-2 transition-all duration-300 ${
-                    isCollapsed
-                      ? "text-gray-400 text-center text-[10px]"
-                      : "text-gray-400"
+                    isCollapsed ? "text-gray-400 text-center text-[10px]" : "text-gray-400"
                   }`}
                 >
                   {item.label}
@@ -254,9 +236,7 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                         <Link
                           to={child.path}
                           className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${
-                            isActive
-                              ? "bg-blue-600 text-white hover:bg-blue-600"
-                              : "text-gray-700"
+                            isActive ? "bg-blue-600 text-white hover:bg-blue-600" : "text-gray-700"
                           } ${isCollapsed ? "justify-center" : ""}`}
                         >
                           <span className="text-lg">{child.icon}</span>

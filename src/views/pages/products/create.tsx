@@ -364,7 +364,6 @@ export const ProductCreate = () => {
                                     </div>
                                 ))}
                             </div>
-                            {/* Tampilkan tabel varian hanya jika ada variant */}
                             {hasVariant && (
                                 <div className="mt-6">
                                     <h3 className="text-md font-semibold mb-2">Daftar Varian</h3>

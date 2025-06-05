@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CategoryModal from "@/views/components/Modal/CategoryModal";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { Pagination } from "@/views/components/Pagination";
@@ -9,6 +9,7 @@ import { EditIcon } from "@/views/components/EditIcon";
 import { Filter } from "@/views/components/Filter";
 import Swal from "sweetalert2";
 import { Toaster } from "@/core/helpers/BaseAlert";
+import { useApiClient } from "@/core/helpers/ApiClient";
 
 const FilterModal = ({
   open,
@@ -37,7 +38,7 @@ const FilterModal = ({
           <select
             className="border rounded px-2 py-1 w-full"
             value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value)}
+            onChange={(e) => setStatusFilter(e.target.value)}
           >
             <option value="">Semua Status</option>
             <option value="Berlaku">Berlaku</option>
@@ -49,11 +50,13 @@ const FilterModal = ({
           <select
             className="border rounded px-2 py-1 w-full"
             value={nameFilter}
-            onChange={e => setNameFilter(e.target.value)}
+            onChange={(e) => setNameFilter(e.target.value)}
           >
             <option value="">Semua Nama</option>
             {nameOptions.map((name, idx) => (
-              <option key={idx} value={name}>{name}</option>
+              <option key={idx} value={name}>
+                {name}
+              </option>
             ))}
           </select>
         </div>
@@ -71,9 +74,12 @@ const FilterModal = ({
 };
 
 interface Category {
+  id: number;
   name: string;
-  jumlahItem: string;
-  dibuatTanggal: string;
+  created_at: string;
+  updated_at: string;
+  is_delete: number;
+  products_count: number;
   status: string;
 }
 
@@ -87,34 +93,56 @@ export const CategoryIndex = () => {
   const [statusFilter, setStatusFilter] = useState("");
   const [nameFilter, setNameFilter] = useState("");
 
-  const itemsPerPage = 5;
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [totalData, setTotalData] = useState(0);
+  const [perPage, setPerPage] = useState(8);
 
-  const mockData: Category[] = [
-    { name: "Parfum Siang", jumlahItem: "18 item", dibuatTanggal: "13 Mei 2025", status: "Berlaku" },
-    { name: "Parfum Malam", jumlahItem: "18 item", dibuatTanggal: "13 Mei 2025", status: "Berlaku" },
-    { name: "Parfum Sore", jumlahItem: "18 item", dibuatTanggal: "13 Mei 2025", status: "Berlaku" },
-    { name: "Parfum Pagi", jumlahItem: "18 item", dibuatTanggal: "13 Mei 2025", status: "Berlaku" },
-    { name: "Parfum Subuh", jumlahItem: "18 item", dibuatTanggal: "13 Mei 2025", status: "Berlaku" },
-    { name: "Parfum Pria", jumlahItem: "18 item", dibuatTanggal: "13 Mei 2025", status: "Berlaku" },
-    { name: "Parfum Wanita", jumlahItem: "18 item", dibuatTanggal: "13 Mei 2025", status: "Berlaku" },
-    { name: "Parfum Tidak Berlaku", jumlahItem: "10 item", dibuatTanggal: "14 Mei 2025", status: "Tidak Berlaku" },
-  ];
+  const ApiClient = useApiClient();
 
-  const nameOptions = Array.from(new Set(mockData.map(d => d.name)));
+  const fetchCategories = async (page: number) => {
+    try {
+      const response = await ApiClient.get(
+        `/categories?per_page=${perPage}&page=${page}`
+      );
+      if (response.data.success) {
+        const apiData: Category[] = response.data.data.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          is_delete: item.is_delete,
+          products_count: item.products_count,
+          status: item.is_delete === 0 ? "Berlaku" : "Tidak Berlaku",
+        }));
+        setCategories(apiData);
+        setTotalData(response.data.pagination.total);
+      } else {
+        setCategories([]);
+        setTotalData(0);
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      setCategories([]);
+      setTotalData(0);
+    }
+  };
 
-  const filteredData = mockData.filter((item) =>
+  useEffect(() => {
+    fetchCategories(currentPage);
+  }, [currentPage]);
+
+  const filteredData = categories.filter((item) =>
     (item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.status.toLowerCase().includes(searchQuery.toLowerCase())
-    ) &&
+      item.status.toLowerCase().includes(searchQuery.toLowerCase())) &&
     (statusFilter ? item.status === statusFilter : true) &&
     (nameFilter ? item.name === nameFilter : true)
   );
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const paginatedData = filteredData.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const totalPages = Math.ceil(totalData / perPage);
+
+  const paginatedData = filteredData;
+
+  const nameOptions = Array.from(new Set(categories.map((d) => d.name)));
 
   const openCreateModal = () => {
     setEditingCategory(null);
@@ -146,20 +174,23 @@ export const CategoryIndex = () => {
     Swal.fire({
       title: "Apakah anda yakin?",
       text: "Data category akan dihapus!",
-      icon: 'question'
+      icon: "question",
     }).then((result) => {
       if (!result.isConfirmed) {
         return;
       }
       if (result.isConfirmed) {
-        Toaster('success', "Category berhasil dihapus");
+        Toaster("success", "Category berhasil dihapus");
       }
-    })
+    });
   }
 
   return (
     <div className="p-6 space-y-6">
-      <Breadcrumb title="Kategori" desc="List kategori yang ada pada toko anda" />
+      <Breadcrumb
+        title="Kategori"
+        desc="List kategori yang ada pada toko anda"
+      />
 
       <div className="bg-white shadow-md p-4 rounded-md flex flex-col gap-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -194,23 +225,35 @@ export const CategoryIndex = () => {
             <tbody>
               {paginatedData.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                  <td
+                    colSpan={5}
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
                     Tidak ada data ditemukan.
                   </td>
                 </tr>
               ) : (
                 paginatedData.map((item, index) => (
-                  <tr key={index} className="border-b border-gray-200 text-gray-600 hover:bg-gray-50">
+                  <tr
+                    key={index}
+                    className="border-b border-gray-200 text-gray-600 hover:bg-gray-50"
+                  >
                     <td className="px-6 py-4">{item.name}</td>
-                    <td className="px-6 py-4">{item.jumlahItem}</td>
-                    <td className="px-6 py-4">{item.dibuatTanggal}</td>
+                    <td className="px-6 py-4">{item.products_count} item</td>
+                    <td className="px-6 py-4">
+                      {new Date(item.created_at).toLocaleDateString("id-ID", {
+                        day: "2-digit",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </td>
                     <td className="px-6 py-4">{item.status}</td>
                     <td className="px-6 py-4">
                       <div className="flex justify-center gap-2">
                         <button onClick={() => openEditModal(item)}>
                           <EditIcon className="text-blue-500 hover:text-blue-700" />
                         </button>
-                        <DeleteIcon onClick={dellete}/>
+                        <DeleteIcon onClick={dellete} />
                       </div>
                     </td>
                   </tr>
@@ -220,37 +263,31 @@ export const CategoryIndex = () => {
           </table>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 text-sm text-muted-foreground">
+        <div className="flex justify-between mt-6">
           <span className="text-gray-700">{filteredData.length} Data</span>
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
-            onPageChange={(page) => setCurrentPage(page)}
+            onPageChange={setCurrentPage}
           />
         </div>
       </div>
 
-      <CategoryModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        onSubmit={handleModalSubmit}
-        initialData={
-          editingCategory
-            ? {
-              name: editingCategory.name,
-              status: editingCategory.status === "Berlaku",
-            }
-            : null
-        }
-      />
       <FilterModal
         open={showFilter}
         onClose={() => setShowFilter(false)}
         statusFilter={statusFilter}
-        setStatusFilter={val => setStatusFilter(val)}
+        setStatusFilter={setStatusFilter}
         nameFilter={nameFilter}
-        setNameFilter={val => setNameFilter(val)}
+        setNameFilter={setNameFilter}
         nameOptions={nameOptions}
+      />
+
+      <CategoryModal
+        open={isModalOpen}
+        onClose={closeModal}
+        data={editingCategory}
+        onSubmit={handleModalSubmit}
       />
     </div>
   );

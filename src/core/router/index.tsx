@@ -23,7 +23,10 @@ import {
   UserDetail,
   UserCreate,
   UserEdit,
-  RiwayatPenjualan
+  RetailIndex,
+  BlendingCreate,
+  RiwayatPenjualan,
+  BlendingEdit
 } from "@/views/pages/pages";
 import RequestStockIndex from "@/views/pages/request-stock";
 import { RequestRestockIndex } from "@/views/pages/restock/request";
@@ -38,7 +41,8 @@ import { DiscountEdit } from "@/views/pages/discount/edit";
 import BlendingIndex from "@/views/pages/blending"
 import ProfitLossReportPage from "@/views/pages/laporan";
 import ExpenseManagement from "@/views/pages/pengeluaran";
-import ExpenseCreate from "@/views/pages/pengeluaran/create";
+import RetailDetail from "@/views/pages/retail/detail";
+import { BlendingDetail } from "@/views/pages/blending/detail";
 
 export const router = createBrowserRouter([
   {
@@ -66,6 +70,14 @@ export const router = createBrowserRouter([
             element: <ProductIndex />,
           },
           {
+            path: "retails",
+            element: <RetailIndex />,
+          },
+          {
+            path: "retails/:id/detail",
+            element: <RetailDetail />,
+          },
+          {
             path: "products/create",
             element: <ProductCreate />,
           },
@@ -80,6 +92,18 @@ export const router = createBrowserRouter([
           {
             path: "blendings",
             element: <BlendingIndex />
+          },
+          {
+            path: "blendings/:id/detail",
+            element: <BlendingDetail />
+          },
+          {
+            path: "blendings/create",
+            element: <BlendingCreate />
+          },
+          {
+            path: "blendings/:id/edit",
+            element: <BlendingEdit />
           },
           {
             path: "products/:id/edit",
@@ -114,7 +138,7 @@ export const router = createBrowserRouter([
             element: <WarehouseEdit />,
           },
           {
-            path: "warehouses/:id",
+            path: "warehouses/:id/details",
             element: <WarehouseDetail />,
           },
           {
@@ -130,7 +154,7 @@ export const router = createBrowserRouter([
             element: <UserEdit />,
           },
           {
-            path: "users/:id",
+            path: "users/:id/Detail",
             element: <UserDetail />,
           },
           {

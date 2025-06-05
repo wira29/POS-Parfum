@@ -109,13 +109,6 @@ export const AuditDetail = () => {
                     >
                         Kembali
                     </button>
-                    <button
-                        className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded"
-                        type="button"
-                        onClick={dellete}
-                    >
-                        Hapus
-                    </button>
                 </div>
             </div>
         </div>

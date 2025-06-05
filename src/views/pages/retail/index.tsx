@@ -6,89 +6,85 @@ import { SearchInput } from "@/views/components/SearchInput";
 import { NoData } from "@/views/components/NoData";
 import { useApiClient } from "@/core/helpers/ApiClient";
 
-interface Warehouse {
-  id: string;
+interface Retail {
+  id: number;
   name: string;
-  image: string | null;
-  telp: string;
+  image: string;
+  phone: string;
   address: string;
+  owner: string;
+  detailUrl: string;
+  location: string;
+  code: string;
   products_count: number;
 }
 
-interface PaginationLink {
-  url: string | null;
-  label: string;
-  active: boolean;
-}
-
-interface Pagination {
-  current_page: number;
-  from: number;
-  to: number;
-  total: number;
-  links: PaginationLink[];
-}
-
-export const WarehouseIndex = () => {
+export const RetailIndex = () => {
+  const [retails, setRetails] = useState<Retail[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [dropdownOpenId, setDropdownOpenId] = useState<string | null>(null);
-  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
-  const [pagination, setPagination] = useState<Pagination | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [dropdownOpenId, setDropdownOpenId] = useState<number | null>(null);
+  const [page, setPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [pagination, setPagination] = useState<any>(null);
 
   const navigate = useNavigate();
   const apiClient = useApiClient();
 
-  const fetchWarehouses = async () => {
-    const res = await apiClient.get(
-      `/warehouses?per_page=8&page=${currentPage}`
-    );
-    setWarehouses(res.data.data);
-    setPagination(res.data.pagination);
-  };
-
-  useEffect(() => {
-    fetchWarehouses();
-  }, [currentPage]);
-
-  const handleDropdownToggle = (id: string) => {
-    setDropdownOpenId(dropdownOpenId === id ? null : id);
-  };
-
-  const handleEdit = (warehouse: Warehouse) => {
-    navigate(`/warehouses/${warehouse.id}/edit`);
-  };
-
-  const handleDelete = (warehouse: Warehouse) => {
-    console.log("Delete", warehouse);
-  };
-
-  const handleTambah = () => {
-    navigate("/warehouses/create");
-  };
-
-  const handleView = (warehouse: Warehouse) => {
-    navigate(`/warehouses/${warehouse.id}/details`);
+  const fetchRetails = async () => {
+    setLoading(true);
+    try {
+      const response = await apiClient.get(`/outlets?page=${page}&per_page=8`);
+      setRetails(response.data.data);
+      setPagination(response.data.pagination);
+    } catch (error) {
+      console.error("Failed to fetch outlets:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handlePageChange = (url: string | null) => {
     if (!url) return;
-    const pageParam = new URL(url).searchParams.get("page");
-    if (pageParam) {
-      setCurrentPage(parseInt(pageParam, 10));
-    }
+    const urlParams = new URL(url).searchParams;
+    const newPage = parseInt(urlParams.get("page") || "1", 10);
+    setPage(newPage);
   };
 
-  const filteredWarehouses = warehouses.filter((warehouse) =>
-    warehouse.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    warehouse.address.toLowerCase().includes(searchQuery.toLowerCase())
+  useEffect(() => {
+    fetchRetails();
+  }, [page]);
+
+  const handleDropdownToggle = (id: number) => {
+    setDropdownOpenId(dropdownOpenId === id ? null : id);
+  };
+
+  const handleEdit = (retail: Retail) => {
+    navigate(`/retails/${retail.id}/edit`);
+  };
+
+  const handleDelete = (retail: Retail) => {
+    console.log("Delete", retail);
+  };
+
+  const handleTambah = () => {
+    navigate("/retails/create");
+  };
+
+  const handleView = (retail: Retail) => {
+    navigate(`/retails/${retail.id}/detail`);
+  };
+
+  const filteredWarehouses = retails.filter((retail) =>
+    `${retail.name}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    `${retail.location}`.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
     <div className="p-6 space-y-6">
       <Breadcrumb
-        title="Informasi Warehouse"
-        desc="Kelola dan perbarui informasi Warehouse"
+        title="Informasi Retail"
+        desc="Kelola dan perbarui informasi retail"
       />
 
       <div className="bg-white rounded-xl p-6 shadow space-y-6">
@@ -104,60 +100,62 @@ export const WarehouseIndex = () => {
               className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 px-4 py-2 rounded-lg font-medium"
               onClick={handleTambah}
             >
-              <FiPlus /> Tambah Warehouse
+              <FiPlus /> Tambah Retail
             </button>
           </div>
         </div>
 
-        {filteredWarehouses.length === 0 ? (
+        {loading ? (
+          <p>Loading...</p>
+        ) : filteredWarehouses.length === 0 ? (
           <div className="bg-white rounded-xl p-6">
             <NoData img_size={300} />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {filteredWarehouses.map((warehouse) => (
+            {filteredWarehouses.map((retail) => (
               <div
-                key={warehouse.id}
+                key={retail.id}
                 className="bg-white rounded-xl shadow-sm border border-gray-100"
               >
                 <div className="h-32 overflow-hidden">
                   <img
-                    src={warehouse.image || "/no-image.jpg"}
-                    alt={warehouse.name}
+                    src={retail.image}
+                    alt={retail.name}
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="p-4">
                   <h3 className="text-[16px] font-semibold text-gray-900 mb-1">
-                    {warehouse.name}
+                    {retail.name}
                   </h3>
-                  <p className="text-[13px] text-gray-800 mb-0.5">{warehouse.telp}</p>
-                  <p className="text-[13px] text-gray-500 truncate">{warehouse.address}</p>
+                  <p className="text-[13px] text-gray-800 mb-0.5">{retail.phone}</p>
+                  <p className="text-[13px] text-gray-500 truncate">{retail.address}</p>
 
-                  <p className="text-[13px] font-medium text-gray-600 mt-3">Total Product</p>
-                  <p className="text-[15px] font-bold text-black mb-4">{warehouse.products_count}</p>
+                  <p className="text-[13px] font-medium text-gray-600 mt-3">Pemilik Retail</p>
+                  <p className="text-[15px] font-bold text-black mb-4">{retail.owner}</p>
                   <div className="flex gap-2 mt-4">
                     <button
                       className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl text-sm font-medium flex-1"
-                      onClick={() => handleView(warehouse)}
+                      onClick={() => handleView(retail)}
                     >
                       Detail
                     </button>
                     <div className="relative">
                       <button
                         className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-400 hover:bg-gray-300"
-                        onClick={() => handleDropdownToggle(warehouse.id)}
+                        onClick={() => handleDropdownToggle(retail.id)}
                         type="button"
                       >
                         <FiMoreHorizontal size={30} color="white" />
                       </button>
-                      {dropdownOpenId === warehouse.id && (
+                      {dropdownOpenId === retail.id && (
                         <div className="absolute right-0 top-12 w-36 bg-white border rounded shadow-lg z-20">
                           <button
                             className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
                             onClick={() => {
                               setDropdownOpenId(null);
-                              handleEdit(warehouse);
+                              handleEdit(retail);
                             }}
                           >
                             Edit
@@ -166,7 +164,7 @@ export const WarehouseIndex = () => {
                             className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-red-600"
                             onClick={() => {
                               setDropdownOpenId(null);
-                              handleDelete(warehouse);
+                              handleDelete(retail);
                             }}
                           >
                             Hapus
@@ -184,29 +182,21 @@ export const WarehouseIndex = () => {
         {pagination && (
           <div className="flex justify-between items-center mt-6">
             <div className="text-sm text-gray-500">
-              Menampilkan {pagination.from} hingga {pagination.to} dari {pagination.total} data
+              Menampilkan {pagination.from} - {pagination.to} dari {pagination.total} data
             </div>
             <div className="flex gap-2">
-              {pagination.links.map((link, index) => {
-                const label = link.label
-                  .replace("&laquo; Previous", "Previous")
-                  .replace("Next &raquo;", "Next");
-
-                return (
-                  <button
-                    key={index}
-                    className={`px-3 py-1 border rounded text-sm ${
-                      link.active
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-600 hover:bg-gray-50"
-                    }`}
-                    disabled={!link.url}
-                    onClick={() => handlePageChange(link.url)}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
+              {pagination.links.map((link: any, idx: number) => (
+                <button
+                  key={idx}
+                  dangerouslySetInnerHTML={{ __html: link.label }}
+                  onClick={() => handlePageChange(link.url)}
+                  disabled={!link.url}
+                  className={`px-3 py-1 border rounded text-sm ${link.active
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-600 hover:bg-gray-100"
+                    } ${!link.url && "opacity-50 cursor-not-allowed"}`}
+                />
+              ))}
             </div>
           </div>
         )}
