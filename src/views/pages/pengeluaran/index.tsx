@@ -80,36 +80,7 @@ export default function ExpenseManagement() {
         </div>
 
 
-        <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={selectAll}
-                onChange={handleSelectAll}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700">Pilih Semua</span>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-700 font-medium">Tampilkan Hanya:</span>
-              {["Semua", "Disetujui", "Menunggu"].map((filter) => (
-                <label key={filter} className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="filter"
-                    value={filter}
-                    checked={selectedFilter === filter}
-                    onChange={(e) => setSelectedFilter(e.target.value)}
-                    className="text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700">{filter}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-        </div>
+        
 
 
         <div className="overflow-x-auto">

@@ -114,7 +114,7 @@ export const router = createBrowserRouter([
             element: <WarehouseEdit />,
           },
           {
-            path: "warehousesDetail",
+            path: "warehouses/:id",
             element: <WarehouseDetail />,
           },
           {
