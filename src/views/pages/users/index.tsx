@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiPlus, FiMoreHorizontal } from "react-icons/fi";
+import { FiPlus, FiMoreHorizontal, FiMoreVertical } from "react-icons/fi";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { SearchInput } from "@/views/components/SearchInput";
 import { useApiClient } from "@/core/helpers/ApiClient";
@@ -100,34 +100,33 @@ export default function UserPage() {
       ) : filteredUsers.length === 0 ? (
         <div className="text-gray-500">Tidak ada pengguna ditemukan.</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {filteredUsers.map((user) => (
             <div
               key={user.id}
-              className="bg-white rounded-lg shadow p-4 flex justify-between items-center relative"
+              className="bg-white rounded-lg shadow p-4 flex flex-col items-center justify-center relative min-h-64"
             >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
                   <img
                     src={"/public/images/profile/user-1.jpg"}
                     alt={user.name}
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div>
-                  <h3 className="font-medium">{user.name}</h3>
-                  <p className="text-sm text-gray-500">{user.email}</p>
-                  <span className="px-3 py-1 text-xs bg-blue-100 text-blue-600 rounded-full">
-                    {user.roles?.[0]?.name}
-                  </span>
-                </div>
+                <h3 className="font-medium text-center">{user.name}</h3>
+                <p className="text-sm text-gray-500 text-center">{user.email}</p>
+                <span className="px-3 py-1 text-xs bg-blue-100 text-blue-600 rounded-full">
+                  {user.roles?.[0]?.name}
+                </span>
               </div>
+
               <div ref={dropdownOpenId === user.id ? dropdownRef : null}>
                 <button
                   className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-100"
                   onClick={() => handleDropdownToggle(user.id)}
                 >
-                  <FiMoreHorizontal size={22} />
+                  <FiMoreVertical size={22} />
                 </button>
                 {dropdownOpenId === user.id && (
                   <div className="absolute right-2 top-10 w-36 bg-white border rounded shadow-lg z-20">
@@ -161,8 +160,8 @@ export default function UserPage() {
                   </div>
                 )}
               </div>
-
             </div>
+
           ))}
         </div>
       )}
