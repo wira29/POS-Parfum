@@ -1,9 +1,8 @@
 import { Breadcrumb } from "@/views/components/Breadcrumb"
-import { ArrowLeft, Info } from "lucide-react"
+import { ArrowLeft, Info, InfoIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { FaLocationPin } from "react-icons/fa6"
 import { useNavigate, useParams } from "react-router-dom"
-import { FiChevronDown } from "react-icons/fi"
 import { useApiClient } from "@/core/helpers/ApiClient"
 
 export default function WarehouseDetail() {
@@ -13,6 +12,8 @@ export default function WarehouseDetail() {
 
     const [warehouse, setWarehouse] = useState<any>(null)
     const [loading, setLoading] = useState(true)
+    const [currentPage, setCurrentPage] = useState(1)
+    const itemsPerPage = 5
 
     useEffect(() => {
         const fetchWarehouseDetail = async () => {
@@ -33,6 +34,25 @@ export default function WarehouseDetail() {
     if (!warehouse) return <div className="p-6">Warehouse tidak ditemukan</div>
 
     const pemilik = warehouse.users?.[0]
+    const stocks = warehouse.product_stocks || []
+
+    const totalPages = Math.ceil(stocks.length / itemsPerPage)
+    const paginatedStocks = stocks.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    )
+
+    const handlePrevPage = () => {
+        if (currentPage > 1) setCurrentPage(currentPage - 1)
+    }
+
+    const handleNextPage = () => {
+        if (currentPage < totalPages) setCurrentPage(currentPage + 1)
+    }
+
+    const handlePageClick = (page: number) => {
+        setCurrentPage(page)
+    }
 
     return (
         <div className="p-6 space-y-6">
@@ -70,7 +90,7 @@ export default function WarehouseDetail() {
                     </div>
                 </div>
 
-                <div className="">
+                <div>
                     <h2 className="text-gray-800 flex">
                         <span className="font-semibold">Informasi Lain</span>
                         <Info className="ml-2 bg-gray-50 w-4" />
@@ -96,7 +116,7 @@ export default function WarehouseDetail() {
                             <div className="w-150 flex-col">
                                 <div>
                                     <h1 className="font-semibold text-xm">Nomor Telepon</h1>
-                                    <p className="text-xs text-gray-600 mt-1">{warehouse.telp}</p>
+                                    <p className="text-xs text-gray-600 mt-1">{warehouse.telp || "-"}</p>
                                 </div>
                                 <div className="mt-5">
                                     <h1 className="font-semibold text-xm">Nama Toko</h1>
@@ -123,41 +143,75 @@ export default function WarehouseDetail() {
                 </button>
             </div>
 
-            <div className="overflow-x-auto mt-10 shadow-md rounded-xl">
-                <table className="w-full">
-                    <thead className="bg-[#FBFBFB]">
-                        <tr>
-                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Logo</th>
-                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Alamat</th>
-                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Dibuat Pada</th>
-                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Diupdate Pada</th>
-                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Tax</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr className="border-b border-gray-100 hover:bg-gray-50">
-                            <td className="py-4 px-4 text-gray-900">
-                                {warehouse.store.logo ? (
-                                    <img
-                                        src={warehouse.store.logo}
-                                        alt="Store Logo"
-                                        className="w-12 h-12 rounded object-cover"
-                                    />
-                                ) : (
-                                    <span className="text-gray-500 text-sm">Tidak ada logo</span>
-                                )}
-                            </td>
-                            <td className="py-4 px-4 text-gray-700">{warehouse.store.address}</td>
-                            <td className="py-4 px-4 text-gray-700">
-                                {new Date(warehouse.store.created_at).toLocaleDateString("id-ID")}
-                            </td>
-                            <td className="py-4 px-4 text-gray-700">
-                                {new Date(warehouse.store.updated_at).toLocaleDateString("id-ID")}
-                            </td>
-                            <td className="py-4 px-4 text-gray-700">{warehouse.store.tax}%</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div className="bg-white rounded-xl p-6 shadow space-y-6">
+                <h2 className="text-gray-800 font-semibold mb-4 flex gap-2">Daftar Produk di Warehouse <InfoIcon size={16} className="mt-1" /></h2>
+                <div className="overflow-x-auto mt-10 shadow-md border rounded-xl border-gray-300">
+                    <table className="w-full">
+                        <thead className="bg-gray-300 border-b border-gray-300">
+                            <tr>
+                                <th className="text-left py-3 px-4 font-semibold text-gray-700">Product Id</th>
+                                <th className="text-left py-3 px-4 font-semibold text-gray-700">Stock</th>
+                                <th className="text-left py-3 px-4 font-semibold text-gray-700">Harga</th>
+                                <th className="text-left py-3 px-4 font-semibold text-gray-700">Dibuat Pada</th>
+                                <th className="text-left py-3 px-4 font-semibold text-gray-700">Diupdate Pada</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {paginatedStocks.map((item: any) => (
+                                <tr
+                                    key={item.id}
+                                    className="border-b border-gray-100 hover:bg-gray-50"
+                                >
+                                    <td className="py-4 px-4 text-gray-900">
+                                        {item.product_detail?.product_id || "-"}
+                                    </td>
+                                    <td className="py-4 px-4 text-gray-700">
+                                        {item.stock}
+                                    </td>
+                                    <td className="py-4 px-4 text-gray-700">
+                                        Rp {item.product_detail?.price?.toLocaleString("id-ID")}
+                                    </td>
+                                    <td className="py-4 px-4 text-gray-700">
+                                        {new Date(item.created_at).toLocaleDateString("id-ID")}
+                                    </td>
+                                    <td className="py-4 px-4 text-gray-700">
+                                        {new Date(item.updated_at).toLocaleDateString("id-ID")}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+                {totalPages > 1 && (
+                    <div className="flex justify-end mt-6 space-x-2">
+                        <button
+                            className="px-3 py-1 text-sm rounded border border-gray-300 hover:bg-gray-100"
+                            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                            disabled={currentPage === 1}
+                        >
+                            Prev
+                        </button>
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                            <button
+                                key={page}
+                                onClick={() => setCurrentPage(page)}
+                                className={`px-3 py-1 text-sm rounded border ${currentPage === page
+                                    ? "bg-blue-600 text-white border-blue-600"
+                                    : "border-gray-300 hover:bg-gray-100"
+                                    }`}
+                            >
+                                {page}
+                            </button>
+                        ))}
+                        <button
+                            className="px-3 py-1 text-sm rounded border border-gray-300 hover:bg-gray-100"
+                            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                        >
+                            Next
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     )

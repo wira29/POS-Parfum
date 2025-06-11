@@ -8,168 +8,8 @@ import DeleteIcon from "@/views/components/DeleteIcon";
 import { EditIcon } from "@/views/components/EditIcon";
 import Swal from "sweetalert2";
 import { Toaster } from "@/core/helpers/BaseAlert";
-
-function SearchableSelect({
-  label,
-  options,
-  value,
-  onChange,
-  placeholder,
-}: {
-  label: string;
-  options: string[];
-  value: string;
-  onChange: (val: string) => void;
-  placeholder?: string;
-}) {
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const filteredOptions = options.filter((opt) =>
-    opt.toLowerCase().includes(search.toLowerCase())
-  );
-
-  return (
-    <div className="relative" ref={ref}>
-      <label className="block mb-1 text-sm text-gray-700">{label}</label>
-      <div
-        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 bg-white cursor-pointer"
-        onClick={() => setOpen((v) => !v)}
-        tabIndex={0}
-      >
-        {value || placeholder || "Pilih"}
-      </div>
-      {open && (
-        <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg">
-          <input
-            type="text"
-            className="w-full px-3 py-2 text-sm border-b border-gray-200 focus:outline-none"
-            placeholder={`Cari ${label.toLowerCase()}...`}
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            autoFocus
-            onClick={e => e.stopPropagation()}
-          />
-          <div className="max-h-40 overflow-y-auto">
-            {filteredOptions.length === 0 && (
-              <div className="px-3 py-2 text-gray-400 text-sm">Tidak ditemukan</div>
-            )}
-            {filteredOptions.map((opt, idx) => (
-              <div
-                key={idx}
-                className={`px-3 py-2 text-sm hover:bg-blue-50 cursor-pointer ${opt === value ? "bg-blue-100" : ""}`}
-                onClick={() => {
-                  onChange(opt);
-                  setOpen(false);
-                  setSearch("");
-                }}
-              >
-                {opt}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function RestockModal({
-  open,
-  onClose,
-  initialData,
-  onSubmit,
-}: {
-  open: boolean;
-  onClose: () => void;
-  initialData?: RestockItem | null;
-  onSubmit: (data: { warehouse: string; produk: string; qty: string }) => void;
-}) {
-  const warehouseOptions = ["Gudang A", "Gudang B"];
-  const produkOptions = ["Parfum A", "Parfum B", "Parfum C"];
-
-  const [warehouse, setWarehouse] = useState(initialData?.warehouse || "");
-  const [produk, setProduk] = useState(initialData?.produk || "");
-  const [qty, setQty] = useState(initialData?.qty || "");
-
-  useEffect(() => {
-    setWarehouse(initialData?.warehouse || "");
-    setProduk(initialData?.produk || "");
-    setQty(initialData?.qty || "");
-  }, [initialData, open]);
-
-  if (!open) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-      <div className="bg-white rounded-lg shadow-lg p-6 min-w-[400px]">
-        <div className="font-semibold text-lg mb-4">
-          {initialData ? "Edit Restock" : "Tambah Restock"}
-        </div>
-        <form
-          onSubmit={e => {
-            e.preventDefault();
-            onSubmit({ warehouse, produk, qty });
-          }}
-          className="space-y-4"
-        >
-          <SearchableSelect
-            label="Warehouse"
-            options={warehouseOptions}
-            value={warehouse}
-            onChange={setWarehouse}
-            placeholder="Pilih Warehouse"
-          />
-          <SearchableSelect
-            label="Produk"
-            options={produkOptions}
-            value={produk}
-            onChange={setProduk}
-            placeholder="Pilih Produk"
-          />
-          <div>
-            <label className="block mb-1 text-sm text-gray-700">Quantity</label>
-            <input
-              type="number"
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700"
-              value={qty}
-              onChange={e => setQty(e.target.value)}
-              placeholder="Masukkan jumlah"
-              min={0}
-              required
-            />
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              className="px-4 py-2 rounded border border-gray-300"
-              onClick={onClose}
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              className={initialData ? "px-4 py-2 rounded  bg-yellow-600 text-white hover:bg-yellow-700" : "px-4 py-2 rounded  bg-blue-600 text-white hover:bg-blue-700"}
-            >
-              {initialData ? "Simpan" : "Tambah"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
+import ViewIcon from "@/views/components/ViewIcon";  
+import { useNavigate } from "react-router-dom";
 
 const FilterModal = ({
   open,
@@ -295,6 +135,7 @@ export const RestockIndex = () => {
   const [inputWarehouse, setInputWarehouse] = useState("");
   const [inputProduct, setInputProduct] = useState("");
   const itemsPerPage = 5;
+  const nav = useNavigate();
 
   const mockData: RestockItem[] = [
     {
@@ -427,85 +268,22 @@ export const RestockIndex = () => {
             <Filter onClick={() => setShowFilter(true)} />
           </div>
           <div className="w-full sm:w-auto">
-            <AddButton onClick={() => {
-              setEditingData(null);
-              setModalOpen(true);
-            }}>
+            <AddButton onClick={() => nav("/restock/create")}>
               Tambah Restock
             </AddButton>
           </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-4 mb-2">
-          <span className="text-sm text-gray-700">Tampilkan Hanya:</span>
-          <label className="flex items-center gap-1 text-sm">
-            <input
-              type="radio"
-              name="status"
-              value=""
-              checked={statusFilter === ""}
-              onChange={() => setStatusFilter("")}
-              className="accent-blue-600"
-            />
-            Semua
-          </label>
-          <label className="flex items-center gap-1 text-sm">
-            <input
-              type="radio"
-              name="status"
-              value="Menunggu"
-              checked={statusFilter === "Menunggu"}
-              onChange={() => setStatusFilter("Menunggu")}
-              className="accent-blue-600"
-            />
-            Menunggu
-          </label>
-          <label className="flex items-center gap-1 text-sm">
-            <input
-              type="radio"
-              name="status"
-              value="Diproses"
-              checked={statusFilter === "Diproses"}
-              onChange={() => setStatusFilter("Diproses")}
-              className="accent-blue-600"
-            />
-            Diproses
-          </label>
-          <label className="flex items-center gap-1 text-sm">
-            <input
-              type="radio"
-              name="status"
-              value="Dikirim"
-              checked={statusFilter === "Dikirim"}
-              onChange={() => setStatusFilter("Dikirim")}
-              className="accent-blue-600"
-            />
-            Dikirim
-          </label>
-          <label className="flex items-center gap-1 text-sm">
-            <input
-              type="radio"
-              name="status"
-              value="Selesai"
-              checked={statusFilter === "Selesai"}
-              onChange={() => setStatusFilter("Selesai")}
-              className="accent-blue-600"
-            />
-            Selesai
-          </label>
         </div>
 
         <div className="overflow-x-auto rounded-lg">
           <table className="min-w-full border border-gray-300 rounded-lg text-sm text-left">
             <thead className="bg-gray-100 border border-gray-300 text-gray-700">
               <tr>
-                <th className="px-6 py-4 font-medium">Warehouse</th>
                 <th className="px-6 py-4 font-medium">Tanggal</th>
                 <th className="px-6 py-4 font-medium">Produk</th>
                 <th className="px-6 py-4 font-medium">Kategori</th>
-                <th className="px-6 py-4 font-medium">Stok</th>
+                <th className="px-6 py-4 font-medium">Varian</th>
                 <th className="px-6 py-4 font-medium">Quantity</th>
-                <th className="px-6 py-4 font-medium">Status</th>
+                <th className="px-6 py-4 font-medium">Aksi</th>
               </tr>
             </thead>
             <tbody>
@@ -521,25 +299,13 @@ export const RestockIndex = () => {
                     key={item.id}
                     className="border-b border-gray-200 text-gray-700 hover:bg-gray-50"
                   >
-                    <td className="px-6 py-4">{item.warehouse}</td>
                     <td className="px-6 py-4">{item.tanggal}</td>
                     <td className="px-6 py-4">{item.produk}</td>
                     <td className="px-6 py-4">{item.kategori}</td>
-                    <td className="px-6 py-4">{item.stok}</td>
+                    <td className="px-6 py-4">biasalah</td>
                     <td className="px-6 py-4">{item.qty}</td>
                     <td className="px-6 py-4">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${item.status === "Menunggu"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : item.status === "Diproses"
-                            ? "bg-blue-100 text-blue-700"
-                            : item.status === "Dikirim"
-                              ? "bg-purple-100 text-purple-700"
-                              : "bg-green-100 text-green-700"
-                          }`}
-                      >
-                        {item.status}
-                      </span>
+                      <ViewIcon to={`/restock/${item.id}/details`} className="w-8"/>
                     </td>
                   </tr>
                 ))
@@ -557,16 +323,6 @@ export const RestockIndex = () => {
           />
         </div>
       </div>
-
-      <RestockModal
-        open={modalOpen}
-        onClose={() => {
-          setModalOpen(false);
-          setEditingData(null);
-        }}
-        initialData={editingData}
-        onSubmit={handleRestockModalSubmit}
-      />
       <FilterModal
         open={showFilter}
         onClose={() => setShowFilter(false)}

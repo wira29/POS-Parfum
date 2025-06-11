@@ -5,6 +5,7 @@ import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { SearchInput } from "@/views/components/SearchInput";
 import { NoData } from "@/views/components/NoData";
 import { useApiClient } from "@/core/helpers/ApiClient";
+import Swal from "sweetalert2";
 
 interface Retail {
   id: number;
@@ -80,6 +81,33 @@ export const RetailIndex = () => {
     `${retail.location}`.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const deleteOutlet = async (id: number) => {
+    try {
+      await apiClient.delete(`/outlets/${id}`)
+      Swal.fire("Terhapus!", "Outlet berhasil dihapus.", "success")
+      window.location.reload()
+    } catch (error) {
+      Swal.fire("Gagal!", "Gagal menghapus outlet.", "error")
+      console.error(error)
+    }
+  }
+
+  const confirmDelete = (id: number) => {
+    Swal.fire({
+      title: "Apakah anda yakin?",
+      text: "Data outlet akan dihapus!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, hapus!",
+      cancelButtonText: "Batal",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        deleteOutlet(id)
+      }
+    })
+  }
+
+
   return (
     <div className="p-6 space-y-6">
       <Breadcrumb
@@ -116,7 +144,7 @@ export const RetailIndex = () => {
             {filteredWarehouses.map((retail) => (
               <div
                 key={retail.id}
-                className="bg-white rounded-xl shadow-sm border border-gray-100"
+                className="bg-white rounded-xl shadow-sm border flex-col border-gray-100"
               >
                 <div className="h-32 overflow-hidden">
                   <img
@@ -164,7 +192,7 @@ export const RetailIndex = () => {
                             className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-red-600"
                             onClick={() => {
                               setDropdownOpenId(null);
-                              handleDelete(retail);
+                              confirmDelete(retail.id);
                             }}
                           >
                             Hapus
@@ -192,8 +220,8 @@ export const RetailIndex = () => {
                   onClick={() => handlePageChange(link.url)}
                   disabled={!link.url}
                   className={`px-3 py-1 border rounded text-sm ${link.active
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-600 hover:bg-gray-100"
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-600 hover:bg-gray-100"
                     } ${!link.url && "opacity-50 cursor-not-allowed"}`}
                 />
               ))}

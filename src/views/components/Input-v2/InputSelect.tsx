@@ -20,7 +20,6 @@ const InputSelect = ({
     <div>
         {label && (
             <label className={labelClass}>
-                <Package size={16} className="inline mr-1" />
                 {label}
             </label>
         )}
@@ -29,7 +28,7 @@ const InputSelect = ({
             value={value}
             onChange={onChange}
         >
-            <option value="">Pilih kategori</option>
+            <option value="">Pilih</option>
             {options.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                     {opt.label}

@@ -5,6 +5,7 @@ import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { SearchInput } from "@/views/components/SearchInput";
 import { NoData } from "@/views/components/NoData";
 import { useApiClient } from "@/core/helpers/ApiClient";
+import Swal from "sweetalert2";
 
 interface Warehouse {
   id: string;
@@ -83,6 +84,32 @@ export const WarehouseIndex = () => {
     warehouse.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     warehouse.address.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const deleteWarehouse = async (id: number) => {
+    try {
+      await apiClient.delete(`/warehouses/${id}`)
+      Swal.fire("Terhapus!", "Warehouse berhasil dihapus.", "success")
+      window.location.reload()
+    } catch (error) {
+      Swal.fire("Gagal!", "Gagal menghapus Warehouse.", "error")
+      console.error(error)
+    }
+  }
+
+  const confirmDelete = (id: number) => {
+    Swal.fire({
+      title: "Apakah anda yakin?",
+      text: "Data Warehouse akan dihapus!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, hapus!",
+      cancelButtonText: "Batal",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        deleteWarehouse(id)
+      }
+    })
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -166,7 +193,7 @@ export const WarehouseIndex = () => {
                             className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-red-600"
                             onClick={() => {
                               setDropdownOpenId(null);
-                              handleDelete(warehouse);
+                              confirmDelete(warehouse.id);
                             }}
                           >
                             Hapus
@@ -195,11 +222,10 @@ export const WarehouseIndex = () => {
                 return (
                   <button
                     key={index}
-                    className={`px-3 py-1 border rounded text-sm ${
-                      link.active
+                    className={`px-3 py-1 border rounded text-sm ${link.active
                         ? "bg-blue-600 text-white"
                         : "text-gray-600 hover:bg-gray-50"
-                    }`}
+                      }`}
                     disabled={!link.url}
                     onClick={() => handlePageChange(link.url)}
                   >

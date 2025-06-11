@@ -5,7 +5,6 @@ import InputText from "@/views/components/Input-v2/InputText";
 import InputNumber from "@/views/components/Input-v2/InputNumber";
 import InputImage from "@/views/components/Input-v2/InputImage";
 import InputOneImage from "@/views/components/Input-v2/InputOneImage";
-import InputManyText from "@/views/components/Input-v2/InputManyText";
 import PreviewCard from "@/views/components/Card/PreviewCard";
 import {
     FileText,
@@ -223,22 +222,6 @@ export const ProductCreate = () => {
                                 ]}
                             />
                         </div>
-                        <div className="md:col-span-2 mt-3.5">
-                            <label className={labelClass}>
-                                <FileText size={16} /> Komposisi Produk
-                            </label>
-                            <InputManyText
-                                items={composition}
-                                onChange={(i, v) =>
-                                    handleCompositionChange(composition, setComposition, i, v)
-                                }
-                                onAdd={() => handleAddComposition(composition, setComposition)}
-                                onRemove={(i) =>
-                                    handleRemoveComposition(composition, setComposition, i)
-                                }
-                                maxLength={50}
-                            />
-                        </div>
                     </div>
 
                     {(!isParfum || !hasVariant) && (
@@ -324,13 +307,8 @@ export const ProductCreate = () => {
                                                 <input
                                                     placeholder={i === 0 ? "Aroma" : "Nama Variasi"}
                                                     value={variation.name}
-                                                    onChange={(e) =>
-                                                        handleVariationNameChange(
-                                                            variations,
-                                                            setVariations,
-                                                            i,
-                                                            e.target.value
-                                                        )
+                                                    onChange={e =>
+                                                        handleVariationNameChange(variations, setVariations, i, e.target.value)
                                                     }
                                                     className="w-100 border bg-white border-gray-300 rounded-lg px-3 py-2"
                                                 />
@@ -344,22 +322,6 @@ export const ProductCreate = () => {
                                             >
                                                 <X size={32} />
                                             </button>
-                                        </div>
-                                        <div className="gap-13 flex items-center">
-                                            <span className="font-medium">Opsi</span>
-                                            <InputManyText
-                                                items={variation.options}
-                                                onChange={(j, v) =>
-                                                    handleOptionChange(variations, setVariations, i, j, v)
-                                                }
-                                                onAdd={() => handleAddOption(variations, setVariations, i)}
-                                                onRemove={(j) =>
-                                                    handleRemoveOption(variations, setVariations, i, j)
-                                                }
-                                                className="min-w-105"
-                                                maxLength={50}
-                                                placeholderPrefix="Opsi "
-                                            />
                                         </div>
                                     </div>
                                 ))}
@@ -413,10 +375,7 @@ export const ProductCreate = () => {
                                                         : "repeat(4, minmax(0, 1fr))"
                                             }}
                                         >
-                                            <div className="p-3">{variations[0]?.name}</div>
-                                            {variations[1] && variations[1].options.length > 0 && (
-                                                <div className="p-3">{variations[1]?.name}</div>
-                                            )}
+                                            <div className="p-3">Variasi</div>
                                             <div className="p-3">Kode Varian</div>
                                             <div className="p-3">Harga</div>
                                             <div className="p-3">Stok</div>

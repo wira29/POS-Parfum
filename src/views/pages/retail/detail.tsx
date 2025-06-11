@@ -1,9 +1,8 @@
 import { Breadcrumb } from "@/views/components/Breadcrumb"
-import { ArrowLeft, Info } from "lucide-react"
+import { ArrowLeft, Info, InfoIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { FaLocationPin } from "react-icons/fa6"
 import { useNavigate, useParams } from "react-router-dom"
-import { FiChevronDown } from "react-icons/fi"
 import { useApiClient } from "@/core/helpers/ApiClient"
 
 export default function RetailDetail() {
@@ -13,6 +12,15 @@ export default function RetailDetail() {
 
   const [outlet, setOutlet] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 5
+
+  const transactions = outlet?.store?.transactions || []
+  const totalPages = Math.ceil(transactions.length / itemsPerPage)
+  const paginatedTransactions = transactions.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  )
 
   useEffect(() => {
     const fetchOutletDetail = async () => {
@@ -36,10 +44,7 @@ export default function RetailDetail() {
 
   return (
     <div className="p-6 space-y-6">
-      <Breadcrumb
-        title="Detail Retail"
-        desc={`Detail outlet ${outlet.name}`}
-      />
+      <Breadcrumb title="Detail Retail" desc={`Detail outlet ${outlet.name}`} />
 
       <div className="p-6 space-y-4 shadow-md rounded-2xl">
         <h2 className="text-gray-800 flex">
@@ -70,7 +75,7 @@ export default function RetailDetail() {
           </div>
         </div>
 
-        <div className="">
+        <div>
           <h2 className="text-gray-800 flex">
             <span className="font-semibold">Informasi Lain</span>
             <Info className="ml-2 bg-gray-50 w-4" />
@@ -100,7 +105,7 @@ export default function RetailDetail() {
                 </div>
                 <div>
                   <h1 className="font-semibold text-xm">Total Transaksi</h1>
-                  <p className="text-xs text-gray-600 mt-1">4000 transaksi</p>
+                  <p className="text-xs text-gray-600 mt-1">{transactions.length} transaksi</p>
                 </div>
               </div>
             </div>
@@ -123,38 +128,83 @@ export default function RetailDetail() {
         </button>
       </div>
 
-      <div className="overflow-x-auto mt-10 shadow-md">
-        <table className="w-full">
-          <thead className="bg-[#FBFBFB]">
-            <tr>
-              <th className="text-left py-3 px-4 font-semibold text-gray-700">ID ORDER</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-700">Estimasi Tanggal</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-700">Quantity</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-700">Total Harga</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-700">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="border-b border-gray-100 hover:bg-gray-50">
-              <td className="py-4 px-4 text-gray-900">27312</td>
-              <td className="py-4 px-4 text-gray-700">23-mei-2300</td>
-              <td className="py-4 px-4 text-gray-700">1234</td>
-              <td className="py-4 px-4 text-gray-700">12314</td>
-              <td className="py-4 px-4">
-                <span className="px-3 py-1 rounded text-sm font-medium border bg-green-50 text-green-500 border-green-200">
-                  Berhasil
-                </span>
-              </td>
-              <td className="py-4 px-4">
-                <button className="flex items-center justify-center p-2 bg-white border text-blue-500 hover:bg-blue-600 font-medium hover:text-white w-20 h-8 cursor-pointer rounded-lg transition-colors">
-                  Detail
-                  <FiChevronDown />
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div className="bg-white rounded-xl p-6 shadow space-y-6">
+        <h2 className="text-gray-800 font-semibold mb-4 flex gap-2">
+          Daftar Transaksi <InfoIcon size={16} className="mt-1" />
+        </h2>
+        <div className="overflow-x-auto mt-10 shadow-md border rounded-xl border-gray-300">
+          <table className="w-full">
+            <thead className="bg-gray-300 border-b border-gray-300">
+              <tr>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700">ID ORDER</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700">Estimasi Tanggal</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700">Quantity</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700">Total Harga</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+              </tr>
+            </thead>
+            <tbody className="bg-[#FBFBFB]">
+              {paginatedTransactions.map((tx: any) => {
+                const totalQty = tx.transaction_details.reduce(
+                  (sum: number, detail: any) => sum + detail.quantity,
+                  0
+                )
+                return (
+                  <tr
+                    key={tx.id}
+                    className="border-b border-gray-100 hover:bg-gray-50"
+                  >
+                    <td className="py-4 px-4 text-gray-900">{tx.transaction_code}</td>
+                    <td className="py-4 px-4 text-gray-700">
+                      {new Date(tx.created_at).toLocaleDateString("id-ID")}
+                    </td>
+                    <td className="py-4 px-4 text-gray-700">{totalQty}</td>
+                    <td className="py-4 px-4 text-gray-700">Rp.{tx.total_price}</td>
+                    <td className="py-4 px-4">
+                      <span className={`px-3 py-1 rounded text-sm font-medium border ${tx.transaction_status === "Success"
+                        ? "bg-green-50 text-green-500 border-green-200"
+                        : "bg-gray-100 text-gray-500 border-gray-200"
+                        }`}>
+                        {tx.transaction_status}
+                      </span>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {totalPages > 1 && (
+          <div className="flex justify-end mt-6 space-x-2">
+            <button
+              className="px-3 py-1 text-sm rounded border border-gray-300 hover:bg-gray-100"
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              disabled={currentPage === 1}
+            >
+              Prev
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-3 py-1 text-sm rounded border ${currentPage === page
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "border-gray-300 hover:bg-gray-100"
+                  }`}
+              >
+                {page}
+              </button>
+            ))}
+            <button
+              className="px-3 py-1 text-sm rounded border border-gray-300 hover:bg-gray-100"
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

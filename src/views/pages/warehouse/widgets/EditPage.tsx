@@ -56,8 +56,8 @@ export default function WarehouseEdit() {
     return (
         <div className="p-6 space-y-6">
             <Breadcrumb 
-                title="Edit Retail" 
-                desc="Edit data retail di bawah ini."
+                title="Edit Warehouse" 
+                desc="Edit data Warehouse di bawah ini."
             />
             <div className="bg-white rounded-xl p-6 shadow">
                 <form onSubmit={handleSubmit}>
