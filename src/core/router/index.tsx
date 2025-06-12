@@ -42,6 +42,10 @@ import ProfitLossReportPage from "@/views/pages/laporan";
 import ExpenseManagement from "@/views/pages/pengeluaran";
 import RetailDetail from "@/views/pages/retail/detail";
 import { BlendingDetail } from "@/views/pages/blending/detail";
+import { RestockDetail } from "@/views/pages/restock/restock/details";
+import { RestockCreate } from "@/views/pages/restock/restock/create";
+import RetailCreate from "@/views/pages/retail/widgets/AddPage";
+import RetailEdit from "@/views/pages/retail/widgets/EditPage";
 
 export const router = createBrowserRouter([
   {
@@ -73,8 +77,16 @@ export const router = createBrowserRouter([
             element: <RetailIndex />,
           },
           {
+            path: "retails/create",
+            element: <RetailCreate />,
+          },
+          {
             path: "retails/:id/detail",
             element: <RetailDetail />,
+          },
+          {
+            path: "retails/:id/edit",
+            element: <RetailEdit />,
           },
           {
             path: "products/create",
@@ -189,6 +201,14 @@ export const router = createBrowserRouter([
           {
             path: "restock",
             element: <RestockIndex />,
+          },
+          {
+            path: "restock/:id/details",
+            element: <RestockDetail />,
+          },
+          {
+            path: "restock/create",
+            element: <RestockCreate />,
           },
           {
             path: "audit",

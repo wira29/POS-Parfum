@@ -8,8 +8,6 @@ import DeleteIcon from "@/views/components/DeleteIcon";
 import { EditIcon } from "@/views/components/EditIcon";
 import Swal from "sweetalert2";
 import { Toaster } from "@/core/helpers/BaseAlert";
-import { InfoIcon } from "lucide-react";
-import ViewIcon from "@/views/components/ViewIcon";
 
 function SearchableSelect({
   label,
@@ -59,22 +57,18 @@ function SearchableSelect({
             className="w-full px-3 py-2 text-sm border-b border-gray-200 focus:outline-none"
             placeholder={`Cari ${label.toLowerCase()}...`}
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={e => setSearch(e.target.value)}
             autoFocus
-            onClick={(e) => e.stopPropagation()}
+            onClick={e => e.stopPropagation()}
           />
           <div className="max-h-40 overflow-y-auto">
             {filteredOptions.length === 0 && (
-              <div className="px-3 py-2 text-gray-400 text-sm">
-                Tidak ditemukan
-              </div>
+              <div className="px-3 py-2 text-gray-400 text-sm">Tidak ditemukan</div>
             )}
             {filteredOptions.map((opt, idx) => (
               <div
                 key={idx}
-                className={`px-3 py-2 text-sm hover:bg-blue-50 cursor-pointer ${
-                  opt === value ? "bg-blue-100" : ""
-                }`}
+                className={`px-3 py-2 text-sm hover:bg-blue-50 cursor-pointer ${opt === value ? "bg-blue-100" : ""}`}
                 onClick={() => {
                   onChange(opt);
                   setOpen(false);
@@ -124,7 +118,7 @@ function RestockModal({
           {initialData ? "Edit Restock" : "Tambah Restock"}
         </div>
         <form
-          onSubmit={(e) => {
+          onSubmit={e => {
             e.preventDefault();
             onSubmit({ warehouse, produk, qty });
           }}
@@ -150,7 +144,7 @@ function RestockModal({
               type="number"
               className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700"
               value={qty}
-              onChange={(e) => setQty(e.target.value)}
+              onChange={e => setQty(e.target.value)}
               placeholder="Masukkan jumlah"
               min={0}
               required
@@ -166,11 +160,7 @@ function RestockModal({
             </button>
             <button
               type="submit"
-              className={
-                initialData
-                  ? "px-4 py-2 rounded  bg-yellow-600 text-white hover:bg-yellow-700"
-                  : "px-4 py-2 rounded  bg-blue-600 text-white hover:bg-blue-700"
-              }
+              className={initialData ? "px-4 py-2 rounded  bg-yellow-600 text-white hover:bg-yellow-700" : "px-4 py-2 rounded  bg-blue-600 text-white hover:bg-blue-700"}
             >
               {initialData ? "Simpan" : "Tambah"}
             </button>
@@ -311,6 +301,7 @@ export const RestockIndex = () => {
   const [inputWarehouse, setInputWarehouse] = useState("");
   const [inputProduct, setInputProduct] = useState("");
   const itemsPerPage = 5;
+  const nav = useNavigate();
 
   const mockData: RestockItem[] = [
     {
@@ -459,12 +450,10 @@ export const RestockIndex = () => {
             <Filter onClick={() => setShowFilter(true)} />
           </div>
           <div className="w-full sm:w-auto">
-            <AddButton
-              onClick={() => {
-                setEditingData(null);
-                setModalOpen(true);
-              }}
-            >
+            <AddButton onClick={() => {
+              setEditingData(null);
+              setModalOpen(true);
+            }}>
               Tambah Restock
             </AddButton>
           </div>
@@ -474,14 +463,12 @@ export const RestockIndex = () => {
           <table className="min-w-full border border-gray-300 rounded-lg text-sm text-left">
             <thead className="bg-gray-100 border border-gray-300 text-gray-700">
               <tr>
-                <th className="px-6 py-4 font-medium">Warehouse</th>
                 <th className="px-6 py-4 font-medium">Tanggal</th>
                 <th className="px-6 py-4 font-medium">Produk</th>
                 <th className="px-6 py-4 font-medium">Kategori</th>
-                <th className="px-6 py-4 font-medium">Stok</th>
+                <th className="px-6 py-4 font-medium">Varian</th>
                 <th className="px-6 py-4 font-medium">Quantity</th>
                 <th className="px-6 py-4 font-medium">Status</th>
-                <th className="px-6 py-4 font-medium"></th>
               </tr>
             </thead>
             <tbody>
@@ -500,23 +487,21 @@ export const RestockIndex = () => {
                     key={item.id}
                     className="border-b border-gray-200 text-gray-700 hover:bg-gray-50"
                   >
-                    <td className="px-6 py-4">{item.warehouse}</td>
                     <td className="px-6 py-4">{item.tanggal}</td>
                     <td className="px-6 py-4">{item.produk}</td>
                     <td className="px-6 py-4">{item.kategori}</td>
-                    <td className="px-6 py-4">{item.stok}</td>
+                    <td className="px-6 py-4">biasalah</td>
                     <td className="px-6 py-4">{item.qty}</td>
                     <td className="px-6 py-4">
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          item.status === "Menunggu"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : item.status === "Diproses"
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${item.status === "Menunggu"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : item.status === "Diproses"
                             ? "bg-blue-100 text-blue-700"
                             : item.status === "Dikirim"
-                            ? "bg-purple-100 text-purple-700"
-                            : "bg-green-100 text-green-700"
-                        }`}
+                              ? "bg-purple-100 text-purple-700"
+                              : "bg-green-100 text-green-700"
+                          }`}
                       >
                         {item.status}
                       </span>
@@ -545,16 +530,6 @@ export const RestockIndex = () => {
           />
         </div>
       </div>
-
-      <RestockModal
-        open={modalOpen}
-        onClose={() => {
-          setModalOpen(false);
-          setEditingData(null);
-        }}
-        initialData={editingData}
-        onSubmit={handleRestockModalSubmit}
-      />
       <FilterModal
         open={showFilter}
         onClose={() => setShowFilter(false)}

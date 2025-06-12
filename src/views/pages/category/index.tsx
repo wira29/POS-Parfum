@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import CategoryModal from "@/views/components/Modal/CategoryModal";
+import Swal from "sweetalert2";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { Pagination } from "@/views/components/Pagination";
 import AddButton from "@/views/components/AddButton";
@@ -7,71 +7,9 @@ import { SearchInput } from "@/views/components/SearchInput";
 import DeleteIcon from "@/views/components/DeleteIcon";
 import { EditIcon } from "@/views/components/EditIcon";
 import { Filter } from "@/views/components/Filter";
-import Swal from "sweetalert2";
 import { Toaster } from "@/core/helpers/BaseAlert";
 import { useApiClient } from "@/core/helpers/ApiClient";
-
-const FilterModal = ({
-  open,
-  onClose,
-  statusFilter,
-  setStatusFilter,
-  nameFilter,
-  setNameFilter,
-  nameOptions,
-}: {
-  open: boolean;
-  onClose: () => void;
-  statusFilter: string;
-  setStatusFilter: (val: string) => void;
-  nameFilter: string;
-  setNameFilter: (val: string) => void;
-  nameOptions: string[];
-}) => {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-      <div className="bg-white rounded-lg shadow-lg p-6 min-w-[300px]">
-        <div className="font-semibold text-lg mb-4">Filter Kategori</div>
-        <div className="mb-4">
-          <label className="block mb-1 text-sm">Status</label>
-          <select
-            className="border rounded px-2 py-1 w-full"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="">Semua Status</option>
-            <option value="Berlaku">Berlaku</option>
-            <option value="Tidak Berlaku">Tidak Berlaku</option>
-          </select>
-        </div>
-        <div className="mb-4">
-          <label className="block mb-1 text-sm">Nama Kategori</label>
-          <select
-            className="border rounded px-2 py-1 w-full"
-            value={nameFilter}
-            onChange={(e) => setNameFilter(e.target.value)}
-          >
-            <option value="">Semua Nama</option>
-            {nameOptions.map((name, idx) => (
-              <option key={idx} value={name}>
-                {name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex justify-end gap-2">
-          <button
-            className="px-3 py-1 rounded border border-gray-300"
-            onClick={onClose}
-          >
-            Tutup
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+import { X } from "lucide-react";
 
 interface Category {
   id: number;
@@ -88,22 +26,27 @@ export const CategoryIndex = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-
   const [showFilter, setShowFilter] = useState(false);
-  const [statusFilter, setStatusFilter] = useState("");
-  const [nameFilter, setNameFilter] = useState("");
-
+  const [categoryFilter, setCategoryFilter] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [totalData, setTotalData] = useState(0);
   const [perPage, setPerPage] = useState(8);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   const ApiClient = useApiClient();
 
   const fetchCategories = async (page: number) => {
     try {
-      const response = await ApiClient.get(
-        `/categories?per_page=${perPage}&page=${page}`
-      );
+      const queryParams = new URLSearchParams({
+        per_page: perPage.toString(),
+        page: page.toString(),
+      });
+
+      if (startDate) queryParams.append("start_date", startDate);
+      if (endDate) queryParams.append("end_date", endDate);
+
+      const response = await ApiClient.get(`/categories?${queryParams.toString()}`);
       if (response.data.success) {
         const apiData: Category[] = response.data.data.map((item: any) => ({
           id: item.id,
@@ -129,20 +72,20 @@ export const CategoryIndex = () => {
 
   useEffect(() => {
     fetchCategories(currentPage);
-  }, [currentPage]);
+  }, [currentPage, startDate, endDate]);
 
-  const filteredData = categories.filter((item) =>
-    (item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.status.toLowerCase().includes(searchQuery.toLowerCase())) &&
-    (statusFilter ? item.status === statusFilter : true) &&
-    (nameFilter ? item.name === nameFilter : true)
-  );
+  const filteredData = categories.filter((item) => {
+    const itemDate = new Date(item.created_at).toISOString().split("T")[0];
+    const isMatchSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const isMatchFilter = categoryFilter ? item.name === categoryFilter : true;
+
+    const isAfterStart = startDate ? itemDate >= startDate : true;
+    const isBeforeEnd = endDate ? itemDate <= endDate : true;
+
+    return isMatchSearch && isMatchFilter && isAfterStart && isBeforeEnd;
+  });
 
   const totalPages = Math.ceil(totalData / perPage);
-
-  const paginatedData = filteredData;
-
-  const nameOptions = Array.from(new Set(categories.map((d) => d.name)));
 
   const openCreateModal = () => {
     setEditingCategory(null);
@@ -150,10 +93,7 @@ export const CategoryIndex = () => {
   };
 
   const openEditModal = (category: Category) => {
-    setEditingCategory({
-      ...category,
-      status: category.status === "Berlaku" ? "Berlaku" : "Tidak Berlaku",
-    });
+    setEditingCategory(category);
     setIsModalOpen(true);
   };
 
@@ -161,54 +101,129 @@ export const CategoryIndex = () => {
     setIsModalOpen(false);
   };
 
-  const handleModalSubmit = (data: { name: string; status: boolean }) => {
-    if (editingCategory) {
-      console.log("Updating kategori:", data);
-    } else {
-      console.log("Menambahkan kategori:", data);
+  const createCategory = async (name: string) => {
+    try {
+      const response = await ApiClient.post("/categories", { name });
+      if (response.data.success) return response.data.data;
+      Swal.fire("Error", response.data.message || "Gagal membuat kategori", "error");
+      return null;
+    } catch (error) {
+      console.error("Error creating category:", error);
+      Swal.fire("Error", "Terjadi kesalahan saat membuat kategori", "error");
+      return null;
     }
-    closeModal();
   };
 
-  function dellete() {
+  const updateCategory = async (id: number, name: string) => {
+    try {
+      const response = await ApiClient.put(`/categories/${id}`, { name });
+      if (response.data.success) return response.data.data;
+      Swal.fire("Error", response.data.message || "Gagal mengupdate kategori", "error");
+      return null;
+    } catch (error) {
+      console.error("Error updating category:", error);
+      Swal.fire("Error", "Terjadi kesalahan saat mengupdate kategori", "error");
+      return null;
+    }
+  };
+
+  const deleteCategory = async (id: number) => {
+    try {
+      const response = await ApiClient.delete(`/categories/${id}`);
+      if (response.data.success) {
+        Toaster("success", "Kategori berhasil dihapus");
+        fetchCategories(currentPage);
+      } else {
+        Swal.fire("Error", response.data.message || "Gagal menghapus kategori", "error");
+      }
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      Swal.fire("Error", "Terjadi kesalahan saat menghapus kategori", "error");
+    }
+  };
+
+  const handleModalSubmit = async (name: string) => {
+    const success = editingCategory
+      ? await updateCategory(editingCategory.id, name)
+      : await createCategory(name);
+
+    if (success) {
+      Toaster("success", editingCategory ? "Kategori berhasil diupdate" : "Kategori berhasil dibuat");
+      fetchCategories(currentPage);
+      closeModal();
+    }
+  };
+
+  const confirmDelete = (id: number) => {
     Swal.fire({
       title: "Apakah anda yakin?",
       text: "Data category akan dihapus!",
-      icon: "question",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, hapus!",
+      cancelButtonText: "Batal",
     }).then((result) => {
-      if (!result.isConfirmed) {
-        return;
-      }
-      if (result.isConfirmed) {
-        Toaster("success", "Category berhasil dihapus");
-      }
+      if (result.isConfirmed) deleteCategory(id);
     });
-  }
+  };
+
+  const Modal = () => {
+    const [name, setName] = useState(editingCategory ? editingCategory.name : "");
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+      setName(editingCategory ? editingCategory.name : "");
+    }, [editingCategory]);
+
+    const onSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!name.trim()) return Swal.fire("Error", "Nama kategori wajib diisi", "error");
+      setIsLoading(true);
+      await handleModalSubmit(name);
+      setIsLoading(false);
+    };
+
+    if (!isModalOpen) return null;
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+        <form onSubmit={onSubmit} className="bg-white rounded-lg shadow-lg p-6 min-w-[300px]">
+          <h2 className="font-semibold text-lg mb-4">{editingCategory ? "Edit Kategori" : "Tambah Kategori"}</h2>
+          <div className="mb-4">
+            <label className="block mb-1 text-sm">Nama Kategori</label>
+            <input
+              type="text"
+              className="border rounded px-2 py-1 w-full"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoFocus
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <button type="button" className="px-3 py-1 rounded border border-gray-300" onClick={closeModal}>Batal</button>
+            <button type="submit" className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50" disabled={isLoading}>
+              {isLoading ? "Menyimpan..." : "Simpan"}
+            </button>
+          </div>
+        </form>
+      </div>
+    );
+  };
 
   return (
     <div className="p-6 space-y-6">
-      <Breadcrumb
-        title="Kategori"
-        desc="List kategori yang ada pada toko anda"
-      />
-
+      <Breadcrumb title="Kategori" desc="List kategori yang ada pada toko anda" />
       <div className="bg-white shadow-md p-4 rounded-md flex flex-col gap-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2 mb-4 w-full sm:w-auto max-w-lg">
-            <SearchInput
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-            />
-          </div>
-          <div className="w-full sm:w-auto">
-            <Filter onClick={() => setShowFilter(true)} />
-          </div>
-          <div className="w-full sm:w-auto">
-            <AddButton onClick={openCreateModal}>Tambah Category</AddButton>
-          </div>
+          <SearchInput
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
+          />
+          <Filter onClick={() => setShowFilter(true)} />
+          <AddButton onClick={openCreateModal}>Tambah Category</AddButton>
         </div>
 
         <div className="overflow-x-auto rounded-lg">
@@ -223,21 +238,15 @@ export const CategoryIndex = () => {
               </tr>
             </thead>
             <tbody>
-              {paginatedData.length === 0 ? (
+              {filteredData.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={5}
-                    className="px-6 py-4 text-center text-gray-500"
-                  >
+                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
                     Tidak ada data ditemukan.
                   </td>
                 </tr>
               ) : (
-                paginatedData.map((item, index) => (
-                  <tr
-                    key={index}
-                    className="border-b border-gray-200 text-gray-600 hover:bg-gray-50"
-                  >
+                filteredData.map((item, index) => (
+                  <tr key={index} className="border-b border-gray-200 text-gray-600 hover:bg-gray-50">
                     <td className="px-6 py-4">{item.name}</td>
                     <td className="px-6 py-4">{item.products_count} item</td>
                     <td className="px-6 py-4">
@@ -253,7 +262,7 @@ export const CategoryIndex = () => {
                         <button onClick={() => openEditModal(item)}>
                           <EditIcon className="text-blue-500 hover:text-blue-700" />
                         </button>
-                        <DeleteIcon onClick={dellete} />
+                        <DeleteIcon onClick={() => confirmDelete(item.id)} />
                       </div>
                     </td>
                   </tr>
@@ -265,30 +274,75 @@ export const CategoryIndex = () => {
 
         <div className="flex justify-between mt-6">
           <span className="text-gray-700">{filteredData.length} Data</span>
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
+          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
         </div>
       </div>
 
-      <FilterModal
-        open={showFilter}
-        onClose={() => setShowFilter(false)}
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        nameFilter={nameFilter}
-        setNameFilter={setNameFilter}
-        nameOptions={nameOptions}
-      />
+      {showFilter && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowFilter(false);
+          }}
+        >
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h3 className="text-xl font-semibold text-gray-900">Filter Tanggal Dibuat</h3>
+              <button
+                onClick={() => setShowFilter(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-6 h-6 cursor-pointer" />
+              </button>
+            </div>
 
-      <CategoryModal
-        open={isModalOpen}
-        onClose={closeModal}
-        data={editingCategory}
-        onSubmit={handleModalSubmit}
-      />
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Dari Tanggal</label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Sampai Tanggal</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 p-4 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  setStartDate("");
+                  setEndDate("");
+                  setShowFilter(false);
+                }}
+                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100"
+              >
+                Reset
+              </button>
+              <button
+                onClick={() => {
+                  setShowFilter(false);
+                  setCurrentPage(1);
+                }}
+                className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
+              >
+                Terapkan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Modal />
     </div>
   );
 };
