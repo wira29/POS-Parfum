@@ -8,6 +8,8 @@ import DeleteIcon from "@/views/components/DeleteIcon";
 import { EditIcon } from "@/views/components/EditIcon";
 import Swal from "sweetalert2";
 import { Toaster } from "@/core/helpers/BaseAlert";
+import { ViewIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 function SearchableSelect({
   label,
