@@ -1,0 +1,97 @@
+[
+  {
+    "id": 1,
+    "name": "Alkohol",
+    "code": "PR001",
+    "image": "/assets/images/products/image.png",
+    "variants": [
+      { "variantId": 101, "variantCode": "PR001-101", "image": "/assets/images/products/image.png", "variantName": "500ml", "price": 150000, "stock": 50 },
+      { "variantId": 102, "variantCode": "PR001-102", "image": "/assets/images/products/image.png", "variantName": "1 Liter", "price": 280000, "stock": 30 }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Bibit Parfume",
+    "code": "PR002",
+    "image": "/assets/images/products/image.png",
+    "variants": [
+      { "variantId": 201, "variantCode": "PR002-201", "image": "/assets/images/products/image.png", "variantName": "Lavender", "price": 1200000, "stock": 10 },
+      { "variantId": 202, "variantCode": "PR002-202", "image": "/assets/images/products/image.png", "variantName": "Rose", "price": 1300000, "stock": 15 },
+      { "variantId": 203, "variantCode": "PR002-203", "image": "/assets/images/products/image.png", "variantName": "Jasmine", "price": 1250000, "stock": 8 }
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Minyak Kayu Putih",
+    "code": "PR003",
+    "image": "/assets/images/products/image.png",
+    "variants": [
+      { "variantId": 301, "variantCode": "PR003-301", "image": "/assets/images/products/image.png", "variantName": "30ml", "price": 50000, "stock": 100 },
+      { "variantId": 302, "variantCode": "PR003-302", "image": "/assets/images/products/image.png", "variantName": "60ml", "price": 90000, "stock": 60 }
+    ]
+  },
+  {
+    "id": 4,
+    "name": "Bibit Sabun",
+    "code": "PR004",
+    "image": "/assets/images/products/image.png",
+    "variants": [
+      { "variantId": 401, "variantCode": "PR004-401", "image": "/assets/images/products/image.png", "variantName": "Coconut", "price": 150000, "stock": 40 },
+      { "variantId": 402, "variantCode": "PR004-402", "image": "/assets/images/products/image.png", "variantName": "Olive Oil", "price": 160000, "stock": 30 },
+      { "variantId": 403, "variantCode": "PR004-403", "image": "/assets/images/products/image.png", "variantName": "Lavender", "price": 155000, "stock": 25 }
+    ]
+  },
+  {
+    "id": 5,
+    "name": "Minyak Zaitun",
+    "code": "PR005",
+    "image": "/assets/images/products/image.png",
+    "variants": [
+      { "variantId": 501, "variantCode": "PR005-501", "image": "/assets/images/products/image.png", "variantName": "500ml", "price": 180000, "stock": 20 }
+    ]
+  },
+  {
+    "id": 6,
+    "name": "Sabun Mandi",
+    "code": "PR006",
+    "image": "/assets/images/products/image.png",
+    "price": 25000,
+    "stock": 100
+  },
+  {
+    "id": 7,
+    "name": "Minyak Kayu Putih",
+    "code": "PR007",
+    "image": "/assets/images/products/image.png",
+    "price": 40000,
+    "stock": 50
+  },
+  {
+    "id": 8,
+    "name": "Parfum Aroma",
+    "code": "PR008",
+    "image": "/assets/images/products/image.png",
+    "variants": [
+      { "variantId": 801, "variantCode": "PR008-801", "image": "/assets/images/products/image.png", "variantName": "Orange", "price": 120000, "stock": 12 },
+      { "variantId": 802, "variantCode": "PR008-802", "image": "/assets/images/products/image.png", "variantName": "Mint", "price": 125000, "stock": 8 }
+    ]
+  },
+  {
+    "id": 9,
+    "name": "Minyak Telon",
+    "code": "PR009",
+    "image": "/assets/images/products/image.png",
+    "price": 35000,
+    "stock": 75
+  },
+  {
+    "id": 10,
+    "name": "Lulur Herbal",
+    "code": "PR010",
+    "image": "/assets/images/products/image.png",
+    "variants": [
+      { "variantId": 1001, "variantCode": "PR010-1001", "image": "/assets/images/products/image.png", "variantName": "Pack 100gr", "price": 70000, "stock": 30 },
+      { "variantId": 1002, "variantCode": "PR010-1002", "image": "/assets/images/products/image.png", "variantName": "Pack 250gr", "price": 150000, "stock": 20 }
+    ]
+  }
+]
