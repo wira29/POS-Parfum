@@ -37,7 +37,6 @@ import { AuditIndex } from "@/views/pages/audit/index";
 import { AuditDetail } from "@/views/pages/audit/detail";
 import { DiscountDetail } from "@/views/pages/discount/detail";
 import { createBrowserRouter } from "react-router-dom";
-import { DiscountEdit } from "@/views/pages/discount/edit";
 import BlendingIndex from "@/views/pages/blending"
 import ProfitLossReportPage from "@/views/pages/laporan";
 import ExpenseManagement from "@/views/pages/pengeluaran";
@@ -167,7 +166,7 @@ export const router = createBrowserRouter([
           },
           {
             path: "discounts/:id/edit",
-            element: <DiscountEdit />,
+            element: <DiscountCreate />,
           },
           {
             path: "discounts/:id/detail",

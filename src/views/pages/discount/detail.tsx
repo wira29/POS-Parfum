@@ -1,210 +1,333 @@
 import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { useNavigate, useParams } from "react-router-dom";
-import { FiChevronDown, FiChevronUp } from "react-icons/fi";
-import { useState } from "react";
+import { FiArrowLeft } from "react-icons/fi";
+import { useApiClient } from "@/core/helpers/ApiClient";
+import { useState, useEffect } from "react";
+
+interface ProductDetail {
+  nama: string;
+  varian: string;
+  kode: string;
+}
+
+interface DiscountDetail {
+  id: string;
+  name: string;
+  desc: string | null;
+  min: number;
+  discount: number;
+  used: number;
+  type: string | null;
+  expired: string | null;
+  active: number;
+  details: ProductDetail[] | null;
+}
+
+interface DisplayDetail {
+  status: string;
+  nama: string;
+  jenis: string;
+  nilai: string;
+  minPembelian: string;
+  tanggalMulai: string;
+  tanggalBerakhir: string;
+  deskripsi: string;
+  totalDigunakan: number;
+  produkTerkait: ProductDetail[];
+}
+
+const formatCurrency = (value: number): string => {
+  return `Rp ${value.toLocaleString("id-ID")}`;
+};
+
+const formatDate = (dateStr: string | null): string => {
+  if (!dateStr) return "31 Desember 2025";
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
 
 export const DiscountDetail = () => {
-    const navigate = useNavigate();
-    const [showProduk, setShowProduk] = useState(false);
-    const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const ApiClient = useApiClient();
+  const { id } = useParams<{ id: string }>();
+  const [detail, setDetail] = useState<DisplayDetail>({
+    status: "Aktif",
+    nama: "Diskon Tidak Diketahui",
+    jenis: "% (Persen)",
+    nilai: "0 %",
+    minPembelian: "Rp 0",
+    tanggalMulai: "1 Januari 2025",
+    tanggalBerakhir: "31 Desember 2025",
+    deskripsi: "Tidak ada deskripsi tersedia.",
+    totalDigunakan: 0,
+    produkTerkait: [
+      {
+        nama: "Produk Tidak Ditentukan",
+        varian: "Tidak Ada Varian",
+        kode: "N/A",
+      },
+    ],
+  });
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-    const detail = {
-        status: "Aktif",
-        nama: "Diskon Special 11.11",
-        jenis: "Persen",
-        nilai: "10 %",
-        minPembelian: "Rp 100,000",
-        periode: "01-31 Mei 2025",
-        deskripsi: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec vulputate.",
-        totalDigunakan: 13,
-        produkTerkait: 3,
-    };
+  const getData = async () => {
+    if (!id) {
+      setError("ID diskon tidak valid");
+      setLoading(false);
+      return;
+    }
+    try {
+      const response = await ApiClient.get<{ data: DiscountDetail }>(`/discount-vouchers/${id}`);
+      const data = response.data.data;
+      const displayDetail: DisplayDetail = {
+        status: data.active === 1 ? "Aktif" : "Tidak Aktif",
+        nama: data.name || "Diskon Tidak Diketahui",
+        jenis: data.type === "Rp" ? "Rp (Rupiah)" : "% (Persen)",
+        nilai: data.type === "Rp" ? formatCurrency(data.discount) : `${data.discount} %`,
+        minPembelian: formatCurrency(data.min),
+        tanggalMulai: "1 Januari 2025",
+        tanggalBerakhir: formatDate(data.expired),
+        deskripsi: data.desc || "Tidak ada deskripsi tersedia.",
+        totalDigunakan: data.used || 0,
+        produkTerkait: data.details || [
+          {
+            nama: "Produk Tidak Ditentukan",
+            varian: "Tidak Ada Varian",
+            kode: "N/A",
+          },
+        ],
+      };
 
-    const produkTerkait = [
-        {
-            id: 1,
-            nama: "Produk 1",
-            kode: "PRO001",
-            kategori: "Parfum Siang",
-            img: "/img/parfum.png",
-            varian: [
-                { id: 1, nama: "Varian 1", kode: "PRO001", kategori: "Parfum Siang", image: "/img/varian.png" },
-                { id: 2, nama: "Varian 2", kode: "PRO001", kategori: "Parfum Siang", image: "/img/varian.png" },
-                { id: 3, nama: "Varian 3", kode: "PRO001", kategori: "Parfum Siang", image: "/img/varian.png" },
-                { id: 4, nama: "Varian 4", kode: "PRO001", kategori: "Parfum Siang", image: "/img/varian.png" },
-            ]
-        },
-        {
-            id: 2,
-            nama: "Produk 1",
-            kode: "PRO001",
-            kategori: "Parfum Siang",
-            img: "/img/parfum.png",
-            varian: [
-                { id: 1, nama: "Varian 1", kode: "PRO001", kategori: "Parfum Siang", image: "/img/varian.png" },
-                { id: 2, nama: "Varian 2", kode: "PRO001", kategori: "Parfum Siang", image: "/img/varian.png" },
-                { id: 3, nama: "Varian 3", kode: "PRO001", kategori: "Parfum Siang", image: "/img/varian.png" },
-                { id: 4, nama: "Varian 4", kode: "PRO001", kategori: "Parfum Siang", image: "/img/varian.png" },
-            ]
-        },
-        {
-            id: 3,
-            nama: "Produk 1",
-            kode: "PRO001",
-            kategori: "Parfum Siang",
-            img: "/img/parfum.png",
-            varian: []
-        }
-    ];
+      setDetail(displayDetail);
+    } catch (error) {
+      console.error("Gagal mengambil data diskon:", error);
+      setError("Gagal mengambil data diskon");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const collapseAnim = (show: boolean) =>
-        show
-            ? "transition-all duration-300 ease-in-out max-h-[1000px] opacity-100 scale-y-100"
-            : "transition-all duration-300 ease-in-out max-h-0 opacity-0 scale-y-95 overflow-hidden";
+  useEffect(() => {
+    getData();
+  }, [id]);
 
-    return (
-        <div className="p-6 space-y-6">
-            <Breadcrumb title="Diskon Produk" desc="Menampilkan diskon yang aktif" />
-
-            <div className="flex flex-col md:flex-row gap-6">
-                <div className="bg-white shadow-md rounded-xl p-6 flex-1 max-w-2xl">
-                    <div className="bg-white rounded-xl p-6 flex-1 max-w-2xl">
-                        <div className="border-b-2 border-gray-100 mb-3">
-                            <div className="text-lg font-semibold mb-4">Detail [Nama Diskon]</div>
-                        </div>
-                        <div className="grid grid-cols-1 gap-y-2 text-sm mb-3">
-                            <div className="flex">
-                                <div className="min-w-70">Status</div>
-                                <div className="flex items-center gap-4">
-                                    <div>:</div>
-                                    <div>
-                                        <span className="inline-flex items-center gap-1">
-                                            <span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span>
-                                            <span className="text-green-600 font-semibold">{detail.status}</span>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-1 gap-y-2 text-sm mb-3">
-                            <div className="flex">
-                                <div className="min-w-70">Nama Diskon</div>
-                                <div className="flex items-center gap-4 text-gray-500">
-                                    <div>:</div>
-                                    <div>{detail.nama}</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-1 gap-y-2 text-sm mb-3">
-                            <div className="flex">
-                                <div className="min-w-70">Jenis</div>
-                                <div className="flex items-center gap-4 text-gray-500">
-                                    <div>:</div>
-                                    <div>{detail.jenis}</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-1 gap-y-2 text-sm mb-3">
-                            <div className="flex">
-                                <div className="min-w-70">Nilai</div>
-                                <div className="flex items-center gap-4 text-gray-500">
-                                    <div>:</div>
-                                    <div>{detail.nilai}</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-1 gap-y-2 text-sm mb-3">
-                            <div className="flex">
-                                <div className="min-w-70">Minimum Pembelian</div>
-                                <div className="flex items-center gap-4 text-gray-500">
-                                    <div>:</div>
-                                    <div>{detail.minPembelian}</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-1 gap-y-2 text-sm mb-3">
-                            <div className="flex">
-                                <div className="min-w-70">Periode</div>
-                                <div className="flex items-center gap-4 text-gray-500">
-                                    <div>:</div>
-                                    <div>{detail.periode}</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-1 gap-y-2 text-sm mb-3">
-                            <div className="flex">
-                                <div className="min-w-70">Deskripsi</div>
-                                <div className="flex items-center gap-4 text-gray-500">
-                                    <div>:</div>
-                                    <div>{detail.deskripsi}</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-1 gap-y-2 text-sm mb-3">
-                            <div className="flex">
-                                <div className="min-w-70">Total Digunakan</div>
-                                <div className="flex items-center gap-4 text-gray-500">
-                                    <div>:</div>
-                                    <div>{detail.totalDigunakan} <span className="font-bold">x</span></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="flex justify-end mt-6 gap-5">
-                            <button
-                                className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-md text-sm font-semibold"
-                                onClick={() => navigate("/discounts")}
-                            >
-                                Kembali
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div className="flex-1 min-w-120 max-w-sm">
-                    <div className="bg-white rounded-xl shadow-md p-0 flex flex-col">
-                        <button
-                            className="flex items-center justify-between w-full text-left px-6 py-4 font-semibold text-lg"
-                            onClick={() => setShowProduk((v) => !v)}
-                        >
-                            <span>Produk Terkait : {produkTerkait.length}</span>
-                            {showProduk ? <FiChevronUp /> : <FiChevronDown />}
-                        </button>
-                        <div className="border-b border-gray-100" />
-                        <div className={collapseAnim(showProduk)}>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-sm">
-                                    <thead>
-                                        <tr className="bg-gray-50 text-gray-700 border-b border-gray-100">
-                                            <th className="py-2 px-4 font-semibold text-left w-10">No</th>
-                                            <th className="py-2 px-4 font-semibold text-left">Produk</th>
-                                            <th className="py-2 px-4 font-semibold text-left">Kategori</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {produkTerkait.map((produk, idx) => {
-
-                                            return (
-                                                <tr key={produk.id} className="align-top border-b border-dashed border-gray-100">
-                                                    <td className="py-4 px-4 font-bold align-top">{idx + 1}.</td>
-                                                    <td className="py-4 px-4 align-top">
-                                                        <div className="flex items-start gap-3">
-                                                            <img src={produk.img} alt={produk.nama} className="w-12 h-12 rounded object-cover border" />
-                                                            <div>
-                                                                <div className="font-semibold">{produk.nama}</div>
-                                                                <div className="text-xs text-gray-500">Kode : {produk.kode}</div>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="py-4 px-4 align-top">{produk.kategori}</td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+  return (
+    <div className="py-10">
+      {error && (
+        <div className="text-center text-red-500">{error}</div>
+      )}
+      {!loading && !error && (
+        <>
+          <div className="bg-blue-600 text-white p-4 rounded-lg">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate("/discounts")}
+                className="flex items-center gap-2 text-white hover:text-blue-200 cursor-pointer"
+              >
+                <FiArrowLeft size={20} />
+                <span className="font-medium">Kembali</span>
+              </button>
             </div>
-        </div>
-    );
+          </div>
+
+          <div className="my-4">
+            <div className="max-w-full mx-auto">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-1">
+                  <div className="bg-white rounded-lg shadow-sm">
+                    <div className="border-b border-gray-200 p-4 lg:p-6">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <h2 className="text-lg lg:text-xl font-semibold text-gray-900">
+                          Detail Diskon
+                        </h2>
+                        <div className="flex items-center gap-6">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className={`w-2 h-2 rounded-full ${
+                                detail.status === "Aktif" ? "bg-green-500" : "bg-red-500"
+                              }`}
+                            ></div>
+                            <span
+                              className={`font-medium ${
+                                detail.status === "Aktif" ? "text-green-600" : "text-red-600"
+                              }`}
+                            >
+                              {detail.status}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 lg:p-6 space-y-6">
+                      <div className="grid grid-cols-1 gap-6">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Nama Diskon
+                          </label>
+                          <input
+                            type="text"
+                            value={detail.nama}
+                            readOnly
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Jenis
+                          </label>
+                          <input
+                            type="text"
+                            value={detail.jenis}
+                            readOnly
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Nilai
+                          </label>
+                          <input
+                            type="text"
+                            value={detail.nilai}
+                            readOnly
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Minimum Pembelian
+                          </label>
+                          <input
+                            type="text"
+                            value={detail.minPembelian}
+                            readOnly
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Tanggal Mulai
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              value={detail.tanggalMulai}
+                              readOnly
+                              className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md bg-gray-50 text-gray-700"
+                            />
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <svg
+                                className="h-4 w-4 text-gray-400"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                />
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Tanggal Berakhir
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              value={detail.tanggalBerakhir}
+                              readOnly
+                              className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md bg-gray-50 text-gray-700"
+                            />
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <svg
+                                className="h-4 w-4 text-gray-400"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                />
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="lg:col-span-2">
+                  <div className="bg-white rounded-xl">
+                    <div className="border-b border-gray-200 p-4 lg:p-6">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                        <h2 className="text-lg lg:text-xl font-semibold text-gray-900">
+                          Telah digunakan sebanyak :
+                        </h2>
+                        <h2 className="text-lg lg:text-2xl font-semibold text-blue-500">
+                          {detail.totalDigunakan}x
+                        </h2>
+                      </div>
+                    </div>
+                    <div className="py-4 px-4">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                        Deskripsi Diskon
+                      </h3>
+                      <p className="text-sm text-gray-600 leading-relaxed">
+                        {detail.deskripsi}
+                      </p>
+                      <div className="w-full border border-slate-400/[0.3] my-4"></div>
+                    </div>
+
+                    <div className="px-4 pb-5">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                        Produk Terkait
+                      </h3>
+                      <div className="space-y-3">
+                        {detail.produkTerkait.map((produk, index) => (
+                          <div key={index} className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">Produk</span>
+                              <span className="text-gray-900">{produk.nama}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">Varian Produk</span>
+                              <span className="text-gray-900">{produk.varian}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">Kode Produk</span>
+                              <span className="text-gray-900">{produk.kode}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
 };
