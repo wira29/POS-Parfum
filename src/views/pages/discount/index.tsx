@@ -181,17 +181,22 @@ export default function DiscountIndex() {
     setCurrentPage(page);
   }
 
-  function dellete() {
+  function deleteVoucher(id: string) {
     Swal.fire({
       title: "Apakah anda yakin?",
       text: "Data diskon akan dihapus!",
       icon: "question",
       showCancelButton: true,
       confirmButtonText: "Ya, hapus",
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        Toaster("success", "Diskon berhasil dihapus");
-        fetchVouchers(currentPage);
+        try {
+          await ApiClient.delete(`/discount-vouchers/${id}`);
+          Toaster("success", "Diskon berhasil dihapus");
+          fetchVouchers(currentPage);
+        } catch (error) {
+          Toaster("error", "Gagal menghapus diskon");
+        }
       }
     });
   }
@@ -199,6 +204,8 @@ export default function DiscountIndex() {
   function applyFilter() {
     setCurrentPage(1);
   }
+
+  
 
   return (
     <div className="p-6 space-y-6">
@@ -213,8 +220,6 @@ export default function DiscountIndex() {
                 setCurrentPage(1);
               }}
             />
-          </div>
-          <div className="w-full sm:w-auto">
             <Filter onClick={() => setShowFilter(true)} />
           </div>
           <div className="w-full sm:w-auto">
@@ -230,11 +235,10 @@ export default function DiscountIndex() {
             <thead className="bg-gray-100 border border-gray-300 text-gray-700">
               <tr>
                 <th className="px-6 py-4 font-medium">Nama Diskon</th>
-                <th className="px-6 py-4 font-medium">Waktu Berakhir</th>
-                <th className="px-6 py-4 font-medium">Minimal Pembelian</th>
-                <th className="px-6 py-4 font-medium">Maximal Penggunaan</th>
-                <th className="px-6 py-4 font-medium">Diskon</th>
-                <th className="px-6 py-4 font-medium">Telah Dipakai</th>
+                <th className="px-6 py-4 font-medium">Produk Variant</th>
+                <th className="px-6 py-4 font-medium">Kategori</th>
+                <th className="px-6 py-4 font-medium">Nilai</th>
+                <th className="px-6 py-4 font-medium">Tanggal Berakhir</th>
                 <th className="px-6 py-4 font-medium">Status</th>
                 <th className="px-6 py-4 font-medium text-center">Aksi</th>
               </tr>
@@ -242,7 +246,10 @@ export default function DiscountIndex() {
             <tbody>
               {vouchers.length === 0 && !loading && (
                 <tr>
-                  <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
+                  <td
+                    colSpan={8}
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
                     Tidak ada data ditemukan.
                   </td>
                 </tr>
@@ -253,16 +260,24 @@ export default function DiscountIndex() {
                   className="border-b border-gray-200 text-gray-600 hover:bg-gray-50"
                 >
                   <td className="px-6 py-4">{item.name}</td>
-                  <td className="px-6 py-4">{item.expired ?? "-"}</td>
-                  <td className="px-6 py-4">Rp {item.min.toLocaleString()}</td>
-                  <td className="px-6 py-4">{item.max_used}</td>
-                  <td className="px-6 py-4">{item.discount}%</td>
-                  <td className="px-6 py-4">{item.used}</td>
                   <td className="px-6 py-4">
-                    {item.active ? (
-                      <span className="text-green-600 font-semibold">Berlaku</span>
+                    <div className="flex flex-col">
+                      <h1 className="font-semibold">Variant 1</h1>
+                      <h1>PROO1-1</h1>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">Parfume Siang</td>
+                  <td className="px-6 py-4">{item.discount <= 100 ? `% ${item.discount}` : "Rp.100.000"}</td>
+                  <td className="px-6 py-4">{item.expired === null ? "-" : item.expired}</td>
+                  <td className="px-6 py-4">
+                    {item.active === 1 ? (
+                      <span className="text-green-600 font-semibold bg-green-50 py-1.5 px-5 rounded-lg">
+                        Aktif
+                      </span>
                     ) : (
-                      <span className="text-red-600 font-semibold">Tidak Berlaku</span>
+                      <span className="text-red-600 font-semibold bg-red-50 py-1.5 px-5 rounded-lg">
+                        Tidak Aktif
+                      </span>
                     )}
                   </td>
                   <td className="px-6 py-4">
@@ -272,7 +287,7 @@ export default function DiscountIndex() {
                         to={`/discounts/${item.id}/edit`}
                         className="text-blue-500 hover:text-blue-700"
                       />
-                      <DeleteIcon onClick={dellete} />
+                      <DeleteIcon onClick={() => deleteVoucher(item.id)} />
                     </div>
                   </td>
                 </tr>
@@ -282,9 +297,12 @@ export default function DiscountIndex() {
         </div>
 
         <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={onPageChange}
+          currentPage={1}
+          totalPages={10}
+          onPageChange={(page) => setCurrentPage(page)}
+          totalItems={67}
+          itemsPerPage={8}
+          showInfo={true}
         />
       </div>
 

@@ -31,7 +31,7 @@ const InputNumber = ({
                 type="number"
                 value={value}
                 onChange={onChange}
-                className={`w-full border border-gray-300 rounded-r-lg px-3 py-2 ${className}`}
+                className={`w-full border border-gray-300 rounded-r-lg px-3 py-1.5 ${className}`}
                 placeholder={placeholder}
             />
         </div>

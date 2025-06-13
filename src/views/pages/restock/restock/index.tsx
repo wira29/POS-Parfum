@@ -8,6 +8,8 @@ import DeleteIcon from "@/views/components/DeleteIcon";
 import { EditIcon } from "@/views/components/EditIcon";
 import Swal from "sweetalert2";
 import { Toaster } from "@/core/helpers/BaseAlert";
+import { ViewIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 function SearchableSelect({
   label,
@@ -210,7 +212,7 @@ const FilterModal = ({
           <select
             className="border rounded px-2 py-1 w-full"
             value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value)}
+            onChange={(e) => setStatusFilter(e.target.value)}
           >
             <option value="">Semua Status</option>
             <option value="Menunggu">Menunggu</option>
@@ -224,11 +226,13 @@ const FilterModal = ({
           <select
             className="border rounded px-2 py-1 w-full"
             value={kategoriFilter}
-            onChange={e => setKategoriFilter(e.target.value)}
+            onChange={(e) => setKategoriFilter(e.target.value)}
           >
             <option value="">Semua Kategori</option>
             {kategoriOptions.map((kat, idx) => (
-              <option key={idx} value={kat}>{kat}</option>
+              <option key={idx} value={kat}>
+                {kat}
+              </option>
             ))}
           </select>
         </div>
@@ -237,11 +241,13 @@ const FilterModal = ({
           <select
             className="border rounded px-2 py-1 w-full"
             value={warehouseFilter}
-            onChange={e => setwarehouseFilter(e.target.value)}
+            onChange={(e) => setwarehouseFilter(e.target.value)}
           >
             <option value="">Semua Warehouse</option>
             {warehouseOptions.map((wh, idx) => (
-              <option key={idx} value={wh}>{wh}</option>
+              <option key={idx} value={wh}>
+                {wh}
+              </option>
             ))}
           </select>
         </div>
@@ -250,11 +256,13 @@ const FilterModal = ({
           <select
             className="border rounded px-2 py-1 w-full"
             value={produkFilter}
-            onChange={e => setProdukFilter(e.target.value)}
+            onChange={(e) => setProdukFilter(e.target.value)}
           >
             <option value="">Semua Produk</option>
             {produkOptions.map((prod, idx) => (
-              <option key={idx} value={prod}>{prod}</option>
+              <option key={idx} value={prod}>
+                {prod}
+              </option>
             ))}
           </select>
         </div>
@@ -295,6 +303,7 @@ export const RestockIndex = () => {
   const [inputWarehouse, setInputWarehouse] = useState("");
   const [inputProduct, setInputProduct] = useState("");
   const itemsPerPage = 5;
+  const nav = useNavigate();
 
   const mockData: RestockItem[] = [
     {
@@ -359,9 +368,11 @@ export const RestockIndex = () => {
     },
   ];
 
-  const kategoriOptions = Array.from(new Set(mockData.map(d => d.kategori)));
-  const produkOptions = Array.from(new Set(mockData.map(d => d.produk)));
-  const warehouseOptions = Array.from(new Set(mockData.map(d => d.warehouse)));
+  const kategoriOptions = Array.from(new Set(mockData.map((d) => d.kategori)));
+  const produkOptions = Array.from(new Set(mockData.map((d) => d.produk)));
+  const warehouseOptions = Array.from(
+    new Set(mockData.map((d) => d.warehouse))
+  );
 
   const filteredData = mockData.filter((item) => {
     const q = searchQuery.toLowerCase();
@@ -375,11 +386,21 @@ export const RestockIndex = () => {
       item.qty.toLowerCase().includes(q);
 
     const matchStatus = statusFilter ? item.status === statusFilter : true;
-    const matchKategori = kategoriFilter ? item.kategori === kategoriFilter : true;
-    const matchWarehouse = warehouseFilter ? item.warehouse === warehouseFilter : true;
+    const matchKategori = kategoriFilter
+      ? item.kategori === kategoriFilter
+      : true;
+    const matchWarehouse = warehouseFilter
+      ? item.warehouse === warehouseFilter
+      : true;
     const matchProduk = produkFilter ? item.produk === produkFilter : true;
 
-    return matchSearch && matchStatus && matchKategori && matchWarehouse && matchProduk;
+    return (
+      matchSearch &&
+      matchStatus &&
+      matchKategori &&
+      matchWarehouse &&
+      matchProduk
+    );
   });
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -388,7 +409,11 @@ export const RestockIndex = () => {
     currentPage * itemsPerPage
   );
 
-  const handleRestockModalSubmit = (data: { warehouse: string; produk: string; qty: string }) => {
+  const handleRestockModalSubmit = (data: {
+    warehouse: string;
+    produk: string;
+    qty: string;
+  }) => {
     setModalOpen(false);
     setEditingData(null);
   };
@@ -396,23 +421,25 @@ export const RestockIndex = () => {
     Swal.fire({
       title: "Apakah anda yakin?",
       text: "Data restock akan dihapus!",
-      icon: 'question'
+      icon: "question",
     }).then((result) => {
       if (!result.isConfirmed) {
         return;
       }
       if (result.isConfirmed) {
-        Toaster('success', "Restock berhasil dihapus");
+        Toaster("success", "Restock berhasil dihapus");
       }
-    })
+    });
   }
 
   return (
     <div className="p-6 space-y-6">
-      <Breadcrumb title="Restock Produk" desc="Menampilkan daftar restock dari gudang" />
+      <Breadcrumb
+        title="Restock Produk"
+        desc="Menampilkan daftar restock dari gudang"
+      />
 
       <div className="bg-white shadow-md p-4 rounded-md flex flex-col gap-6">
-
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2 mb-4 w-full sm:w-auto max-w-lg">
             <SearchInput
@@ -422,8 +449,6 @@ export const RestockIndex = () => {
                 setCurrentPage(1);
               }}
             />
-          </div>
-          <div className="w-full sm:w-auto">
             <Filter onClick={() => setShowFilter(true)} />
           </div>
           <div className="w-full sm:w-auto">
@@ -436,74 +461,14 @@ export const RestockIndex = () => {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 mb-2">
-          <span className="text-sm text-gray-700">Tampilkan Hanya:</span>
-          <label className="flex items-center gap-1 text-sm">
-            <input
-              type="radio"
-              name="status"
-              value=""
-              checked={statusFilter === ""}
-              onChange={() => setStatusFilter("")}
-              className="accent-blue-600"
-            />
-            Semua
-          </label>
-          <label className="flex items-center gap-1 text-sm">
-            <input
-              type="radio"
-              name="status"
-              value="Menunggu"
-              checked={statusFilter === "Menunggu"}
-              onChange={() => setStatusFilter("Menunggu")}
-              className="accent-blue-600"
-            />
-            Menunggu
-          </label>
-          <label className="flex items-center gap-1 text-sm">
-            <input
-              type="radio"
-              name="status"
-              value="Diproses"
-              checked={statusFilter === "Diproses"}
-              onChange={() => setStatusFilter("Diproses")}
-              className="accent-blue-600"
-            />
-            Diproses
-          </label>
-          <label className="flex items-center gap-1 text-sm">
-            <input
-              type="radio"
-              name="status"
-              value="Dikirim"
-              checked={statusFilter === "Dikirim"}
-              onChange={() => setStatusFilter("Dikirim")}
-              className="accent-blue-600"
-            />
-            Dikirim
-          </label>
-          <label className="flex items-center gap-1 text-sm">
-            <input
-              type="radio"
-              name="status"
-              value="Selesai"
-              checked={statusFilter === "Selesai"}
-              onChange={() => setStatusFilter("Selesai")}
-              className="accent-blue-600"
-            />
-            Selesai
-          </label>
-        </div>
-
         <div className="overflow-x-auto rounded-lg">
           <table className="min-w-full border border-gray-300 rounded-lg text-sm text-left">
             <thead className="bg-gray-100 border border-gray-300 text-gray-700">
               <tr>
-                <th className="px-6 py-4 font-medium">Warehouse</th>
                 <th className="px-6 py-4 font-medium">Tanggal</th>
                 <th className="px-6 py-4 font-medium">Produk</th>
                 <th className="px-6 py-4 font-medium">Kategori</th>
-                <th className="px-6 py-4 font-medium">Stok</th>
+                <th className="px-6 py-4 font-medium">Varian</th>
                 <th className="px-6 py-4 font-medium">Quantity</th>
                 <th className="px-6 py-4 font-medium">Status</th>
               </tr>
@@ -511,7 +476,10 @@ export const RestockIndex = () => {
             <tbody>
               {paginatedData.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
+                  <td
+                    colSpan={8}
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
                     Tidak ada data ditemukan.
                   </td>
                 </tr>
@@ -521,11 +489,10 @@ export const RestockIndex = () => {
                     key={item.id}
                     className="border-b border-gray-200 text-gray-700 hover:bg-gray-50"
                   >
-                    <td className="px-6 py-4">{item.warehouse}</td>
                     <td className="px-6 py-4">{item.tanggal}</td>
                     <td className="px-6 py-4">{item.produk}</td>
                     <td className="px-6 py-4">{item.kategori}</td>
-                    <td className="px-6 py-4">{item.stok}</td>
+                    <td className="px-6 py-4">biasalah</td>
                     <td className="px-6 py-4">{item.qty}</td>
                     <td className="px-6 py-4">
                       <span
@@ -540,6 +507,14 @@ export const RestockIndex = () => {
                       >
                         {item.status}
                       </span>
+                    </td>
+                    <td>
+                      <div className="flex">
+                        <ViewIcon
+                            to={``}
+                          className="text-blue-500 hover:text-blue-700"
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -557,28 +532,18 @@ export const RestockIndex = () => {
           />
         </div>
       </div>
-
-      <RestockModal
-        open={modalOpen}
-        onClose={() => {
-          setModalOpen(false);
-          setEditingData(null);
-        }}
-        initialData={editingData}
-        onSubmit={handleRestockModalSubmit}
-      />
       <FilterModal
         open={showFilter}
         onClose={() => setShowFilter(false)}
         statusFilter={statusFilter}
-        setStatusFilter={val => setStatusFilter(val)}
+        setStatusFilter={(val) => setStatusFilter(val)}
         kategoriFilter={kategoriFilter}
-        setKategoriFilter={val => setKategoriFilter(val)}
+        setKategoriFilter={(val) => setKategoriFilter(val)}
         kategoriOptions={kategoriOptions}
         warehouseFilter={warehouseFilter}
-        setwarehouseFilter={val => setwarehouseFilter(val)}
+        setwarehouseFilter={(val) => setwarehouseFilter(val)}
         produkFilter={produkFilter}
-        setProdukFilter={val => setProdukFilter(val)}
+        setProdukFilter={(val) => setProdukFilter(val)}
         produkOptions={produkOptions}
         warehouseOptions={warehouseOptions}
       />

@@ -4,8 +4,11 @@ import { FiPlus, FiMoreHorizontal, FiMoreVertical } from "react-icons/fi";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { SearchInput } from "@/views/components/SearchInput";
 import { useApiClient } from "@/core/helpers/ApiClient";
+import Swal from "sweetalert2";
+import { DotIcon } from "lucide-react";
 
 type User = {
+  [x: string]: ReactNode;
   id: number;
   name: string;
   email: string;
@@ -71,6 +74,41 @@ export default function UserPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const deleteUser = async (id: number) => {
+    try {
+      await apiClient.delete(`/users/${id}`)
+      Swal.fire("Terhapus!", "User berhasil dihapus.", "success")
+      window.location.reload()
+    } catch (error) {
+      Swal.fire("Gagal!", "Gagal menghapus User.", "error")
+      console.error(error)
+    }
+  }
+
+  const confirmDelete = (id: number) => {
+    Swal.fire({
+      title: "Apakah anda yakin?",
+      text: "Data User akan dihapus!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, hapus!",
+      cancelButtonText: "Batal",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        deleteUser(id)
+      }
+    })
+  }
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
   return (
     <div className="p-6 space-y-6">
       <Breadcrumb
@@ -104,61 +142,72 @@ export default function UserPage() {
           {filteredUsers.map((user) => (
             <div
               key={user.id}
-              className="bg-white rounded-lg shadow p-4 flex flex-col items-center justify-center relative min-h-64"
+              className="bg-white rounded-lg shadow p-4 flex flex-col justify-between items-center relative"
             >
-              <div className="flex flex-col items-center gap-2">
-                <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+              <div className="flex items-center gap-4">
+                <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
                   <img
                     src={"/public/images/profile/user-1.jpg"}
                     alt={user.name}
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <h3 className="font-medium text-center">{user.name}</h3>
-                <p className="text-sm text-gray-500 text-center">{user.email}</p>
+                <div ref={dropdownOpenId === user.id ? dropdownRef : null}>
+                  <button
+                    className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-100"
+                    onClick={() => handleDropdownToggle(user.id)}
+                  >
+                    <FiMoreHorizontal size={22} />
+                  </button>
+                  {dropdownOpenId === user.id && (
+                    <div className="absolute right-2 top-10 w-36 bg-white border rounded shadow-lg z-20">
+                      <button
+                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                        onClick={() => {
+                          setDropdownOpenId(null);
+                          handleDetail(user);
+                        }}
+                      >
+                        Detail
+                      </button>
+                      <button
+                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                        onClick={() => {
+                          setDropdownOpenId(null);
+                          handleEdit(user);
+                        }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-red-600"
+                        onClick={() => {
+                          setDropdownOpenId(null);
+                          confirmDelete(user.id);
+                        }}
+                      >
+                        Hapus
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="text-center mt-4">
+                <h3 className="font-medium">{user.name}</h3>
+                <p className="text-sm text-gray-500">{user.email}</p>
                 <span className="px-3 py-1 text-xs bg-blue-100 text-blue-600 rounded-full">
                   {user.roles?.[0]?.name}
                 </span>
               </div>
-
-              <div ref={dropdownOpenId === user.id ? dropdownRef : null}>
-                <button
-                  className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-100"
-                  onClick={() => handleDropdownToggle(user.id)}
-                >
-                  <FiMoreVertical size={22} />
-                </button>
-                {dropdownOpenId === user.id && (
-                  <div className="absolute right-2 top-10 w-36 bg-white border rounded shadow-lg z-20">
-                    <button
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-                      onClick={() => {
-                        setDropdownOpenId(null);
-                        handleDetail(user);
-                      }}
-                    >
-                      Detail
-                    </button>
-                    <button
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-                      onClick={() => {
-                        setDropdownOpenId(null);
-                        handleEdit(user);
-                      }}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-red-600"
-                      onClick={() => {
-                        setDropdownOpenId(null);
-                        handleDelete(user);
-                      }}
-                    >
-                      Hapus
-                    </button>
-                  </div>
-                )}
+              <div className="flex justify-between w-full mt-4 ml-5 mr-5">
+                <div className="flex flex-col">
+                  <p className="text-sm font-semibold text-gray-800">Bergabung pada</p>
+                  <p className="text-sm text-gray-500">{formatDate(user.created_at)}</p>
+                </div>
+                <div className="flex flex-col">
+                  <p className="text-sm font-semibold text-gray-800">Status</p>
+                  <p className="px-3 py-1 text-xs bg-green-100 text-green-600 rounded-full">Aktif</p>
+                </div>
               </div>
             </div>
 

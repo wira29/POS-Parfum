@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import React from "react";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 import { X } from "lucide-react";
+
 import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { SearchInput } from "@/views/components/SearchInput";
 import { Filter } from "@/views/components/Filter";
@@ -9,10 +10,11 @@ import DeleteIcon from "@/views/components/DeleteIcon";
 import { EditIcon } from "@/views/components/EditIcon";
 import AddButton from "@/views/components/AddButton";
 import ViewIcon from "@/views/components/ViewIcon";
-import dummyProducts from "./dummy/ProductDummy";
 import { Pagination } from "@/views/components/Pagination";
+
 import Swal from "sweetalert2";
 import { Toaster } from "@/core/helpers/BaseAlert";
+import { useApiClient } from "@/core/helpers/ApiClient";
 
 const FilterModal = ({
   open,
@@ -40,9 +42,7 @@ const FilterModal = ({
     >
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h3 className="text-xl font-semibold text-gray-900">
-            Filter Kategori Produk
-          </h3>
+          <h3 className="text-xl font-semibold text-gray-900">Filter Kategori Produk</h3>
           <button
             onClick={onClose}
             className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
@@ -94,83 +94,86 @@ const FilterModal = ({
 };
 
 export const ProductIndex = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [expandedProducts, setExpandedProducts] = useState<number[]>([]);
-  const expandRefs = useRef<Record<number, HTMLDivElement | null>>({});
+  const api = useApiClient();
+
+  const [products, setProducts] = useState<any[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const [search, setSearch] = useState("");
+  const [expandedProducts, setExpandedProducts] = useState<string[]>([]);
+  const expandRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
   const [showFilter, setShowFilter] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [variantPage, setVariantPage] = useState<Record<number, number>>({});
+  const [page, setPage] = useState(1);
+  const [variantPage, setVariantPage] = useState<Record<string, number>>({});
+
   const pageSize = 3;
   const variantPageSize = 3;
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [categoryFilter]);
+    setPage(1);
+  }, [categoryFilter, search]);
 
-  const products = dummyProducts.map((p: any) => ({
-    id: p.id,
-    name: p.productName,
-    code: p.productCode,
-    createdAt: "2024-09-18",
-    category: { name: p.category },
-    sales: 0,
-    price: p.price,
-    total_stock: p.stock,
-    image: p.image,
-    composition: p.composition,
-    variants:
-      p.variations && p.variations[0]?.options
-        ? p.variations[0].options.map((aroma: any, idx: number) => {
-            if (typeof aroma === "object") {
-              return {
-                id: `${p.id}-${aroma.value}`,
-                name: aroma.value,
-                code:
-                  aroma.code || `${aroma.value.toUpperCase().slice(0, 3)}-${p.productCode}`,
-                stock: aroma.stock ?? p.stock,
-                price: aroma.price ?? p.price,
-                image: p.variations[0].image || p.image,
-              };
-            }
-            return {
-              id: `${p.id}-${aroma}`,
-              name: aroma,
-              code: `${aroma.toUpperCase().slice(0, 3)}-${p.productCode}`,
-              stock: p.stock,
-              price: p.price,
-              image: p.variations[0].image || p.image,
-            };
-          })
-        : [],
-  }));
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get("/products");
+      const data = res.data.data;
+      setProducts(data);
 
-  const toggleExpand = (productId: number) => {
+      const categories = Array.from(
+        new Set(data.map((p: any) => p.category?.name).filter(Boolean))
+      );
+      setCategoryOptions(categories);
+    } catch (error) {
+      Toaster("error", "Gagal memuat data produk");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const toggleExpand = (productId: string) => {
     setExpandedProducts((prev) => {
       const isExpanded = prev.includes(productId);
       if (!isExpanded) {
         setVariantPage((vp) => ({ ...vp, [productId]: 1 }));
         setTimeout(() => {
-          expandRefs.current[productId]?.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
+          expandRefs.current[productId]?.scrollIntoView({ behavior: "smooth", block: "start" });
         }, 200);
       }
       return isExpanded ? prev.filter((id) => id !== productId) : [...prev, productId];
     });
   };
 
-  const categoryOptions = Array.from(new Set(products.map((product) => product.category?.name ?? "-")));
-
   const filteredData = products.filter(
-    (product) =>
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      (categoryFilter ? product.category?.name === categoryFilter : true)
+    (p) =>
+      p.name.toLowerCase().includes(search.toLowerCase()) &&
+      (categoryFilter ? p.category?.name === categoryFilter : true)
   );
 
   const totalPages = Math.ceil(filteredData.length / pageSize);
-  const paginatedData = filteredData.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const paginatedData = filteredData.slice((page - 1) * pageSize, page * pageSize);
+
+  const getVariants = (product: any) => {
+    if (product.variants) return product.variants;
+    if (product.details) {
+      return product.details.map((detail: any) => ({
+        id: detail.id,
+        name: detail.variant_name || detail.material || "Variant",
+        code: detail.product_varian_id?.slice(0, 8) || detail.id.slice(0, 8),
+        stock: detail.stock ?? 0,
+        price: detail.price ?? 0,
+        image: product.image || "/no-image.png",
+      }));
+    }
+    return [];
+  };
 
   function dellete() {
     Swal.fire({
@@ -185,15 +188,18 @@ export const ProductIndex = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <Breadcrumb title="Produk" desc="Lorem ipsum dolor sit amet, consectetur adipiscing." />
+      <Breadcrumb
+        title="Produk"
+        desc="Lorem ipsum dolor sit amet, consectetur adipiscing."
+      />
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2 mb-4 w-full sm:w-auto max-w-lg">
           <SearchInput
-            value={searchQuery}
+            value={search}
             onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
+              setSearch(e.target.value);
+              setPage(1);
             }}
           />
         </div>
@@ -210,7 +216,9 @@ export const ProductIndex = () => {
           <table className="w-full text-sm min-w-[800px]">
             <thead className="bg-blue-50 text-left text-gray-700 font-semibold">
               <tr className="border-b">
-                <th className="p-4"><input type="checkbox" /></th>
+                <th className="p-4">
+                  <input type="checkbox" />
+                </th>
                 <th className="p-4">Produk</th>
                 <th className="p-4">Kategori</th>
                 <th className="p-4">Penjualan</th>
@@ -220,81 +228,132 @@ export const ProductIndex = () => {
               </tr>
             </thead>
             <tbody>
+              {loading && (
+                <tr>
+                  <td colSpan={7} className="text-center p-4">
+                    Loading...
+                  </td>
+                </tr>
+              )}
+              {!loading && paginatedData.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="text-center p-4">
+                    Tidak ada data produk
+                  </td>
+                </tr>
+              )}
+
               {paginatedData.map((product) => (
                 <React.Fragment key={product.id}>
                   <tr className="hover:bg-gray-50">
-                    <td className="p-4 align-top"><input type="checkbox" /></td>
+                    <td className="p-4 align-top">
+                      <input type="checkbox" />
+                    </td>
                     <td className="p-4 align-top flex gap-4">
-                      <img src={product.image} className="w-14 h-14 rounded-md object-cover" />
+                      <img
+                        src={product.image || "/no-image.png"}
+                        alt={product.name}
+                        className="w-14 h-14 rounded-md object-cover"
+                      />
                       <div>
                         <div className="font-semibold">{product.name}</div>
-                        <div className="text-gray-500 text-xs">ID Produk: {product.code}</div>
+                        <div className="text-gray-500 text-xs">
+                          ID Produk: {product.code || "-"}
+                        </div>
                       </div>
                     </td>
-                    <td className="p-4 align-top">{product.category?.name ?? '-'}</td>
-                    <td className="p-4 align-top">{product.sales}</td>
-                    <td className="p-4 align-top">Rp {product.price.toLocaleString()}</td>
-                    <td className="p-4 align-top">{product.total_stock} G</td>
+                    <td className="p-4 align-top">{product.category?.name ?? "-"}</td>
+                    <td className="p-4 align-top">{product.sales ?? "-"}</td>
+                    <td className="p-4 align-top">
+                      Rp {product.price?.toLocaleString("id-ID") ?? "-"}
+                    </td>
+                    <td className="p-4 align-top">{product.total_stock ?? product.stock ?? "-"} G</td>
                     <td className="p-4 align-top">
                       <div className="flex gap-2">
                         <ViewIcon to={`/products/${product.id}`} />
-                        <EditIcon to={`/products/${product.id}/edit`} />
+                        <EditIcon to={`/products/edit/${product.id}`} />
                         <DeleteIcon onClick={dellete} />
                       </div>
                     </td>
                   </tr>
+
                   <tr>
-                    <td colSpan={7} className="text-center text-gray-500 py-2 cursor-pointer" onClick={() => toggleExpand(product.id)}>
+                    <td
+                      colSpan={7}
+                      className="text-center text-gray-500 py-2 cursor-pointer select-none"
+                      onClick={() => toggleExpand(product.id)}
+                    >
                       {expandedProducts.includes(product.id) ? (
-                        <><FiChevronUp className="inline" /> Close <FiChevronUp className="inline" /></>
+                        <>
+                          <FiChevronUp className="inline" /> Close <FiChevronUp className="inline" />
+                        </>
                       ) : (
-                        <><FiChevronDown className="inline" /> Expand <FiChevronDown className="inline" /></>
+                        <>
+                          <FiChevronDown className="inline" /> Expand <FiChevronDown className="inline" />
+                        </>
                       )}
                     </td>
                   </tr>
+
                   <tr>
                     <td colSpan={7} className="p-0">
                       <div
                         ref={(el) => (expandRefs.current[product.id] = el)}
-                        className={`variant-slide ${expandedProducts.includes(product.id) ? 'variant-enter' : 'variant-leave'}`}
+                        className={`variant-slide ${
+                          expandedProducts.includes(product.id)
+                            ? "variant-enter"
+                            : "variant-leave"
+                        }`}
                       >
                         {expandedProducts.includes(product.id) && (() => {
-                          const variants = product.variants || [];
-                          const page = variantPage[product.id] || 1;
+                          const variants = getVariants(product);
+                          const vPage = variantPage[product.id] || 1;
                           const totalVariantPages = Math.ceil(variants.length / variantPageSize);
-                          const startIdx = (page - 1) * variantPageSize;
+                          const startIdx = (vPage - 1) * variantPageSize;
                           const shownVariants = variants.slice(startIdx, startIdx + variantPageSize);
 
                           return (
-                            <>
-                              <div className="ml-[72px] md:ml-[70px]">
-                                {shownVariants.map((variant: any) => (
-                                  <div key={variant.id} className="flex flex-wrap md:flex-nowrap items-center p-4 bg-gray-50">
-                                    <div className="w-1/2 md:w-1/18">
-                                      <img src={variant.image} className="w-12 h-12 rounded object-cover" />
-                                    </div>
-                                    <div className="w-full md:w-3/12">
-                                      <div className="font-medium">{variant.name}</div>
-                                      <div className="text-xs text-gray-500">Kode Varian: {variant.code}</div>
-                                    </div>
-                                    <div className="w-1/2 md:w-2/12">-</div>
-                                    <div className="w-1/2 md:w-2/16">-</div>
-                                    <div className="w-1/2 md:w-2/13">Rp {variant.price.toLocaleString()}</div>
-                                    <div className="w-1/2 md:w-2/12">{variant.stock} G</div>
-                                  </div>
-                                ))}
-                                {totalVariantPages > 1 && (
-                                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 text-sm text-muted-foreground py-2">
-                                    <span className="text-gray-700">{variants.length} Varian</span>
-                                    <Pagination
-                                      currentPage={page}
-                                      totalPages={totalVariantPages}
-                                      onPageChange={(pg) => setVariantPage((vp) => ({ ...vp, [product.id]: pg }))}
+                            <div className="ml-[72px] md:ml-[70px]">
+                              {shownVariants.map((variant) => (
+                                <div
+                                  key={variant.id}
+                                  className="flex flex-wrap md:flex-nowrap items-center p-4 bg-gray-50 border-b border-gray-200"
+                                >
+                                  <div className="w-1/2 md:w-1/18">
+                                    <img
+                                      src={variant.image}
+                                      alt={variant.name}
+                                      className="w-12 h-12 rounded object-cover"
                                     />
                                   </div>
-                                )}
-                              </div>
-                            </>
+                                  <div className="w-full md:w-3/12">
+                                    <div className="font-medium">{variant.name}</div>
+                                    <div className="text-xs text-gray-500">
+                                      Kode Varian: {variant.code}
+                                    </div>
+                                  </div>
+                                  <div className="w-1/2 md:w-2/12">-</div>
+                                  <div className="w-1/2 md:w-2/16">-</div>
+                                  <div className="w-1/2 md:w-2/13">
+                                    Rp {variant.price.toLocaleString("id-ID")}
+                                  </div>
+                                  <div className="w-1/2 md:w-2/12">{variant.stock} G</div>
+                                </div>
+                              ))}
+
+                              {totalVariantPages > 1 && (
+                                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 text-sm text-gray-700 py-2">
+                                  <span>{variants.length} Varian</span>
+                                  <Pagination
+                                    currentPage={vPage}
+                                    totalPages={totalVariantPages}
+                                    onPageChange={(pg) =>
+                                      setVariantPage((vp) => ({ ...vp, [product.id]: pg }))
+                                    }
+                                  />
+                                </div>
+                              )}
+                            </div>
                           );
                         })()}
                       </div>
@@ -305,11 +364,15 @@ export const ProductIndex = () => {
             </tbody>
           </table>
         </div>
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 text-sm text-muted-foreground">
-          <span className="text-gray-700">{filteredData.length} Data</span>
-          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
-        </div>
       </div>
+
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={(pg) => setPage(pg)}
+        />
+      )}
 
       <FilterModal
         open={showFilter}
