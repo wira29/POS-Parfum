@@ -1,4 +1,3 @@
-import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { useNavigate, useParams } from "react-router-dom";
 import { FiArrowLeft } from "react-icons/fi";
 import { useApiClient } from "@/core/helpers/ApiClient";
@@ -18,9 +17,22 @@ interface DiscountDetail {
   discount: number;
   used: number;
   type: string | null;
+  start_date: string | null;
   expired: string | null;
   active: number;
-  details: ProductDetail[] | null;
+  details: {
+    id: string;
+    product_id: string;
+    variant_name: string;
+    material: string;
+    unit: string;
+    stock: number;
+    capacity: number;
+    weight: number;
+    density: number;
+    price: number;
+    price_discount: number;
+  } | null;
 }
 
 interface DisplayDetail {
@@ -82,25 +94,36 @@ export const DiscountDetail = () => {
       return;
     }
     try {
-      const response = await ApiClient.get<{ data: DiscountDetail }>(`/discount-vouchers/${id}`);
+      const response = await ApiClient.get<{ data: DiscountDetail }>(
+        `/discount-vouchers/${id}`
+      );
       const data = response.data.data;
+
       const displayDetail: DisplayDetail = {
         status: data.active === 1 ? "Aktif" : "Tidak Aktif",
         nama: data.name || "Diskon Tidak Diketahui",
         jenis: data.type === "Rp" ? "Rp (Rupiah)" : "% (Persen)",
-        nilai: data.type === "Rp" ? formatCurrency(data.discount) : `${data.discount} %`,
+        nilai: data.discount < 100 ? "% (persen)" : "Rp (rupiah)",
         minPembelian: formatCurrency(data.min),
-        tanggalMulai: "1 Januari 2025",
+        tanggalMulai: formatDate(data.start_date),
         tanggalBerakhir: formatDate(data.expired),
         deskripsi: data.desc || "Tidak ada deskripsi tersedia.",
         totalDigunakan: data.used || 0,
-        produkTerkait: data.details || [
-          {
-            nama: "Produk Tidak Ditentukan",
-            varian: "Tidak Ada Varian",
-            kode: "N/A",
-          },
-        ],
+        produkTerkait: data.details
+          ? [
+              {
+                nama: data.details.product_id || "Produk Tidak Ditentukan",
+                varian: data.details.variant_name || "Tidak Ada Varian",
+                kode: data.details.product_id || "N/A",
+              },
+            ]
+          : [
+              {
+                nama: "Produk Tidak Ditentukan",
+                varian: "Tidak Ada Varian",
+                kode: "N/A",
+              },
+            ],
       };
 
       setDetail(displayDetail);
@@ -118,9 +141,7 @@ export const DiscountDetail = () => {
 
   return (
     <div className="py-10">
-      {error && (
-        <div className="text-center text-red-500">{error}</div>
-      )}
+      {error && <div className="text-center text-red-500">{error}</div>}
       {!loading && !error && (
         <>
           <div className="bg-blue-600 text-white p-4 rounded-lg">
@@ -128,6 +149,7 @@ export const DiscountDetail = () => {
               <button
                 onClick={() => navigate("/discounts")}
                 className="flex items-center gap-2 text-white hover:text-blue-200 cursor-pointer"
+                aria-label="Kembali ke daftar diskon"
               >
                 <FiArrowLeft size={20} />
                 <span className="font-medium">Kembali</span>
@@ -149,12 +171,16 @@ export const DiscountDetail = () => {
                           <div className="flex items-center gap-2">
                             <div
                               className={`w-2 h-2 rounded-full ${
-                                detail.status === "Aktif" ? "bg-green-500" : "bg-red-500"
+                                detail.status === "Aktif"
+                                  ? "bg-green-500"
+                                  : "bg-red-500"
                               }`}
                             ></div>
                             <span
                               className={`font-medium ${
-                                detail.status === "Aktif" ? "text-green-600" : "text-red-600"
+                                detail.status === "Aktif"
+                                  ? "text-green-600"
+                                  : "text-red-600"
                               }`}
                             >
                               {detail.status}
@@ -307,15 +333,23 @@ export const DiscountDetail = () => {
                           <div key={index} className="space-y-2">
                             <div className="flex justify-between text-sm">
                               <span className="text-gray-600">Produk</span>
-                              <span className="text-gray-900">{produk.nama}</span>
+                              <span className="text-gray-900">
+                                {produk.nama}
+                              </span>
                             </div>
                             <div className="flex justify-between text-sm">
-                              <span className="text-gray-600">Varian Produk</span>
-                              <span className="text-gray-900">{produk.varian}</span>
+                              <span className="text-gray-600">
+                                Varian Produk
+                              </span>
+                              <span className="text-gray-900">
+                                {produk.varian}
+                              </span>
                             </div>
                             <div className="flex justify-between text-sm">
                               <span className="text-gray-600">Kode Produk</span>
-                              <span className="text-gray-900">{produk.kode}</span>
+                              <span className="text-gray-900">
+                                {produk.kode}
+                              </span>
                             </div>
                           </div>
                         ))}

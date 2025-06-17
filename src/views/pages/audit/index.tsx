@@ -36,7 +36,7 @@ interface AuditItem {
   outlet_id: string;
   deleted_at: string | null;
   created_at: string | null;
-  details: AuditDetail[];
+  audit_details: AuditDetail[];
 }
 
 interface ApiResponse {
@@ -117,13 +117,16 @@ const FilterModal = ({
 };
 
 export const AuditIndex = () => {
-  const ApiClient = useApiClient();
+  const apiClient = useApiClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
   const [statusFilter, setStatusFilter] = useState("");
   const [auditData, setAuditData] = useState<AuditItem[]>([]);
+  const [selectedAuditId, setSelectedAuditId] = useState<string | undefined>(
+    undefined
+  );
   const [pagination, setPagination] = useState<ApiResponse["pagination"]>({
     current_page: 1,
     first_page_url: "",
@@ -145,7 +148,7 @@ export const AuditIndex = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await ApiClient.get<ApiResponse>("/audit", {
+      const response = await apiClient.get<ApiResponse>("/audit", {
         params: {
           page: currentPage,
           search: searchQuery || undefined,
@@ -174,7 +177,7 @@ export const AuditIndex = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await ApiClient.delete(`audit/${id}`);
+          await apiClient.delete(`audit/${id}`);
           Toaster("success", "Audit berhasil dihapus");
           getData();
         } catch (err) {
@@ -190,7 +193,6 @@ export const AuditIndex = () => {
         title="Audit"
         desc="Lorem ipsum dolor sit amet, consectetur adipiscing."
       />
-
       <div className="bg-white shadow-md p-4 rounded-md flex flex-col gap-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2 mb-4 w-full sm:w-auto max-w-lg">
@@ -206,9 +208,7 @@ export const AuditIndex = () => {
             <Filter onClick={() => setShowFilter(true)} />
           </div>
         </div>
-
         {error && <div className="text-red-500 text-center">{error}</div>}
-
         <div className="overflow-x-auto rounded-lg">
           <table className="min-w-full border border-gray-300 rounded-lg text-sm text-left">
             <thead className="bg-gray-100 border border-gray-300 text-gray-700">
@@ -223,13 +223,19 @@ export const AuditIndex = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                  <td
+                    colSpan={5}
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
                     Memuat data...
                   </td>
                 </tr>
               ) : auditData.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                  <td
+                    colSpan={5}
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
                     Tidak ada data ditemukan.
                   </td>
                 </tr>
@@ -241,7 +247,9 @@ export const AuditIndex = () => {
                   >
                     <td className="px-6 py-4">{item.name}</td>
                     <td className="px-6 py-4">{item.date}</td>
-                    <td className="px-6 py-4">{item.details.length} Variant</td>
+                    <td className="px-6 py-4">
+                      {item.audit_details.length} Variant
+                    </td>
                     <td className="px-6 py-4">
                       <span
                         className={`px-4 py-2 rounded-lg text-xs font-medium ${
@@ -261,7 +269,10 @@ export const AuditIndex = () => {
                         {item.status === "pending" && (
                           <Link
                             to="#"
-                            onClick={() => setIsModalOpen(true)}
+                            onClick={() => {
+                              setSelectedAuditId(item.id);
+                              setIsModalOpen(true);
+                            }}
                             className="bg-yellow-500 p-1 rounded text-white flex items-center gap-1"
                           >
                             <InfoIcon size={20} />
@@ -276,7 +287,6 @@ export const AuditIndex = () => {
             </tbody>
           </table>
         </div>
-
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 text-sm text-muted-foreground">
           <span className="text-gray-700">{pagination.total} Data</span>
           <Pagination
@@ -298,9 +308,22 @@ export const AuditIndex = () => {
       />
       <RetailRequestModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        auditId={selectedAuditId}
+        description={{
+          descriptionApproved: `Anda Menerima Audit ID ${
+            selectedAuditId || ""
+          }.`,
+          descriptionRejected: `Anda Menolak Audit ID ${
+            selectedAuditId || ""
+          }, sehingga audit tidak diproses.`,
+        }}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedAuditId(undefined);
+        }}
         onSubmit={() => {
           setIsModalOpen(false);
+          setSelectedAuditId(undefined);
           getData();
         }}
       />
