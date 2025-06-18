@@ -22,7 +22,10 @@ interface DiscountDetail {
   active: number;
   details: {
     id: string;
-    product_id: string;
+    product: {
+      name:string;
+      product_code:string;
+    }
     variant_name: string;
     material: string;
     unit: string;
@@ -98,7 +101,7 @@ export const DiscountDetail = () => {
         `/discount-vouchers/${id}`
       );
       const data = response.data.data;
-
+         
       const displayDetail: DisplayDetail = {
         status: data.active === 1 ? "Aktif" : "Tidak Aktif",
         nama: data.name || "Diskon Tidak Diketahui",
@@ -112,9 +115,9 @@ export const DiscountDetail = () => {
         produkTerkait: data.details
           ? [
               {
-                nama: data.details.product_id || "Produk Tidak Ditentukan",
+                nama: data.details.product.name || "Produk Tidak Ditentukan",
                 varian: data.details.variant_name || "Tidak Ada Varian",
-                kode: data.details.product_id || "N/A",
+                kode: data.details.product.product_code || "N/A",
               },
             ]
           : [

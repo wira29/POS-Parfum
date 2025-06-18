@@ -202,6 +202,7 @@ export default function DiscountIndex() {
       }
     });
   }
+console.log(vouchers);
 
   function applyFilter() {
     setCurrentPage(1);
@@ -263,7 +264,7 @@ export default function DiscountIndex() {
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
                       <h1 className="font-semibold">{item.variant_name ?? "variant name"}</h1>
-                      <h1>{item.code_product ?? "ABCDE"}</h1>
+                      <h1>{item.code_product ?? "Code Product"}</h1>
                     </div>
                   </td>
                   <td className="px-6 py-4">{item.category ?? "category"}</td>

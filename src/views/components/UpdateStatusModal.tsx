@@ -16,7 +16,8 @@ interface RetailRequestModalProps {
 export const RetailRequestModal: React.FC<RetailRequestModalProps> = ({
   isOpen = true,
   description = {
-    descriptionApproved: "Anda Menerima Request Pembelian Dari Retail Mandalika.",
+    descriptionApproved:
+      "Anda Menerima Request Pembelian Dari Retail Mandalika.",
     descriptionRejected:
       "Anda Menolak Request Pembelian Dari Retail Mandalika Maka Dari Itu Pesanan Tidak Diproses.",
   },
@@ -28,6 +29,7 @@ export const RetailRequestModal: React.FC<RetailRequestModalProps> = ({
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [rejeted, setRejected] = useState<string>("");
 
   useEffect(() => {
     if (isOpen) {
@@ -48,8 +50,17 @@ export const RetailRequestModal: React.FC<RetailRequestModalProps> = ({
   const handleSubmit = async () => {
     if (selectedStatus && auditId) {
       try {
-        await apiClient.put(`/audit/${auditId}`, { status: selectedStatus });
-        Toaster("success", `Audit ${selectedStatus === "approved" ? "disetujui" : "ditolak"} berhasil`);
+        const payload = {
+          status: selectedStatus,
+          ...(selectedStatus === "rejected" && { reason: rejeted }),
+        };
+        await apiClient.put(`/audit/${auditId}`, payload);
+        Toaster(
+          "success",
+          `Audit ${
+            selectedStatus === "approved" ? "disetujui" : "ditolak"
+          } berhasil`
+        );
         onSubmit(selectedStatus);
         setIsAnimating(false);
         setTimeout(() => onClose(), 300);
@@ -179,6 +190,17 @@ export const RetailRequestModal: React.FC<RetailRequestModalProps> = ({
               </div>
             </div>
           ))}
+          {selectedStatus === "rejected" && (
+            <div className="">
+              <textarea
+                name="rejected"
+                onChange={(e) => setRejected(e.target.value)}
+                placeholder="Masukan alasan disini"
+                className="w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows={4}
+              ></textarea>
+            </div>
+          )}
         </div>
         <div className="px-6 py-4 border-t border-gray-200 flex space-x-3">
           <button
