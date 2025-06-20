@@ -2,6 +2,7 @@ import { FiMenu, FiLogOut } from "react-icons/fi";
 import { useAuthStore } from "@/core/stores/AuthStore";
 import { useState, useRef, useEffect } from "react";
 import { Mail } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export const Header = ({
   onToggleSidebar,
@@ -29,15 +30,13 @@ export const Header = ({
 
   return (
     <header
-      className={`h-16 bg-white shadow-md fixed top-0 left-0 right-0 z-10 flex items-center justify-between transition-all duration-300 ${
-        sidebar === "full" ? "pl-64" : "pl-16"
-      } pr-6`}
+      className={`h-16 bg-white shadow-md fixed top-0 left-0 right-0 z-10 flex items-center justify-between transition-all duration-300 ${sidebar === "full" ? "pl-64" : "pl-16"
+        } pr-6`}
     >
       <button
         onClick={onToggleSidebar}
-        className={`text-gray-600 px-4 transition-all duration-300 cursor-pointer ${
-          sidebar === "mini-sidebar" ? "ml-2" : ""
-        }`}
+        className={`text-gray-600 px-4 transition-all duration-300 cursor-pointer ${sidebar === "mini-sidebar" ? "ml-2" : ""
+          }`}
       >
         <FiMenu size={24} />
       </button>
@@ -65,43 +64,50 @@ export const Header = ({
             alt="Profile"
           />
         </div>
-
-        {showProfile && (
-          <div className="absolute right-0 mt-6 w-80 z-[999] rounded-lg bg-white border border-gray-200 shadow-lg p-4">
-            <div className="flex items-center gap-4">
-              <img
-                src={
-                  user?.photo
-                    ? import.meta.env.VITE_STORAGE_URL + user.photo
-                    : "/images/profile/user-1.jpg"
-                }
-                alt="Avatar"
-                className="w-16 h-16 rounded-full object-cover"
-              />
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800">
-                  {user?.name || "Fulan"}
-                </h3>
-                <p className="text-sm text-gray-500">
-                  {role.join(", ") || "super admin"}
-                </p>
-                <p className="text-sm text-gray-600 mt-1 flex items-center gap-1">
-                  <Mail size={12} />
-                  {user?.email || "superadmin@gmail.com"}
-                </p>
-              </div>
-            </div>
-
-            <hr className="my-4 border-gray-200" />
-            <button
-              onClick={setUserDefault}
-              className="w-full py-2 rounded-md cursor-pointer bg-blue-100 text-blue-600 hover:bg-blue-200 hover:text-blue-800 flex items-center justify-center gap-2 transition-colors"
+        <AnimatePresence>
+          {showProfile && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="absolute right-0 mt-6 border border-gray-400 w-72 bg-white shadow-xl rounded-lg p-4 z-50"
             >
-              Logout
-              <FiLogOut />
-            </button>
-          </div>
-        )}
+              <div className="flex items-center gap-4">
+                <img
+                  src={
+                    user?.photo
+                      ? import.meta.env.VITE_STORAGE_URL + user.photo
+                      : "/images/profile/user-1.jpg"
+                  }
+                  alt="Avatar"
+                  className="w-16 h-16 rounded-full object-cover"
+                />
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    {user?.name || "Fulan"}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {role.join(", ") || "super admin"}
+                  </p>
+                  <p className="text-sm text-gray-600 mt-1 flex items-center gap-1">
+                    <Mail size={12} />
+                    {user?.email || "superadmin@gmail.com"}
+                  </p>
+                </div>
+              </div>
+
+              <hr className="my-4 border-gray-200" />
+              <button
+                onClick={setUserDefault}
+                className="w-full py-2 rounded-md cursor-pointer bg-blue-100 text-blue-600 hover:bg-blue-200 hover:text-blue-800 flex items-center justify-center gap-2 transition-colors"
+              >
+                Logout
+                <FiLogOut />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </header>
   );

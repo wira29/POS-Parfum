@@ -1,13 +1,14 @@
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Toaster } from "@/core/helpers/BaseAlert";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 const availableRoles = [
   { value: "warehouse", label: "Warehouse" },
   { value: "outlet", label: "Outlet" },
   { value: "admin", label: "Admin" },
+  { value: "owner", label: "Owner" },
 ];
 
 export default function UserEdit() {
@@ -27,6 +28,33 @@ export default function UserEdit() {
   });
 
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    const fetchUserDetail = async () => {
+      try {
+        const response = await api.get(`/users/${id}`);
+        const user = response.data?.data;
+
+        setUserData({
+          username: user.name || "",
+          email: user.email || "",
+          role: user.role || [""],
+          password: "",
+        });
+
+        if (user.image) {
+          setPreviewUrl(`https://core-parfum.mijurnal.com/storage/users/${user.image}`);
+        }
+      } catch (error) {
+        Toaster("error", "Gagal mengambil data user");
+        console.error(error);
+      }
+    };
+
+    if (id) {
+      fetchUserDetail();
+    }
+  }, [id]);
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -65,11 +93,6 @@ export default function UserEdit() {
 
   const handleSubmit = async () => {
     const rolesFiltered = userData.role.filter((r) => r.trim() !== "");
-
-    if (!userData.username.trim() || !userData.email.trim() || rolesFiltered.length === 0) {
-      alert("Mohon isi semua field yang wajib.");
-      return;
-    }
 
     const payload: any = {
       name: userData.username,

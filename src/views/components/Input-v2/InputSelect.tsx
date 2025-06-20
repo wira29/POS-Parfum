@@ -7,6 +7,7 @@ interface InputSelectProps {
     onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
     options: { value: string; label: string }[]
     className?: string
+    error?: string
 }
 
 const InputSelect = ({
@@ -16,6 +17,7 @@ const InputSelect = ({
     onChange,
     options,
     className = "",
+    error,
 }: InputSelectProps) => (
     <div>
         {label && (
@@ -35,6 +37,9 @@ const InputSelect = ({
                 </option>
             ))}
         </select>
+        {error && (
+            <p className="text-sm text-red-500 mt-1">{error}</p>
+        )}
     </div>
 )
 
