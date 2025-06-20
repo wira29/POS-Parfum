@@ -17,6 +17,9 @@ export { default as RolePage} from './roles'
 export { default as RoleDetail } from './roles/detail';
 export { default as RoleCreate } from './roles/widgets/AddPage';
 export { default as RoleEdit } from './roles/widgets/EditPage';
+export { default as UnitPage} from './unit';
+export { default as UnitCreate } from './unit/widgets/AddPage';
+export { default as UnitEdit } from './unit/widgets/EditPage';
 export { VariantIndex as VariantIndex } from './variant'
 export { Dashboard as Dashboard } from './dashboard'
 export { default as DiscountIndex } from "./discount";

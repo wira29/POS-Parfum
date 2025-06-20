@@ -28,6 +28,9 @@ import {
   UserCreate,
   UserEdit,
   RetailIndex,
+  UnitPage,
+  UnitCreate,
+  UnitEdit,
   BlendingCreate,
   RiwayatPenjualan,
   // BlendingEdit
@@ -230,6 +233,18 @@ export const router = createBrowserRouter([
           {
             path: "restock/create",
             element: <RestockCreate />,
+          },
+          {
+            path: "unit",
+            element: < UnitPage />,
+          },
+          {
+            path: "Unit/create",
+            element: <UnitCreate />,
+          },
+          {
+            path: "Unit/:id/edit",
+            element: <UnitEdit />,
           },
           {
             path: "audit",

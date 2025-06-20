@@ -3,6 +3,7 @@ import {
   FiHome, FiBox, FiPercent, FiCoffee, FiTag,
   FiUsers, FiLayers, FiChevronDown, FiChevronUp,
 } from "react-icons/fi";
+import { LayoutGrid} from "lucide-react"
 import { FaUserTag } from "react-icons/fa6";
 import { TbCoinTakaFilled, TbShoppingCart } from "react-icons/tb";
 import { FaBoxesPacking, FaShop } from "react-icons/fa6";
@@ -39,6 +40,7 @@ const menuItems = [
       { label: "Produk", icon: <FiBox />, path: "/products", roles:["owner", "warehouse","retail"] },
       { label: "Blending Produk", icon: <FiCoffee />, path: "/blendings", roles: ["warehouse"] },
       { label: "Restock Produk", icon: <FaBoxesPacking />, path: "/restock", roles: ["admin", "warehouse", "retail"] },
+      { label: "Unit", icon: <LayoutGrid />, path: "/unit", roles: ["admin", "warehouse", "retail"] },
       { label: "Audit", icon: <AiOutlineFileSearch />, path: "/audit", roles: ["admin", "warehouse","retail"] },
       { label: "Diskon", icon: <FiPercent />, path: "/discounts", roles: ["owner", "warehouse", "retail"] },
     ],
