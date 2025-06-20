@@ -13,6 +13,10 @@ export { default as UserPage} from './users'
 export { default as UserDetail } from './users/detail';
 export { default as UserCreate } from './users/widgets/AddPage';
 export { default as UserEdit } from './users/widgets/EditPage';
+export { default as RolePage} from './roles'
+export { default as RoleDetail } from './roles/detail';
+export { default as RoleCreate } from './roles/widgets/AddPage';
+export { default as RoleEdit } from './roles/widgets/EditPage';
 export { VariantIndex as VariantIndex } from './variant'
 export { Dashboard as Dashboard } from './dashboard'
 export { default as DiscountIndex } from "./discount";

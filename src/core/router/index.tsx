@@ -14,6 +14,10 @@ import {
   ProductIndex,
   ProductShow,
   UserPage,
+  RolePage,
+  RoleDetail,
+  RoleCreate,
+  RoleEdit,
   VariantIndex,
   WarehouseIndex,
   WarehouseDetail,
@@ -168,6 +172,22 @@ export const router = createBrowserRouter([
           {
             path: "users/:id/Detail",
             element: <UserDetail />,
+          },
+          {
+            path: "roles",
+            element: <RolePage />,
+          },
+          {
+            path: "roles/create",
+            element: <RoleCreate />,
+          },
+          {
+            path: "roles/:id/edit",
+            element: <RoleEdit />,
+          },
+          {
+            path: "roles/:id/Detail",
+            element: <RoleDetail />,
           },
           {
             path: "discounts",

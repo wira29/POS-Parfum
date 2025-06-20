@@ -56,7 +56,6 @@ export default function ExpenseManagement() {
         desc="Kelola pengeluaran retail anda."
       />
 
-
       <div className="bg-white rounded-lg shadow-sm">
         
         <div className="p-6 border-b border-gray-200">

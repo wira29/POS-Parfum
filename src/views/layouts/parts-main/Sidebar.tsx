@@ -3,6 +3,7 @@ import {
   FiHome, FiBox, FiPercent, FiCoffee, FiTag,
   FiUsers, FiLayers, FiChevronDown, FiChevronUp,
 } from "react-icons/fi";
+import { FaUserTag } from "react-icons/fa6";
 import { TbCoinTakaFilled, TbShoppingCart } from "react-icons/tb";
 import { FaBoxesPacking, FaShop } from "react-icons/fa6";
 import { useEffect, useState } from "react";
@@ -48,6 +49,7 @@ const menuItems = [
       { label: "Retail", icon: <FaShop />, path: "/retails", roles: ["owner", "warehouse"] },
       { label: "Warehouse", icon: <FaShop />, path: "/warehouses", roles: ["owner", "warehouse"] },
       { label: "Tambah Pengguna", icon: <FiUsers />, path: "/users", roles: ["owner", "warehouse","retail"] },
+      { label: "Role", icon: <FaUserTag />, path: "/roles", roles: ["owner", "warehouse","retail"] },
       { label: "Laporan", icon: <TbCoinTakaFilled />, path: "/laporan", roles: ["owner","retail"] },
       { label: "Pengeluaran", icon: <Wallet2Icon />, path: "/pengeluaran", roles: ["owner","retail"] },
     ],
