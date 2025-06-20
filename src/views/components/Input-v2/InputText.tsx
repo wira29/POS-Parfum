@@ -7,6 +7,7 @@ interface InputTextProps {
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
     className?: string
     placeholder?: string
+    error?: string
 }
 
 const InputText = ({
@@ -16,6 +17,7 @@ const InputText = ({
     onChange,
     className = "",
     placeholder = "",
+    error,
 }: InputTextProps) => (
     <div>
         {label && (
@@ -31,6 +33,9 @@ const InputText = ({
             onChange={onChange}
             placeholder={placeholder}
         />
+        {error && (
+            <p className="text-sm text-red-500 mt-1">{error}</p>
+        )}
     </div>
 )
 

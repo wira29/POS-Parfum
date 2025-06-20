@@ -13,21 +13,22 @@ export default function RetailEdit() {
     name: "",
     address: "",
     telp: "",
-    image: null
+    image: null,
   })
+
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchOutletDetail = async () => {
       try {
         const response = await apiClient.get(`/outlets/${id}`)
-        const outlet = response.data.data
+        const outlet = response.data?.data?.outlet
 
         setFormData({
           name: outlet.name || "",
           address: outlet.address || "",
           telp: outlet.telp || "",
-          image: null
+          image: null,
         })
       } catch (error) {
         console.error("Failed to fetch outlet detail:", error)
@@ -38,45 +39,51 @@ export default function RetailEdit() {
     }
 
     if (id) fetchOutletDetail()
-  }, [id, apiClient])
+  }, [id])
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
   }
 
   const handleFileChange = (e) => {
-    setFormData(prev => ({ ...prev, image: e.target.files[0] }))
+    const file = e.target.files[0]
+    setFormData((prev) => ({
+      ...prev,
+      image: file,
+    }))
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    const payload = new FormData()
-    payload.append("name", formData.name)
-    payload.append("address", formData.address)
-    payload.append("telp", formData.telp)
-    if (formData.image) {
-      payload.append("image", formData.image)
+    const payload = {
+      name: formData.name,
+      address: formData.address,
+      telp: formData.telp,
+      image: formData.image,
     }
 
     try {
-      await apiClient.put(`/outlets/${id}`, payload, {
-        headers: { "Content-Type": "multipart/form-data" }
-      })
+      await apiClient.put(`/outlets/${id}`, payload)
       Toaster("success", "Retail berhasil diperbarui")
       navigate("/retails")
     } catch (error) {
+      console.error("Error submitting form:", error)
       if (error.response?.status === 429) {
         Toaster("error", "Terlalu banyak permintaan. Silakan coba lagi nanti.")
       } else {
         Toaster("error", "Gagal memperbarui retail")
       }
-      console.error("Error submitting form:", error)
     }
   }
 
-  if (loading) return <div>Loading...</div>
+  if (loading) {
+    return <div className="p-6">Loading...</div>
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -114,8 +121,10 @@ export default function RetailEdit() {
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium">Gambar (opsional)</label>
+            <div className="space-y-2 md:col-span-2">
+              <label className="block text-sm font-medium">
+                Gambar (opsional)
+              </label>
               <input
                 type="file"
                 name="image"

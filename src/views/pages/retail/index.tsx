@@ -8,24 +8,20 @@ import { useApiClient } from "@/core/helpers/ApiClient";
 import Swal from "sweetalert2";
 
 interface Retail {
-  id: number;
+  id: string;
   name: string;
   image: string;
-  phone: string;
+  telp: string;
   address: string;
   owner: string;
-  detailUrl: string;
   location: string;
-  code: string;
-  products_count: number;
 }
 
 export const RetailIndex = () => {
   const [retails, setRetails] = useState<Retail[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [dropdownOpenId, setDropdownOpenId] = useState<number | null>(null);
+  const [dropdownOpenId, setDropdownOpenId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [lastPage, setLastPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [pagination, setPagination] = useState<any>(null);
 
@@ -36,8 +32,22 @@ export const RetailIndex = () => {
     setLoading(true);
     try {
       const response = await apiClient.get(`/outlets?page=${page}&per_page=8`);
-      setRetails(response.data.data);
-      setPagination(response.data.pagination);
+      const data = response.data;
+
+      const mappedRetails: Retail[] = data.data.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        image: item.image
+          ? `${import.meta.env.VITE_API_BASE_URL}/${item.image}`
+          : "",
+        telp: item.telp,
+        address: item.address,
+        owner: item.users?.[0]?.name || "-",
+        location: item.store?.name || "-",
+      }));
+
+      setRetails(mappedRetails);
+      setPagination(data.pagination);
     } catch (error) {
       console.error("Failed to fetch outlets:", error);
     } finally {
@@ -56,16 +66,12 @@ export const RetailIndex = () => {
     fetchRetails();
   }, [page]);
 
-  const handleDropdownToggle = (id: number) => {
+  const handleDropdownToggle = (id: string) => {
     setDropdownOpenId(dropdownOpenId === id ? null : id);
   };
 
   const handleEdit = (retail: Retail) => {
     navigate(`/retails/${retail.id}/edit`);
-  };
-
-  const handleDelete = (retail: Retail) => {
-    console.log("Delete", retail);
   };
 
   const handleTambah = () => {
@@ -76,23 +82,18 @@ export const RetailIndex = () => {
     navigate(`/retails/${retail.id}/detail`);
   };
 
-  const filteredWarehouses = retails.filter((retail) =>
-    `${retail.name}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    `${retail.location}`.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const deleteOutlet = async (id: number) => {
+  const deleteOutlet = async (id: string) => {
     try {
-      await apiClient.delete(`/outlets/${id}`)
-      Swal.fire("Terhapus!", "Outlet berhasil dihapus.", "success")
-      window.location.reload()
+      await apiClient.delete(`/outlets/${id}`);
+      Swal.fire("Terhapus!", "Outlet berhasil dihapus.", "success");
+      fetchRetails(); // fetch ulang data setelah hapus
     } catch (error) {
-      Swal.fire("Gagal!", "Gagal menghapus outlet.", "error")
-      console.error(error)
+      Swal.fire("Gagal!", "Gagal menghapus outlet.", "error");
+      console.error(error);
     }
-  }
+  };
 
-  const confirmDelete = (id: number) => {
+  const confirmDelete = (id: string) => {
     Swal.fire({
       title: "Apakah anda yakin?",
       text: "Data outlet akan dihapus!",
@@ -102,11 +103,16 @@ export const RetailIndex = () => {
       cancelButtonText: "Batal",
     }).then((result) => {
       if (result.isConfirmed) {
-        deleteOutlet(id)
+        deleteOutlet(id);
       }
-    })
-  }
+    });
+  };
 
+  const filteredRetails = retails.filter((retail) =>
+    `${retail.name} ${retail.location}`
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="p-6 space-y-6">
@@ -135,13 +141,13 @@ export const RetailIndex = () => {
 
         {loading ? (
           <p>Loading...</p>
-        ) : filteredWarehouses.length === 0 ? (
+        ) : filteredRetails.length === 0 ? (
           <div className="bg-white rounded-xl p-6">
             <NoData img_size={300} />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {filteredWarehouses.map((retail) => (
+            {filteredRetails.map((retail) => (
               <div
                 key={retail.id}
                 className="bg-white rounded-xl shadow-sm border flex-col border-gray-100"
@@ -157,11 +163,14 @@ export const RetailIndex = () => {
                   <h3 className="text-[16px] font-semibold text-gray-900 mb-1">
                     {retail.name}
                   </h3>
-                  <p className="text-[13px] text-gray-800 mb-0.5">{retail.phone}</p>
+                  <p className="text-[13px] text-gray-800 mb-0.5">{retail.telp}</p>
                   <p className="text-[13px] text-gray-500 truncate">{retail.address}</p>
-
-                  <p className="text-[13px] font-medium text-gray-600 mt-3">Pemilik Retail</p>
-                  <p className="text-[15px] font-bold text-black mb-4">{retail.owner}</p>
+                  <p className="text-[13px] font-medium text-gray-600 mt-3">
+                    Pemilik Retail
+                  </p>
+                  <p className="text-[15px] font-bold text-black mb-4">
+                    {retail.owner}
+                  </p>
                   <div className="flex gap-2 mt-4">
                     <button
                       className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl text-sm font-medium flex-1"
@@ -210,7 +219,8 @@ export const RetailIndex = () => {
         {pagination && (
           <div className="flex justify-between items-center mt-6">
             <div className="text-sm text-gray-500">
-              Menampilkan {pagination.from} - {pagination.to} dari {pagination.total} data
+              Menampilkan {pagination.from} - {pagination.to} dari{" "}
+              {pagination.total} data
             </div>
             <div className="flex gap-2">
               {pagination.links.map((link: any, idx: number) => (
@@ -219,10 +229,11 @@ export const RetailIndex = () => {
                   dangerouslySetInnerHTML={{ __html: link.label }}
                   onClick={() => handlePageChange(link.url)}
                   disabled={!link.url}
-                  className={`px-3 py-1 border rounded text-sm ${link.active
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-600 hover:bg-gray-100"
-                    } ${!link.url && "opacity-50 cursor-not-allowed"}`}
+                  className={`px-3 py-1 border rounded text-sm ${
+                    link.active
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-600 hover:bg-gray-100"
+                  } ${!link.url && "opacity-50 cursor-not-allowed"}`}
                 />
               ))}
             </div>

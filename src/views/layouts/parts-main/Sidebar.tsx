@@ -35,7 +35,7 @@ const menuItems = [
   {
     label: "Produk",
     children: [
-      { label: "Kategori", icon: <FiLayers />, path: "/categories",roles: ["warehous","retail"] },
+      { label: "Kategori", icon: <FiLayers />, path: "/categories",roles: ["warehouse","retail"] },
       { label: "Produk", icon: <FiBox />, path: "/products", roles:["owner", "warehouse","retail"] },
       { label: "Blending Produk", icon: <FiCoffee />, path: "/blendings", roles: ["warehouse"] },
       { label: "Restock Produk", icon: <FaBoxesPacking />, path: "/restock", roles: ["admin", "warehouse", "retail"] },
@@ -60,11 +60,10 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
   const location = useLocation();
   const isCollapsed = sidebar === "mini-sidebar";
   const [openDropdowns, setOpenDropdowns] = useState<{ [key: string]: boolean }>({});
-  //const [userRoles, setUserRoles] = useState<string[]>([]);
+  const [userRoles, setUserRoles] = useState<string[]>([]);
   const apiClient = useApiClient();
-  const userRoles = "warehouse"
 
-  /*useEffect(() => {
+  useEffect(() => {
     const fetchUserRoles = async () => {
       try {
         const res = await apiClient.get("/me");
@@ -75,7 +74,7 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
       }
     };
     fetchUserRoles();
-  }, []);*/
+  }, []);
 
   const hasAccess = (itemRoles?: string[]) => {
     if (!itemRoles || itemRoles.length === 0) return true;

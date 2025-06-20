@@ -70,7 +70,7 @@ export default function UserCreateSelect() {
             rolesFiltered.length === 0 ||
             !userData.password.trim()
         ) {
-            alert("Mohon isi semua field yang wajib.");
+            Toaster("error", "Semua field yang wajib diisi");
             return;
         }
 

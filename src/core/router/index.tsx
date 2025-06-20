@@ -30,7 +30,7 @@ import {
   RetailIndex,
   BlendingCreate,
   RiwayatPenjualan,
-  BlendingEdit
+  // BlendingEdit
 } from "@/views/pages/pages";
 import RequestStockIndex from "@/views/pages/request-stock";
 import { RequestRestockIndex } from "@/views/pages/restock/request";
@@ -117,10 +117,10 @@ export const router = createBrowserRouter([
             path: "blendings/create",
             element: <BlendingCreate />
           },
-          {
-            path: "blendings/:id/edit",
-            element: <BlendingEdit />
-          },
+          // {
+          //   path: "blendings/:id/edit",
+          //   element: <BlendingEdit />
+          // },
           {
             path: "products/:id/edit",
             element: <ProductEdit />,

@@ -6,6 +6,7 @@ interface InputNumberProps {
     className?: string
     placeholder?: string
     prefix?: string
+    error?: string
 }
 
 const InputNumber = ({
@@ -16,6 +17,7 @@ const InputNumber = ({
     className = "",
     placeholder = "",
     prefix = "",
+    error,
 }: InputNumberProps) => (
     <div>
         {label && (
@@ -35,6 +37,9 @@ const InputNumber = ({
                 placeholder={placeholder}
             />
         </div>
+        {error && (
+            <p className="text-sm text-red-500 mt-1">{error}</p>
+        )}
     </div>
 )
 
