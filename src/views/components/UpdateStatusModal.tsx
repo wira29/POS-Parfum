@@ -1,20 +1,35 @@
 import { useState, useEffect } from "react";
-import { Check, Clock, X } from "lucide-react";
+import { useApiClient } from "@/core/helpers/ApiClient";
+import { Toaster } from "@/core/helpers/BaseAlert";
 
 interface RetailRequestModalProps {
   isOpen?: boolean;
+  description?: {
+    descriptionApproved: string;
+    descriptionRejected: string;
+  };
+  auditId?: string;
   onClose?: () => void;
   onSubmit?: (status: string) => void;
 }
 
 export const RetailRequestModal: React.FC<RetailRequestModalProps> = ({
   isOpen = true,
+  description = {
+    descriptionApproved:
+      "Anda Menerima Request Pembelian Dari Retail Mandalika.",
+    descriptionRejected:
+      "Anda Menolak Request Pembelian Dari Retail Mandalika Maka Dari Itu Pesanan Tidak Diproses.",
+  },
+  auditId,
   onClose = () => {},
   onSubmit = () => {},
 }) => {
+  const apiClient = useApiClient();
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [rejeted, setRejected] = useState<string>("");
 
   useEffect(() => {
     if (isOpen) {
@@ -32,21 +47,35 @@ export const RetailRequestModal: React.FC<RetailRequestModalProps> = ({
     setTimeout(() => onClose(), 300);
   };
 
-  const handleSubmit = () => {
-    if (selectedStatus) {
-      onSubmit(selectedStatus);
-      console.log("Selected status:", selectedStatus);
-      setIsAnimating(false);
-      setTimeout(() => onClose(), 300);
+  const handleSubmit = async () => {
+    if (selectedStatus && auditId) {
+      try {
+        const payload = {
+          status: selectedStatus,
+          ...(selectedStatus === "rejected" && { reason: rejeted }),
+        };
+        await apiClient.put(`/audit/${auditId}`, payload);
+        Toaster(
+          "success",
+          `Audit ${
+            selectedStatus === "approved" ? "disetujui" : "ditolak"
+          } berhasil`
+        );
+        onSubmit(selectedStatus);
+        setIsAnimating(false);
+        setTimeout(() => onClose(), 300);
+      } catch (err) {
+        Toaster("error", "Gagal memperbarui status audit");
+        console.error(err);
+      }
     }
   };
 
   const statusOptions = [
     {
-      id: "terima",
+      id: "approved",
       title: "Terima",
-      description:
-        "Anda Menerima Request Pembelian Dari Retail Mandalika Maka Dari Itu Pesanan Akan Diproses",
+      description: description.descriptionApproved,
       icon: (
         <svg
           width="50"
@@ -73,10 +102,9 @@ export const RetailRequestModal: React.FC<RetailRequestModalProps> = ({
       ),
     },
     {
-      id: "tolak",
+      id: "rejected",
       title: "Tolak",
-      description:
-        "Anda Menolak Request Pembelian Dari Retail Mandalika Maka Dari Itu Pesanan Tidak Diproses",
+      description: description.descriptionRejected,
       icon: (
         <svg
           width="50"
@@ -127,7 +155,6 @@ export const RetailRequestModal: React.FC<RetailRequestModalProps> = ({
             Tanggapi Request Pembelian Dari Retail Mandalika
           </p>
         </div>
-
         <div className="px-6 py-4 space-y-3">
           {statusOptions.map((option) => (
             <div
@@ -163,8 +190,18 @@ export const RetailRequestModal: React.FC<RetailRequestModalProps> = ({
               </div>
             </div>
           ))}
+          {selectedStatus === "rejected" && (
+            <div className="">
+              <textarea
+                name="rejected"
+                onChange={(e) => setRejected(e.target.value)}
+                placeholder="Masukan alasan disini"
+                className="w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows={4}
+              ></textarea>
+            </div>
+          )}
         </div>
-
         <div className="px-6 py-4 border-t border-gray-200 flex space-x-3">
           <button
             onClick={handleCancel}
@@ -174,9 +211,9 @@ export const RetailRequestModal: React.FC<RetailRequestModalProps> = ({
           </button>
           <button
             onClick={handleSubmit}
-            disabled={!selectedStatus}
+            disabled={!selectedStatus || !auditId}
             className={`flex-1 px-4 py-2 cursor-pointer rounded-lg font-medium transition-colors duration-200 ${
-              selectedStatus
+              selectedStatus && auditId
                 ? "bg-blue-600 hover:bg-blue-700 text-white"
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}

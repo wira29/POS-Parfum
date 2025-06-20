@@ -91,6 +91,9 @@ interface Voucher {
   min: number;
   max_used: number;
   discount: number;
+  variant_name:string;
+  code_product:string;
+  category:string;
   used: number;
   active: number;
   store: {
@@ -101,7 +104,6 @@ interface Voucher {
 
 export default function DiscountIndex() {
   const ApiClient = useApiClient();
-
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -135,8 +137,7 @@ export default function DiscountIndex() {
         url += `&category=${encodeURIComponent(kategoriFilter)}`;
       }
 
-      const response = await ApiClient.get(url);
-
+      const response = await ApiClient.get(url);      
       if (response.data.success) {
         const apiData = response.data.data.map((item: any) => ({
           id: item.id,
@@ -144,7 +145,10 @@ export default function DiscountIndex() {
           expired: item.expired,
           min: item.min,
           max_used: item.max_used,
+          variant_name:item.details.variant_name,
+          code_product:item.code_product,
           discount: item.discount,
+          category:item.type,
           used: item.used,
           active: item.active,
           store: {
@@ -152,6 +156,7 @@ export default function DiscountIndex() {
             name: item.store.name,
           },
         }));
+        
 
         setVouchers(apiData);
         setTotalPages(response.data.pagination.last_page);
@@ -177,9 +182,6 @@ export default function DiscountIndex() {
     fetchVouchers(currentPage);
   }, [currentPage, searchQuery, statusFilter, kategoriFilter]);
 
-  function onPageChange(page: number) {
-    setCurrentPage(page);
-  }
 
   function deleteVoucher(id: string) {
     Swal.fire({
@@ -200,12 +202,11 @@ export default function DiscountIndex() {
       }
     });
   }
+console.log(vouchers);
 
   function applyFilter() {
     setCurrentPage(1);
-  }
-
-  
+  } 
 
   return (
     <div className="p-6 space-y-6">
@@ -259,14 +260,14 @@ export default function DiscountIndex() {
                   key={item.id}
                   className="border-b border-gray-200 text-gray-600 hover:bg-gray-50"
                 >
-                  <td className="px-6 py-4">{item.name}</td>
+                  <td className="px-6 py-4">{item.name ?? "name"}</td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
-                      <h1 className="font-semibold">Variant 1</h1>
-                      <h1>PROO1-1</h1>
+                      <h1 className="font-semibold">{item.variant_name ?? "variant name"}</h1>
+                      <h1>{item.code_product ?? "Code Product"}</h1>
                     </div>
                   </td>
-                  <td className="px-6 py-4">Parfume Siang</td>
+                  <td className="px-6 py-4">{item.category ?? "category"}</td>
                   <td className="px-6 py-4">{item.discount <= 100 ? `% ${item.discount}` : "Rp.100.000"}</td>
                   <td className="px-6 py-4">{item.expired === null ? "-" : item.expired}</td>
                   <td className="px-6 py-4">
@@ -297,11 +298,11 @@ export default function DiscountIndex() {
         </div>
 
         <Pagination
-          currentPage={1}
-          totalPages={10}
+          currentPage={currentPage}
+          totalPages={totalPages}
           onPageChange={(page) => setCurrentPage(page)}
-          totalItems={67}
-          itemsPerPage={8}
+          totalItems={totalItems}
+          itemsPerPage={perPage}
           showInfo={true}
         />
       </div>

@@ -1,28 +1,31 @@
-import { FiMenu, FiLogOut } from "react-icons/fi"
-import { useAuthStore } from "@/core/stores/AuthStore"
-import { useState, useRef, useEffect } from "react"
-import { Mail } from "lucide-react"
+import { FiMenu, FiLogOut } from "react-icons/fi";
+import { useAuthStore } from "@/core/stores/AuthStore";
+import { useState, useRef, useEffect } from "react";
+import { Mail } from "lucide-react";
 
 export const Header = ({
   onToggleSidebar,
   sidebar,
 }: {
-  onToggleSidebar: () => void
-  sidebar: string
+  onToggleSidebar: () => void;
+  sidebar: string;
 }) => {
-  const { user, role, setUserDefault } = useAuthStore()
-  const [showProfile, setShowProfile] = useState(false)
-  const profileRef = useRef(null)
+  const { user, role, setUserDefault } = useAuthStore();
+  const [showProfile, setShowProfile] = useState(false);
+  const profileRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (profileRef.current && !(profileRef.current as any).contains(e.target)) {
-        setShowProfile(false)
+      if (
+        profileRef.current &&
+        !(profileRef.current as any).contains(e.target)
+      ) {
+        setShowProfile(false);
       }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <header
@@ -64,43 +67,42 @@ export const Header = ({
         </div>
 
         {showProfile && (
-          <div className="absolute right-0 mt-6 border border-gray-400 w-72 bg-white shadow-xl rounded-lg p-4 z-50">
-            <h2 className="text-lg font-semibold mb-3">Profil Pengguna</h2>
-            <div className="flex items-center space-x-4">
+          <div className="absolute right-0 mt-6 w-80 z-[999] rounded-lg bg-white border border-gray-200 shadow-lg p-4">
+            <div className="flex items-center gap-4">
               <img
                 src={
                   user?.photo
                     ? import.meta.env.VITE_STORAGE_URL + user.photo
                     : "/images/profile/user-1.jpg"
                 }
-                className="w-16 h-16 rounded-full object-cover"
                 alt="Avatar"
+                className="w-16 h-16 rounded-full object-cover"
               />
               <div>
-                <div className="text-lg font-medium text-gray-800">
+                <h3 className="text-lg font-semibold text-gray-800">
                   {user?.name || "Fulan"}
-                </div>
-                <div className="text-sm text-gray-500">
+                </h3>
+                <p className="text-sm text-gray-500">
                   {role.join(", ") || "super admin"}
-                </div>
-                <div className="text-sm text-gray-600 mt-1">
-                  <span className="inline-block mr-1"><Mail size={12}/></span>
+                </p>
+                <p className="text-sm text-gray-600 mt-1 flex items-center gap-1">
+                  <Mail size={12} />
                   {user?.email || "superadmin@gmail.com"}
-                </div>
+                </p>
               </div>
             </div>
-            <hr className="my-3 border-t border-gray-500" />
+
+            <hr className="my-4 border-gray-200" />
             <button
-              onClick={() => {
-                setUserDefault()
-              }}
-              className="w-full text-center text-blue-600 hover:text-blue-800 hover:bg-blue-200 py-2 bg-blue-100 rounded-md flex items-center justify-center gap-1"
+              onClick={setUserDefault}
+              className="w-full py-2 rounded-md cursor-pointer bg-blue-100 text-blue-600 hover:bg-blue-200 hover:text-blue-800 flex items-center justify-center gap-2 transition-colors"
             >
-              Logout <FiLogOut />
+              Logout
+              <FiLogOut />
             </button>
           </div>
         )}
       </div>
     </header>
-  )
-}
+  );
+};

@@ -80,7 +80,6 @@ interface AuditDetailResponse {
   };
 }
 
-// Map API status to UI display
 const statusMap: Record<Audit["status"], string> = {
   approved: "Disetujui",
   pending: "Menunggu",
@@ -89,7 +88,7 @@ const statusMap: Record<Audit["status"], string> = {
 
 export const AuditDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const ApiClient = useApiClient();
+  const apiClient = useApiClient();
   const navigate = useNavigate();
   const [auditDetail, setAuditDetail] = useState<AuditDetailResponse["data"] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -105,7 +104,7 @@ export const AuditDetail = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await ApiClient.get<AuditDetailResponse>(`audit/${id}`);
+      const response = await apiClient.get<AuditDetailResponse>(`audit/${id}`);
       setAuditDetail(response.data.data);
     } catch (err) {
       setError("Gagal mengambil detail audit. Silakan coba lagi.");
@@ -119,8 +118,7 @@ export const AuditDetail = () => {
     fetchAuditDetail();
   }, [id]);
 
-  const handleRespond = async () => {
-    // Assuming RetailRequestModal submits a status update
+  const handleRespond = () => {
     setIsModalOpen(true);
   };
 
@@ -148,7 +146,6 @@ export const AuditDetail = () => {
         title="Detail Audit"
         desc="Lorem ipsum dolor sit amet, consectetur adipiscing."
       />
-
       <div className="bg-white shadow-sm rounded-lg p-5">
         <button
           onClick={() => navigate("/audit")}
@@ -157,7 +154,6 @@ export const AuditDetail = () => {
           ← Kembali
         </button>
         <h2 className="text-lg font-semibold mb-6">{audit.name}</h2>
-
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-4">
@@ -207,9 +203,7 @@ export const AuditDetail = () => {
             </div>
           </div>
         </div>
-
         <div className="border w-full my-5 border-slate-100"></div>
-
         <div className="mb-6">
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white border border-gray-200 rounded-lg overflow-hidden">
@@ -242,7 +236,7 @@ export const AuditDetail = () => {
                       {index + 1}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">
-                      {item.product.material} {/* Assuming material is the product name */}
+                      {item.product.material}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {item.product.material}
@@ -269,7 +263,7 @@ export const AuditDetail = () => {
                           type="text"
                           value={item.audit_stock}
                           readOnly
-                          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded Pary-md bg-white text-gray-900 focus:outline-none"
+                          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-l-md bg-white text-gray-900 focus:outline-none"
                         />
                         <span className="px-3 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-md text-sm text-gray-600">
                           {item.unit.name}
@@ -282,7 +276,6 @@ export const AuditDetail = () => {
             </table>
           </div>
         </div>
-
         <div className="flex flex-col sm:flex-row justify-end gap-3">
           <button
             type="button"
@@ -304,6 +297,11 @@ export const AuditDetail = () => {
       </div>
       <RetailRequestModal
         isOpen={isModalOpen}
+        auditId={id}
+        description={{
+          descriptionApproved: `Anda Menerima Audit "${audit.name}" (ID: ${id || ""}).`,
+          descriptionRejected: `Anda Menolak Audit "${audit.name}" (ID: ${id || ""}), sehingga audit tidak diproses.`,
+        }}
         onClose={() => setIsModalOpen(false)}
         onSubmit={() => {
           setIsModalOpen(false);
