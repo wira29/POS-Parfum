@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { Pagination } from "@/views/components/Pagination";
 import AddButton from "@/views/components/AddButton";
@@ -7,6 +7,7 @@ import { Filter } from "@/views/components/Filter";
 import { EditIcon } from "@/views/components/EditIcon";
 import ViewIcon from "@/views/components/ViewIcon";
 import { X } from "lucide-react";
+import { useApiClient } from "@/core/helpers/ApiClient";
 
 interface BlendingProduct {
   id: number;
@@ -25,72 +26,59 @@ interface BlendingProduct {
   }[];
 }
 
-const blendingDummy: BlendingProduct[] = [
-  {
-    id: 1,
-    nama: "Resep Parfum Racikan Mantap",
-    tanggalPembuatan: "2025-12-13",
-    kategori: "Parfum Premium",
-    stok: "2000G",
-    hargaNormal: "Rp 500.000",
-    hargaDiskon: "Rp 350.000",
-    status: "Berlaku",
-    products: [{
-      nama: "Parfum Siang",
-      harga: "Rp 120.000",
-      gambar: "/img/parfum.png",
-      variants: [
-        {
-          nama: "Varian Siang",
-          harga: "Rp 120.000"
-        },
-        {
-          nama: "Varian Malam",
-          harga: "Rp 130.000"
-        },
-      ]
-    },
-    {
-      nama: "Parfum Malam",
-      harga: "Rp 130.000",
-      gambar: "/img/parfum2.png",
-      variants: [
-        {
-          nama: "Varian Lemon",
-          harga: "Rp 110.000"
-        },
-        {
-          nama: "Varian Mint",
-          harga: "Rp 115.000"
-        },]
-    }]
-  },
-  {
-    id: 2,
-    nama: "Resep Parfum Segar", tanggalPembuatan: "2025-05-13", kategori: "Parfum Segar", stok: "1500G", hargaNormal: "Rp 400.000", hargaDiskon: "Rp 300.000", status: "Berlaku", products: [{ nama: "Parfum Floral", harga: "Rp 100.000", gambar: "/img/parfum3.png", variants: [{ nama: "Varian Mawar", harga: "Rp 100.000" }, { nama: "Varian Melati", harga: "Rp 105.000" },] }, { nama: "Parfum Citrus", harga: "Rp 110.000", gambar: "/img/parfum4.png", variants: [{ nama: "Varian Lemon", harga: "Rp 110.000" }, { nama: "Varian Orange", harga: "Rp 112.000" },] }]
-  }, { id: 3, nama: "Resep Parfum Maskulin", tanggalPembuatan: "2025-05-13", kategori: "Parfum Pria", stok: "800G", hargaNormal: "Rp 600.000", hargaDiskon: "Rp 450.000", status: "Berlaku", products: [{ nama: "Parfum Woody", harga: "Rp 140.000", gambar: "/img/parfum5.png", variants: [{ nama: "Varian Woody", harga: "Rp 140.000" }, { nama: "Varian Musk", harga: "Rp 145.000" },] }, { nama: "Parfum Leather", harga: "Rp 150.000", gambar: "/img/parfum6.png", variants: [{ nama: "Varian Leather", harga: "Rp 150.000" }, { nama: "Varian Tobacco", harga: "Rp 155.000" },] }] },
-];
-
 export default function BlendingIndex() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
-
+  const ApiClient = useApiClient();
+  const [blendingData, setBlendingData] = useState<BlendingProduct[]>([]);
   const [showFilter, setShowFilter] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState("");
 
-  const categoryOptions = Array.from(
-    new Set(blendingDummy.map((item) => item.kategori))
-  );
+  const categoryOptions = Array.from(new Set(blendingData.map((item) => item.kategori)));
 
-  const filteredData = blendingDummy.filter((item) => {
+  const getData = async () => {
+    try {
+      const response = await ApiClient.get("/product-blend");
+      const apiData = response.data?.data ?? [];
+      console.log(apiData);
+      
+
+      const transformed: BlendingProduct[] = apiData.map((item: any) => ({
+        id: item.id,
+        nama: item.product_detail.product.blend_name || "Tanpa Nama",
+        tanggalPembuatan: item.date || "",
+        kategori: "-",
+        stok: item.quantity ? `${item.quantity}G` : "-",
+        hargaNormal: "-",
+        hargaDiskon: "-",
+        status: "-",
+        products: item.product_blend_details?.map((detail: any) => ({
+          nama: detail.product_detail?.product?.name ?? "Produk Tanpa Nama",
+          harga: "-",
+          gambar: "/img/default.png",
+          variants: [],
+        })) ?? [],
+      }));
+
+      setBlendingData(transformed);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setBlendingData([]);
+    }
+  };
+
+  useEffect(() => {
+    getData();
+  }, []);
+
+  const filteredData = blendingData.filter((item) => {
     const matchSearch =
       item.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.kategori.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.status.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchCategory =
-      categoryFilter === "" || item.kategori === categoryFilter;
+    const matchCategory = categoryFilter === "" || item.kategori === categoryFilter;
 
     return matchSearch && matchCategory;
   });
@@ -106,7 +94,7 @@ export default function BlendingIndex() {
       <Breadcrumb title="Blending Produk" desc="Menampilkan blending yang aktif" />
       <div className="bg-white shadow-md p-4 rounded-md flex flex-col gap-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2 mb-4 w-full sm:w-auto max-w-lg">
+          <div className="flex items-center gap-5">
             <SearchInput
               value={searchQuery}
               onChange={(e) => {
@@ -114,8 +102,6 @@ export default function BlendingIndex() {
                 setCurrentPage(1);
               }}
             />
-          </div>
-          <div className="w-full sm:w-auto">
             <Filter onClick={() => setShowFilter(true)} />
           </div>
           <div className="w-full sm:w-auto">
@@ -136,7 +122,7 @@ export default function BlendingIndex() {
             <tbody>
               {paginatedData.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
                     Tidak ada data ditemukan.
                   </td>
                 </tr>
@@ -147,26 +133,24 @@ export default function BlendingIndex() {
                     className="border-b border-gray-200 text-gray-600 hover:bg-gray-50"
                   >
                     <td className="px-6 py-4">
-                      <span className="text-black text-base font-semibold">{item.nama}</span>
+                      <span className="text-black text-base font-semibold">
+                        {item.nama}
+                      </span>
                       <br /> Terdiri dari {item.products.length} Product
                     </td>
                     <td className="px-6 py-4">
                       {item.tanggalPembuatan
                         ? new Date(item.tanggalPembuatan).toLocaleDateString("id-ID", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })
                         : "-"}
                     </td>
                     <td className="px-6 py-4">{item.stok}</td>
                     <td className="px-6 py-4">
                       <div className="flex justify-center gap-2">
                         <ViewIcon to={`/blendings/${item.id}/detail`} />
-                        <EditIcon
-                          to={`/blendings/${item.id}/edit`}
-                          className="text-blue-500 hover:text-blue-700"
-                        />
                       </div>
                     </td>
                   </tr>
