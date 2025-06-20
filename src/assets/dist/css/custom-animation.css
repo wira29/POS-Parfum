@@ -22,7 +22,7 @@
   transition: max-height 0.4s ease;
 }
 .variant-enter {
-  max-height: 500px; /* atau lebih jika banyak konten */
+  max-height: 500px; 
 }
 .variant-leave {
   max-height: 0;

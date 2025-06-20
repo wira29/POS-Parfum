@@ -162,7 +162,7 @@ export const WarehouseIndex = () => {
                   <p className="text-[13px] text-gray-500 truncate">{warehouse.address}</p>
 
                   <p className="text-[13px] font-medium text-gray-600 mt-3">Total Product</p>
-                  <p className="text-[15px] font-bold text-black mb-4">{warehouse.products_count}</p>
+                  <p className="text-[12px] font-medium text-gray-600 mb-4">{warehouse.product_count}</p>
                   <div className="flex gap-2 mt-4">
                     <button
                       className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl text-sm font-medium flex-1"
@@ -223,8 +223,8 @@ export const WarehouseIndex = () => {
                   <button
                     key={index}
                     className={`px-3 py-1 border rounded text-sm ${link.active
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-600 hover:bg-gray-50"
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-600 hover:bg-gray-50"
                       }`}
                     disabled={!link.url}
                     onClick={() => handlePageChange(link.url)}
