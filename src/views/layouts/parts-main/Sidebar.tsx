@@ -11,7 +11,7 @@ import { Wallet2Icon } from "lucide-react";
 import { useApiClient } from "@/core/helpers/ApiClient";
 
 const menuItems = [
-  { label: "Beranda", icon: <FiHome />, path: "/dashboard", roles: ["admin", "warehouse", "owner", "retail"] },
+  { label: "Beranda", icon: <FiHome />, path: "/dashboard", roles: ["admin", "warehouse", "owner", "outlet"] },
   {
     group: "Transaksi",
     label: "Penjualan",
@@ -34,12 +34,12 @@ const menuItems = [
   {
     label: "Produk",
     children: [
-      { label: "Kategori", icon: <FiLayers />, path: "/categories",roles: ["warehouse","retail"] },
-      { label: "Produk", icon: <FiBox />, path: "/products", roles:["owner", "warehouse","retail"] },
+      { label: "Kategori", icon: <FiLayers />, path: "/categories",roles: ["warehouse","outlet"] },
+      { label: "Produk", icon: <FiBox />, path: "/products", roles:["owner", "warehouse","outlet"] },
       { label: "Blending Produk", icon: <FiCoffee />, path: "/blendings", roles: ["warehouse"] },
-      { label: "Restock Produk", icon: <FaBoxesPacking />, path: "/restock", roles: ["admin", "warehouse", "retail"] },
-      { label: "Audit", icon: <AiOutlineFileSearch />, path: "/audit", roles: ["admin", "warehouse","retail"] },
-      { label: "Diskon", icon: <FiPercent />, path: "/discounts", roles: ["owner", "warehouse", "retail"] },
+      { label: "Restock Produk", icon: <FaBoxesPacking />, path: "/restock", roles: ["admin", "warehouse", "outlet"] },
+      { label: "Audit", icon: <AiOutlineFileSearch />, path: "/audit", roles: ["admin", "warehouse","outlet"] },
+      { label: "Diskon", icon: <FiPercent />, path: "/discounts", roles: ["owner", "warehouse", "outlet"] },
     ],
   },
   {
@@ -47,9 +47,9 @@ const menuItems = [
     children: [
       { label: "Retail", icon: <FaShop />, path: "/retails", roles: ["owner", "warehouse"] },
       { label: "Warehouse", icon: <FaShop />, path: "/warehouses", roles: ["owner", "warehouse"] },
-      { label: "Tambah Pengguna", icon: <FiUsers />, path: "/users", roles: ["owner", "warehouse","retail"] },
-      { label: "Laporan", icon: <TbCoinTakaFilled />, path: "/laporan", roles: ["owner","retail"] },
-      { label: "Pengeluaran", icon: <Wallet2Icon />, path: "/pengeluaran", roles: ["owner","retail"] },
+      { label: "Tambah Pengguna", icon: <FiUsers />, path: "/users", roles: ["owner", "warehouse","outlet"] },
+      { label: "Laporan", icon: <TbCoinTakaFilled />, path: "/laporan", roles: ["owner","outlet"] },
+      { label: "Pengeluaran", icon: <Wallet2Icon />, path: "/pengeluaran", roles: ["owner","outlet"] },
     ],
   },
 ];
