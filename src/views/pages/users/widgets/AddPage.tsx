@@ -18,6 +18,17 @@ export default function UserCreateSelect() {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const [userData, setUserData] = useState({
+        username: "",
+        email: "",
+        role: [""],
+        password: "",
+    });
+
+    const [showPassword, setShowPassword] = useState(false);
+
     const handleUploadClick = () => {
         fileInputRef.current?.click();
     };
@@ -30,27 +41,20 @@ export default function UserCreateSelect() {
         }
     };
 
-    const [userData, setUserData] = useState({
-        username: "",
-        email: "",
-        role: [""],
-        password: "",
-    });
-
-    const [showPassword, setShowPassword] = useState(false);
-
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setUserData({
             ...userData,
             [name]: value,
         });
+        setErrors((prev) => ({ ...prev, [name]: "" }));
     };
 
     const handleChangeRole = (index: number, value: string) => {
         const updatedRoles = [...userData.role];
         updatedRoles[index] = value;
         setUserData({ ...userData, role: updatedRoles });
+        setErrors((prev) => ({ ...prev, role: "" }));
     };
 
     const handleAddRole = () => {
@@ -64,13 +68,19 @@ export default function UserCreateSelect() {
 
     const handleSubmit = async () => {
         const rolesFiltered = userData.role.filter((r) => r.trim() !== "");
-        if (
-            !userData.username.trim() ||
-            !userData.email.trim() ||
-            rolesFiltered.length === 0 ||
-            !userData.password.trim()
-        ) {
-            Toaster("error", "Semua field yang wajib diisi");
+
+        const newErrors: Record<string, string> = {
+            username: !userData.username.trim() ? "Username wajib diisi" : "",
+            email: !userData.email.trim() ? "Email wajib diisi" : "",
+            password: !userData.password.trim() ? "Password wajib diisi" : "",
+            role: rolesFiltered.length === 0 ? "Minimal satu role harus dipilih" : "",
+        };
+
+        setErrors(newErrors);
+
+        const hasError = Object.values(newErrors).some((err) => err !== "");
+        if (hasError) {
+            Toaster("error", "Harap lengkapi semua field yang wajib diisi");
             return;
         }
 
@@ -82,10 +92,30 @@ export default function UserCreateSelect() {
                 password: userData.password,
             });
             navigate("/users");
-            Toaster("success", "User berhasil dibuat")
-        } catch (error) {
-            Toaster("error", "User gagal dibuat")
-            console.error(error);
+            Toaster("success", "User berhasil dibuat");
+        } catch (error: any) {
+            if (error.response?.data?.data) {
+                const apiErrors = error.response.data.data;
+                const mappedErrors: Record<string, string> = {};
+
+                const fieldMap: Record<string, string> = {
+                    "users.0.email": "email",
+                    "telp": "telp", // add more mappings if needed
+                };
+
+                Object.entries(apiErrors).forEach(([key, val]) => {
+                    const mappedKey = fieldMap[key] || key;
+                    if (Array.isArray(val)) {
+                        mappedErrors[mappedKey] = val[0];
+                    }
+                });
+
+                setErrors(mappedErrors);
+                Toaster("error", "Terdapat kesalahan pada input");
+            } else {
+                Toaster("error", "User gagal dibuat");
+                console.error(error);
+            }
         }
     };
 
@@ -157,6 +187,7 @@ export default function UserCreateSelect() {
                             placeholder="Masukkan username"
                             className="w-full border border-gray-300 rounded px-3 py-2"
                         />
+                        {errors.username && <p className="text-red-500 text-sm mt-1">{errors.username}</p>}
                     </div>
 
                     <div>
@@ -171,6 +202,7 @@ export default function UserCreateSelect() {
                             placeholder="johndoe@example.com"
                             className="w-full border border-gray-300 rounded px-3 py-2"
                         />
+                        {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
                     </div>
 
                     <div className="md:col-span-1 space-y-3">
@@ -180,7 +212,6 @@ export default function UserCreateSelect() {
 
                         {userData.role.map((role, i) => {
                             const selectedRolesExceptCurrent = userData.role.filter((_, idx) => idx !== i);
-
                             return (
                                 <div key={i} className="flex items-center gap-2">
                                     <select
@@ -210,6 +241,7 @@ export default function UserCreateSelect() {
                                 </div>
                             );
                         })}
+                        {errors.role && <p className="text-red-500 text-sm mt-1">{errors.role}</p>}
 
                         <button
                             type="button"
@@ -272,6 +304,7 @@ export default function UserCreateSelect() {
                                 )}
                             </button>
                         </div>
+                        {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
                     </div>
                 </div>
 

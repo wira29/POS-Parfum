@@ -12,25 +12,39 @@ export default function WarehouseCreate() {
     name: "",
     address: "",
     telp: "",
-    image: null,
+    image: null as File | null,
   })
 
-  const handleInputChange = (e) => {
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
+    setErrors((prev) => ({ ...prev, [name]: "" }))
   }
 
-  const handleFileChange = (e) => {
-    setFormData((prev) => ({ ...prev, image: e.target.files[0] }))
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null
+    setFormData((prev) => ({ ...prev, image: file }))
+    setErrors((prev) => ({ ...prev, image: "" }))
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const username = formData.name
-      .toLowerCase()
-      .replace(/\s+/g, "")
-      .replace(/[^a-z0-9]/g, "")
+    // 🔎 Validasi lokal
+    const newErrors: Record<string, string> = {}
+    if (!formData.name.trim()) newErrors.name = "Nama warehouse wajib diisi"
+    if (!formData.telp.trim()) newErrors.telp = "Nomor telepon wajib diisi"
+    else if (!/^[0-9+\-()\s]+$/.test(formData.telp)) newErrors.telp = "Format nomor tidak valid"
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      Toaster("error", "Harap perbaiki input terlebih dahulu")
+      return
+    }
+
+    const username = formData.name.toLowerCase().replace(/\s+/g, "").replace(/[^a-z0-9]/g, "")
     const email = `${username}@gmail.com`
 
     const payload = new FormData()
@@ -44,7 +58,7 @@ export default function WarehouseCreate() {
     const users = [
       {
         name: username,
-        email: email,
+        email,
         password: "password",
       },
     ]
@@ -61,9 +75,31 @@ export default function WarehouseCreate() {
       })
       Toaster("success", "Warehouse berhasil dibuat")
       navigate("/warehouses")
-    } catch (error) {
-      console.error("Error submitting form:", error)
-      Toaster("error", "Gagal membuat warehouse")
+    } catch (error: any) {
+      const status = error?.response?.status
+      const data = error?.response?.data?.data
+
+      if (status === 400 && data) {
+        const mappedErrors: Record<string, string> = {}
+        const mapKeys: Record<string, string> = {
+          "telp": "telp",
+          "image": "image",
+          "users.0.email": "email",
+        }
+
+        Object.entries(data).forEach(([key, val]) => {
+          const localKey = mapKeys[key] || key
+          if (Array.isArray(val)) {
+            mappedErrors[localKey] = val[0]
+          }
+        })
+
+        setErrors(mappedErrors)
+        Toaster("error", "Terdapat kesalahan input")
+      } else {
+        Toaster("error", "Gagal membuat warehouse")
+        console.error(error)
+      }
     }
   }
 
@@ -84,8 +120,8 @@ export default function WarehouseCreate() {
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 placeholder="Masukkan nama warehouse"
-                required
               />
+              {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
             </div>
 
             <div className="space-y-2">
@@ -99,8 +135,8 @@ export default function WarehouseCreate() {
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 placeholder="No telepon warehouse"
-                required
               />
+              {errors.telp && <p className="text-red-500 text-sm">{errors.telp}</p>}
             </div>
 
             <div className="space-y-2">
@@ -112,8 +148,8 @@ export default function WarehouseCreate() {
                 name="image"
                 onChange={handleFileChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                required
               />
+              {errors.image && <p className="text-red-500 text-sm">{errors.image}</p>}
             </div>
           </div>
 
@@ -128,7 +164,6 @@ export default function WarehouseCreate() {
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
               placeholder="Masukkan alamat"
-              required
             />
           </div>
 
