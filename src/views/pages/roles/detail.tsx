@@ -1,74 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
-import { Pagination } from "@/views/components/Pagination";
 import AddButton from "@/views/components/AddButton";
 import { SearchInput } from "@/views/components/SearchInput";
-import DeleteIcon from "@/views/components/DeleteIcon";
-import { EditIcon } from "@/views/components/EditIcon";
 import { Filter } from "@/views/components/Filter";
-import ViewIcon from "@/views/components/ViewIcon";
-import { Calendar, Shield, Users, Trash2 } from "lucide-react";
-
-const FilterModal = ({
-  open,
-  onClose,
-  statusFilter,
-  setStatusFilter,
-  onApplyFilter,
-}: {
-  open: boolean;
-  onClose: () => void;
-  statusFilter: string;
-  setStatusFilter: (val: string) => void;
-  onApplyFilter: () => void;
-}) => {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-      <div className="bg-white rounded-lg shadow-lg p-6 min-w-[300px]">
-        <div className="font-semibold text-lg mb-4">Filter User</div>
-        <div className="mb-4">
-          <label className="block mb-1 text-sm">Status</label>
-          <select
-            className="border rounded px-2 py-1 w-full"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="">Semua Status</option>
-            <option value="online">Online</option>
-            <option value="offline">Offline</option>
-          </select>
-        </div>
-        <div className="flex justify-end gap-2">
-          <button
-            className="px-3 py-1 rounded border border-gray-300"
-            onClick={() => {
-              onApplyFilter();
-              onClose();
-            }}
-          >
-            Terapkan
-          </button>
-          <button
-            className="px-3 py-1 rounded border border-gray-300"
-            onClick={onClose}
-          >
-            Tutup
-          </button>
-        </div>
-      </div>
-
-      <FilterModal
-        open={showFilter}
-        onClose={() => setShowFilter(false)}
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        onApplyFilter={applyFilter}
-      />
-    </div>
-  );
-};
+import { Trash2 } from "lucide-react";
+import FilterModal from "@/views/pages/roles/filter"; 
 
 interface RoleDetail {
   id: string;
@@ -97,14 +34,17 @@ export default function RoleDetail() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const perPage = 8;
-  
+
+  // State untuk modal filter custom
   const [showFilter, setShowFilter] = useState(false);
-  const [statusFilter, setStatusFilter] = useState("");
-  
+  const [nameValue, setNameValue] = useState("");
+  const [joinFrom, setJoinFrom] = useState("");
+  const [joinTo, setJoinTo] = useState("");
+
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
 
@@ -189,31 +129,44 @@ export default function RoleDetail() {
   useEffect(() => {
     setLoading(true);
     setError(null);
-    
-    
+
     setTimeout(() => {
       let filteredUsers = dummyUsers;
-      
-      
+
+      // Filter by search
       if (searchQuery) {
-        filteredUsers = filteredUsers.filter(user => 
+        filteredUsers = filteredUsers.filter(user =>
           user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
           user.email.toLowerCase().includes(searchQuery.toLowerCase())
         );
       }
-      
-      
-      if (statusFilter) {
-        filteredUsers = filteredUsers.filter(user => user.status === statusFilter);
+
+      // Filter by nama pengguna (dari modal filter)
+      if (nameValue) {
+        filteredUsers = filteredUsers.filter(user =>
+          user.username.toLowerCase().includes(nameValue.toLowerCase())
+        );
       }
-      
+
+      // Filter by tanggal bergabung (dari modal filter)
+      if (joinFrom) {
+        filteredUsers = filteredUsers.filter(user =>
+          new Date(user.joinDate) >= new Date(joinFrom)
+        );
+      }
+      if (joinTo) {
+        filteredUsers = filteredUsers.filter(user =>
+          new Date(user.joinDate) <= new Date(joinTo)
+        );
+      }
+
       setRole(dummyRole);
       setUsers(filteredUsers);
       setTotalItems(filteredUsers.length);
       setTotalPages(Math.ceil(filteredUsers.length / perPage));
       setLoading(false);
     }, 500);
-  }, [id, searchQuery, statusFilter]);
+  }, [id, searchQuery, nameValue, joinFrom, joinTo]);
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -233,18 +186,12 @@ export default function RoleDetail() {
     setCurrentPage(page);
   };
 
-  function applyFilter() {
-    setCurrentPage(1);
-  }
-
-
   return (
     <div className="p-6 space-y-6">
       <Breadcrumb
         title="Detail Role"
         desc="Lorem ipsum dolor sit amet, consectetur adipiscing"
       />
-
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white rounded-2xl p-6 shadow-sm">
@@ -260,7 +207,6 @@ export default function RoleDetail() {
           </div>
         </div>
 
-
         <div className="bg-white rounded-2xl p-6 shadow-sm">
           <div className="flex justify-between items-start mb-4">
             <div>
@@ -273,7 +219,6 @@ export default function RoleDetail() {
             Edit
           </div>
         </div>
-
 
         <div className="bg-white rounded-2xl p-6 shadow-sm">
           <div className="flex justify-between items-start mb-4">
@@ -288,7 +233,6 @@ export default function RoleDetail() {
           </div>
         </div>
 
-
         <div className="bg-white rounded-2xl p-6 shadow-sm">
           <div className="flex justify-between items-start mb-4">
             <div>
@@ -299,9 +243,9 @@ export default function RoleDetail() {
           </div>
           <div className="flex items-center">
             <label className="relative inline-flex items-center cursor-pointer">
-              <input 
-                type="checkbox" 
-                className="sr-only peer" 
+              <input
+                type="checkbox"
+                className="sr-only peer"
                 checked={role?.status === 'active'}
                 onChange={() => {}}
               />
@@ -311,7 +255,6 @@ export default function RoleDetail() {
         </div>
       </div>
 
-
       <div className="bg-white rounded-2xl shadow-sm">
         <div className="p-6 border-b border-gray-200">
           <div className="flex justify-between items-center">
@@ -319,7 +262,7 @@ export default function RoleDetail() {
               <h2 className="text-xl font-bold text-gray-900">{totalItems} User Tergabung</h2>
             </div>
             <div className="flex gap-3">
-              <button 
+              <button
                 className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                 onClick={() => nav("/roles")}
               >
@@ -328,7 +271,7 @@ export default function RoleDetail() {
               <AddButton to="/users/create">Tambah User</AddButton>
             </div>
           </div>
-          
+
           <div className="mt-4 flex items-center gap-2 w-full sm:w-auto max-w-lg">
             <SearchInput
               value={searchQuery}
@@ -362,8 +305,8 @@ export default function RoleDetail() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.joinDate}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                      user.status === 'online' 
-                        ? 'bg-green-100 text-green-800' 
+                      user.status === 'online'
+                        ? 'bg-green-100 text-green-800'
                         : 'bg-gray-100 text-gray-800'
                     }`}>
                       {user.status === 'online' ? 'Online' : 'Offline'}
@@ -380,7 +323,6 @@ export default function RoleDetail() {
           </table>
         </div>
 
-
         <div className="px-6 py-4 border-t border-gray-200">
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-700">
@@ -394,7 +336,7 @@ export default function RoleDetail() {
               >
                 Previous
               </button>
-              
+
               {[...Array(totalPages)].map((_, index) => {
                 const page = index + 1;
                 return (
@@ -411,7 +353,7 @@ export default function RoleDetail() {
                   </button>
                 );
               })}
-              
+
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
@@ -423,6 +365,24 @@ export default function RoleDetail() {
           </div>
         </div>
       </div>
+
+      {/* Modal Filter Custom */}
+      <FilterModal
+        open={showFilter}
+        onClose={() => setShowFilter(false)}
+        onApply={() => setShowFilter(false)}
+        onReset={() => {
+          setNameValue("");
+          setJoinFrom("");
+          setJoinTo("");
+        }}
+        nameValue={nameValue}
+        setNameValue={setNameValue}
+        joinFrom={joinFrom}
+        setJoinFrom={setJoinFrom}
+        joinTo={joinTo}
+        setJoinTo={setJoinTo}
+      />
     </div>
   );
 }
