@@ -1,18 +1,37 @@
-// import { useApiClient } from "@/core/helpers/ApiClient";
-// import { useState } from "react";
 import StatistikPendapatan from "./StatistikPendapatan";
 import LatestOrder from "./LatestOrder";
 
-export const Statistik = () => {
-//   const [products, setProducts] = useState<{ [key: string]: any }[]>([]);
+interface DashboardData {
+  chart: {
+    year: number;
+    data: number[];
+  };
+  recent_orders: Array<{
+    id?: string;
+    title: string;
+    message: string;
+    created_at?: string;
+  }>;
+  low_stock_products?: Array<{
+    name: string;
+    stock: number;
+    unit: string;
+  }>;
+  role: string;
+}
 
+interface StatistikProps {
+  data: DashboardData;
+}
+
+export const Statistik = ({ data }: StatistikProps) => {
   return (
     <div className="w-full flex gap-5">
       <div className="flex-[9.5]">
-        <StatistikPendapatan />
+        <StatistikPendapatan chartData={data.chart} />
       </div>
       <div className="flex-[3]">
-        <LatestOrder />
+        <LatestOrder orders={data.recent_orders} />
       </div>
     </div>
   );

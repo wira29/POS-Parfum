@@ -4,13 +4,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useApiClient } from "@/core/helpers/ApiClient";
 
 interface ProductDetail {
-  id: string;
-  product_id: string;
   variant_name: string | null;
-  product?: {
-    id: string;
+  product: {
     name: string;
-    blend_name:string;
   };
 }
 
@@ -18,20 +14,18 @@ interface BlendDetail {
   id: string;
   product_blend_id: string;
   product_detail_id: string;
-  used_stock: number;
-  unit_id: string;
-  created_at: string;
-  updated_at: string;
+  quantity: number;
   product_detail: ProductDetail;
 }
 
 interface BlendData {
   id: string;
-  description: string;
-  result_stock: number;
-  date: string;
-  unit_id: string;
-  product_detail:[];
+  Quantity: number;
+  description:string;
+  tanggal_pembuatan: string;
+  product: {
+    nama_blending: string;
+  };
   product_blend_details: {
     data: BlendDetail[];
   };
@@ -49,8 +43,8 @@ export const BlendingDetail = () => {
     const fetchBlendData = async () => {
       try {
         const response = await API.get(`/product-blend/${id}`);
-        const result = response.data;
-        setBlendData(result.data)
+        const result = response.data.data;
+        setBlendData(result);
       } catch (err) {
         console.error("API Error:", err);
         setError("Gagal mengambil data");
@@ -67,10 +61,10 @@ export const BlendingDetail = () => {
   if (!blendData) return <div>Tidak ada data ditemukan.</div>;
 
   const {
+    Quantity,
     description,
-    result_stock,
-    product_detail,
-    date,
+    tanggal_pembuatan,
+    product,
     product_blend_details
   } = blendData;
 
@@ -105,7 +99,7 @@ export const BlendingDetail = () => {
           <div>
             <p className="text-sm text-gray-500 mb-1">Nama Blending</p>
             <div className="bg-gray-50 border border-gray-300 rounded px-3 py-2 text-sm text-gray-800">
-              {product_detail.product.blend_name || "N/A"}
+              {product?.nama_blending || "N/A"}
             </div>
           </div>
 
@@ -113,10 +107,10 @@ export const BlendingDetail = () => {
             <p className="text-sm text-gray-500 mb-1">Quantity</p>
             <div className="flex">
               <div className="flex-1 bg-gray-50 border border-gray-300 border-r-0 rounded-l px-3 py-2 text-sm text-gray-800">
-                {result_stock ?? "N/A"}
+                {Quantity ?? "N/A"}
               </div>
               <div className="bg-gray-100 border border-gray-300 border-l-0 rounded-r px-3 py-2 text-sm text-gray-800">
-                {blendDetails[0]?.unit_id ? "Unit" : "N/A"}
+                Unit
               </div>
             </div>
           </div>
@@ -126,8 +120,8 @@ export const BlendingDetail = () => {
             <div className="flex items-center bg-gray-50 border border-gray-300 rounded px-3 py-2 text-sm text-gray-800 space-x-2">
               <Calendar className="text-gray-600" />
               <span>
-                {date
-                  ? new Date(date).toLocaleDateString("id-ID", {
+                {tanggal_pembuatan
+                  ? new Date(tanggal_pembuatan).toLocaleDateString("id-ID", {
                       day: "2-digit",
                       month: "2-digit",
                       year: "numeric"
@@ -151,12 +145,10 @@ export const BlendingDetail = () => {
               Cara Blending
             </h2>
             <h3 className="font-medium text-gray-700 mb-1">Deskripsi Blending Produk</h3>
-            <p className="text-sm text-gray-600 leading-relaxed">
+            <div className="text-sm text-gray-600 leading-relaxed">
               <span className="font-semibold">Langkah-Langkah Blending:</span>{" "}
-              <p>
-                {description || "Deskripsi belum tersedia."}
-              </p>
-            </p>
+              <p className="mt-1">{description}</p>
+            </div>
           </div>
 
           <div>
@@ -170,7 +162,6 @@ export const BlendingDetail = () => {
                     <th className="px-4 py-2">Produk</th>
                     <th className="px-4 py-2">Varian Produk</th>
                     <th className="px-4 py-2">Qty Digunakan</th>
-                    {/* <th className="px-4 py-2">Stok</th> */}
                   </tr>
                 </thead>
                 <tbody>
@@ -178,24 +169,21 @@ export const BlendingDetail = () => {
                     blendDetails.map((detail) => (
                       <tr key={detail.id} className="bg-white border-b">
                         <td className="px-4 py-2">
-                          <div>
-                            <div className="font-medium">
-                              {detail.product_detail?.product?.name ?? "N/A"}
-                            </div>
+                          <div className="font-medium">
+                            {detail.product_detail?.product?.name ?? "N/A"}
                           </div>
                         </td>
                         <td className="px-4 py-2">
                           {detail.product_detail?.variant_name || "N/A"}
                         </td>
                         <td className="px-4 py-2">
-                          {detail.used_stock ?? "N/A"}
+                          {detail.quantity ?? "N/A"}
                         </td>
-                        {/* <td className="px-4 py-2">N/A</td> */}
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={4} className="px-4 py-2 text-center text-gray-500">
+                      <td colSpan={3} className="px-4 py-2 text-center text-gray-500">
                         Tidak ada detail blending tersedia.
                       </td>
                     </tr>

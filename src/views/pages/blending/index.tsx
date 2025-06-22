@@ -4,7 +4,6 @@ import { Pagination } from "@/views/components/Pagination";
 import AddButton from "@/views/components/AddButton";
 import { SearchInput } from "@/views/components/SearchInput";
 import { Filter } from "@/views/components/Filter";
-import { EditIcon } from "@/views/components/EditIcon";
 import ViewIcon from "@/views/components/ViewIcon";
 import { X } from "lucide-react";
 import { useApiClient } from "@/core/helpers/ApiClient";
@@ -35,30 +34,31 @@ export default function BlendingIndex() {
   const [showFilter, setShowFilter] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState("");
 
-  const categoryOptions = Array.from(new Set(blendingData.map((item) => item.kategori)));
+  const categoryOptions = Array.from(
+    new Set(blendingData.map((item) => item.kategori))
+  );
 
   const getData = async () => {
     try {
       const response = await ApiClient.get("/product-blend");
-      const apiData = response.data?.data ?? [];
-      console.log(apiData);
-      
+      const apiData = response.data.data ?? [];
 
       const transformed: BlendingProduct[] = apiData.map((item: any) => ({
         id: item.id,
-        nama: item.product_detail.product.blend_name || "Tanpa Nama",
+        nama: item.product?.blend_name || "Tanpa Nama",
         tanggalPembuatan: item.date || "",
         kategori: "-",
         stok: item.quantity ? `${item.quantity}G` : "-",
         hargaNormal: "-",
         hargaDiskon: "-",
         status: "-",
-        products: item.product_blend_details?.map((detail: any) => ({
-          nama: detail.product_detail?.product?.name ?? "Produk Tanpa Nama",
-          harga: "-",
-          gambar: "/img/default.png",
-          variants: [],
-        })) ?? [],
+        products:
+          item.product_blend_details?.map((detail: any) => ({
+            nama: detail.product_detail?.product?.name ?? "Produk Tanpa Nama",
+            harga: "-",
+            gambar: "/img/default.png",
+            variants: [],
+          })) ?? [],
       }));
 
       setBlendingData(transformed);
@@ -78,7 +78,8 @@ export default function BlendingIndex() {
       item.kategori.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.status.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchCategory = categoryFilter === "" || item.kategori === categoryFilter;
+    const matchCategory =
+      categoryFilter === "" || item.kategori === categoryFilter;
 
     return matchSearch && matchCategory;
   });
@@ -91,7 +92,10 @@ export default function BlendingIndex() {
 
   return (
     <div className="p-6 space-y-6">
-      <Breadcrumb title="Blending Produk" desc="Menampilkan blending yang aktif" />
+      <Breadcrumb
+        title="Blending Produk"
+        desc="Menampilkan blending yang aktif"
+      />
       <div className="bg-white shadow-md p-4 rounded-md flex flex-col gap-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-5">
@@ -122,7 +126,10 @@ export default function BlendingIndex() {
             <tbody>
               {paginatedData.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
+                  <td
+                    colSpan={4}
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
                     Tidak ada data ditemukan.
                   </td>
                 </tr>
@@ -140,11 +147,14 @@ export default function BlendingIndex() {
                     </td>
                     <td className="px-6 py-4">
                       {item.tanggalPembuatan
-                        ? new Date(item.tanggalPembuatan).toLocaleDateString("id-ID", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })
+                        ? new Date(item.tanggalPembuatan).toLocaleDateString(
+                            "id-ID",
+                            {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            }
+                          )
                         : "-"}
                     </td>
                     <td className="px-6 py-4">{item.stok}</td>

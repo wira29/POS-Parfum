@@ -11,72 +11,246 @@ import { Toaster } from "@/core/helpers/BaseAlert";
 import ViewIcon from "@/views/components/ViewIcon";
 import { useApiClient } from "@/core/helpers/ApiClient";
 
+const SearchableSelect = ({
+  value,
+  onChange,
+  options,
+  placeholder,
+  label
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  options: string[];
+  placeholder: string;
+  label: string;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  
+  const filteredOptions = options.filter(option =>
+    option.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const uniqueOptions = [...new Set(filteredOptions)];
+
+  return (
+    <div className="relative">
+      <label className="block mb-2 text-sm font-medium text-gray-700">{label}</label>
+      <div className="relative">
+        <input
+          type="text"
+          className="w-full border border-gray-300 rounded-md px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
+          placeholder={placeholder}
+          value={value}
+          onClick={() => setIsOpen(!isOpen)}
+          readOnly
+        />
+        <div 
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </div>
+      
+      {isOpen && (
+        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+          <div className="p-2">
+            <input
+              type="text"
+              className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+              placeholder="Cari..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              autoFocus
+            />
+          </div>
+          <div className="py-1">
+            <div
+              className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+              onClick={() => {
+                onChange("");
+                setIsOpen(false);
+                setSearchTerm("");
+              }}
+            >
+              Semua
+            </div>
+            {uniqueOptions.map((option, index) => (
+              <div
+                key={index}
+                className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                onClick={() => {
+                  onChange(option);
+                  setIsOpen(false);
+                  setSearchTerm("");
+                }}
+              >
+                {option}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const FilterModal = ({
   open,
   onClose,
+  namaDiskonFilter,
+  setNamaDiskonFilter,
+  namaVariantFilter,
+  setNamaVariantFilter,
   statusFilter,
   setStatusFilter,
-  kategoriFilter,
-  setKategoriFilter,
-  kategoriOptions,
+  jenisFilter,
+  setJenisFilter,
+  nilaiFilter,
+  setNilaiFilter,
+  minNilaiFilter,
+  setMinNilaiFilter,
+  maxNilaiFilter,
+  setMaxNilaiFilter,
+  tanggalMulaiFilter,
+  setTanggalMulaiFilter,
+  tanggalBerakhirFilter,
+  setTanggalBerakhirFilter,
   onApplyFilter,
-}: {
-  open: boolean;
-  onClose: () => void;
-  statusFilter: string;
-  setStatusFilter: (val: string) => void;
-  kategoriFilter: string;
-  setKategoriFilter: (val: string) => void;
-  kategoriOptions: string[];
-  onApplyFilter: () => void;
-}) => {
+  onResetFilter,
+  namaDiskonOptions,
+  namaVariantOptions,
+  statusOptions,
+}: any) => {
   if (!open) return null;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-      <div className="bg-white rounded-lg shadow-lg p-6 min-w-[300px]">
-        <div className="font-semibold text-lg mb-4">Filter Diskon</div>
-        <div className="mb-4">
-          <label className="block mb-1 text-sm">Status</label>
-          <select
-            className="border rounded px-2 py-1 w-full"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="">Semua Status</option>
-            <option value="1">Berlaku</option>
-            <option value="0">Tidak Berlaku</option>
-          </select>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="font-semibold text-xl mb-6 text-gray-800">Filter Data</div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-4">
+            <SearchableSelect
+              value={namaDiskonFilter}
+              onChange={setNamaDiskonFilter}
+              options={namaDiskonOptions}
+              placeholder="Ketik atau pilih..."
+              label="Nama Diskon"
+            />
+
+            <SearchableSelect
+              value={namaVariantFilter}
+              onChange={setNamaVariantFilter}
+              options={namaVariantOptions}
+              placeholder="Ketik atau pilih..."
+              label="Nama Produk Varian"
+            />
+
+            <div>
+              <label className="block mb-2 text-sm font-medium text-gray-700">Status</label>
+              <select
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="">Semua Status</option>
+                {statusOptions.map((status: any, index: number) => (
+                  <option key={index} value={status.value}>
+                    {status.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm font-medium text-gray-700">Jenis</label>
+              <select
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={jenisFilter}
+                onChange={(e) => setJenisFilter(e.target.value)}
+              >
+                <option value="">Semua Jenis</option>
+                <option value="percent">Persen (%)</option>
+                <option value="fixed">Nominal (Rp)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm font-medium text-gray-700">Nilai</label>
+              <input
+                type="number"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Ketikkan jumlah"
+                value={nilaiFilter}
+                onChange={(e) => setNilaiFilter(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block mb-2 text-sm font-medium text-gray-700">Minimum Nilai Diskon</label>
+              <input
+                type="number"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Ketikkan jumlah"
+                value={minNilaiFilter}
+                onChange={(e) => setMinNilaiFilter(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm font-medium text-gray-700">Maximum Nilai Diskon</label>
+              <input
+                type="number"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Ketikkan jumlah"
+                value={maxNilaiFilter}
+                onChange={(e) => setMaxNilaiFilter(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm font-medium text-gray-700">Tanggal Mulai</label>
+              <input
+                type="date"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={tanggalMulaiFilter}
+                onChange={(e) => setTanggalMulaiFilter(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm font-medium text-gray-700">Tanggal Berakhir</label>
+              <input
+                type="date"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={tanggalBerakhirFilter}
+                onChange={(e) => setTanggalBerakhirFilter(e.target.value)}
+              />
+            </div>
+          </div>
         </div>
-        <div className="mb-4">
-          <label className="block mb-1 text-sm">Kategori Produk</label>
-          <select
-            className="border rounded px-2 py-1 w-full"
-            value={kategoriFilter}
-            onChange={(e) => setKategoriFilter(e.target.value)}
-          >
-            <option value="">Semua Kategori</option>
-            {kategoriOptions.map((kat, idx) => (
-              <option key={idx} value={kat}>
-                {kat}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex justify-end gap-2">
+
+        <div className="flex justify-end gap-3 mt-8">
           <button
-            className="px-3 py-1 rounded border border-gray-300"
+            className="px-6 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+            onClick={onResetFilter}
+          >
+            Reset
+          </button>
+          <button
+            className="px-6 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors"
             onClick={() => {
               onApplyFilter();
               onClose();
             }}
           >
             Terapkan
-          </button>
-          <button
-            className="px-3 py-1 rounded border border-gray-300"
-            onClick={onClose}
-          >
-            Tutup
           </button>
         </div>
       </div>
@@ -91,9 +265,9 @@ interface Voucher {
   min: number;
   max_used: number;
   discount: number;
-  variant_name:string;
-  code_product:string;
-  category:string;
+  variant_name: string;
+  code_product: string;
+  category: string;
   used: number;
   active: number;
   store: {
@@ -105,6 +279,7 @@ interface Voucher {
 export default function DiscountIndex() {
   const ApiClient = useApiClient();
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
+  const [allVouchers, setAllVouchers] = useState<Voucher[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -113,13 +288,62 @@ export default function DiscountIndex() {
   const perPage = 8;
 
   const [showFilter, setShowFilter] = useState(false);
+  const [namaDiskonFilter, setNamaDiskonFilter] = useState("");
+  const [namaVariantFilter, setNamaVariantFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [kategoriFilter, setKategoriFilter] = useState("");
+  const [jenisFilter, setJenisFilter] = useState("");
+  const [nilaiFilter, setNilaiFilter] = useState("");
+  const [minNilaiFilter, setMinNilaiFilter] = useState("");
+  const [maxNilaiFilter, setMaxNilaiFilter] = useState("");
+  const [tanggalMulaiFilter, setTanggalMulaiFilter] = useState("");
+  const [tanggalBerakhirFilter, setTanggalBerakhirFilter] = useState("");
 
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
 
-  const kategoriOptions = ["Parfum", "Makeup", "Skincare", "Aksesoris"];
+  const [namaDiskonOptions, setNamaDiskonOptions] = useState<string[]>([]);
+  const [namaVariantOptions, setNamaVariantOptions] = useState<string[]>([]);
+  const [statusOptions, setStatusOptions] = useState<any[]>([]);
+
+  async function fetchAllVouchers() {
+    try {
+      const response = await ApiClient.get('/discount-vouchers?per_page=1000');
+      if (response.data.success) {
+        const apiData = response.data.data.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          expired: item.expired,
+          min: item.min,
+          max_used: item.max_used,
+          variant_name: item.details?.variant_name || '',
+          code_product: item.code_product,
+          discount: item.discount,
+          category: item.type,
+          used: item.used,
+          active: item.active,
+          store: {
+            id: item.store?.id || '',
+            name: item.store?.name || '',
+          },
+        }));
+
+        setAllVouchers(apiData);
+        
+        const uniqueNames = [...new Set(apiData.map((v: Voucher) => v.name).filter(Boolean))];
+        const uniqueVariants = [...new Set(apiData.map((v: Voucher) => v.variant_name).filter(Boolean))];
+        const uniqueStatuses = [...new Set(apiData.map((v: Voucher) => ({
+          value: v.active.toString(),
+          label: v.active === 1 ? 'Aktif' : 'Tidak Aktif'
+        })).map(s => JSON.stringify(s)))].map(s => JSON.parse(s));
+
+        setNamaDiskonOptions(uniqueNames);
+        setNamaVariantOptions(uniqueVariants);
+        setStatusOptions(uniqueStatuses);
+      }
+    } catch (error) {
+      console.error("Error fetching all vouchers:", error);
+    }
+  }
 
   async function fetchVouchers(page = 1) {
     setLoading(true);
@@ -130,14 +354,35 @@ export default function DiscountIndex() {
       if (searchQuery) {
         url += `&search=${encodeURIComponent(searchQuery)}`;
       }
+      if (namaDiskonFilter) {
+        url += `&name=${encodeURIComponent(namaDiskonFilter)}`;
+      }
+      if (namaVariantFilter) {
+        url += `&variant=${encodeURIComponent(namaVariantFilter)}`;
+      }
       if (statusFilter !== "") {
         url += `&active=${statusFilter}`;
       }
-      if (kategoriFilter !== "") {
-        url += `&category=${encodeURIComponent(kategoriFilter)}`;
+      if (jenisFilter) {
+        url += `&type=${jenisFilter}`;
+      }
+      if (nilaiFilter) {
+        url += `&discount=${nilaiFilter}`;
+      }
+      if (minNilaiFilter) {
+        url += `&min_discount=${minNilaiFilter}`;
+      }
+      if (maxNilaiFilter) {
+        url += `&max_discount=${maxNilaiFilter}`;
+      }
+      if (tanggalMulaiFilter) {
+        url += `&start_date=${tanggalMulaiFilter}`;
+      }
+      if (tanggalBerakhirFilter) {
+        url += `&end_date=${tanggalBerakhirFilter}`;
       }
 
-      const response = await ApiClient.get(url);      
+      const response = await ApiClient.get(url);
       if (response.data.success) {
         const apiData = response.data.data.map((item: any) => ({
           id: item.id,
@@ -145,18 +390,17 @@ export default function DiscountIndex() {
           expired: item.expired,
           min: item.min,
           max_used: item.max_used,
-          variant_name:item.details.variant_name,
-          code_product:item.code_product,
+          variant_name: item.details?.variant_name || '',
+          code_product: item.code_product,
           discount: item.discount,
-          category:item.type,
+          category: item.type,
           used: item.used,
           active: item.active,
           store: {
-            id: item.store.id,
-            name: item.store.name,
+            id: item.store?.id || '',
+            name: item.store?.name || '',
           },
         }));
-        
 
         setVouchers(apiData);
         setTotalPages(response.data.pagination.last_page);
@@ -179,9 +423,12 @@ export default function DiscountIndex() {
   }
 
   useEffect(() => {
-    fetchVouchers(currentPage);
-  }, [currentPage, searchQuery, statusFilter, kategoriFilter]);
+    fetchAllVouchers();
+  }, []);
 
+  useEffect(() => {
+    fetchVouchers(currentPage);
+  }, [currentPage, searchQuery]);
 
   function deleteVoucher(id: string) {
     Swal.fire({
@@ -196,17 +443,57 @@ export default function DiscountIndex() {
           await ApiClient.delete(`/discount-vouchers/${id}`);
           Toaster("success", "Diskon berhasil dihapus");
           fetchVouchers(currentPage);
+          fetchAllVouchers();
         } catch (error) {
           Toaster("error", "Gagal menghapus diskon");
         }
       }
     });
   }
-console.log(vouchers);
 
   function applyFilter() {
     setCurrentPage(1);
-  } 
+    fetchVouchers(1);
+  }
+
+  function resetFilter() {
+    setNamaDiskonFilter("");
+    setNamaVariantFilter("");
+    setStatusFilter("");
+    setJenisFilter("");
+    setNilaiFilter("");
+    setMinNilaiFilter("");
+    setMaxNilaiFilter("");
+    setTanggalMulaiFilter("");
+    setTanggalBerakhirFilter("");
+    setCurrentPage(1);
+    setShowFilter(false);
+    fetchVouchers(1);
+  }
+
+  const formatDiscount = (discount: number | string): string => {
+    const value = Number(discount);
+    if (isNaN(value)) return "-";
+    if (value >= 1000) return `Rp${value.toLocaleString("id-ID")}`;
+    return `${value}%`;
+  };
+
+  const hasActiveFilters = namaDiskonFilter || namaVariantFilter || statusFilter || jenisFilter || 
+                          nilaiFilter || minNilaiFilter || maxNilaiFilter || tanggalMulaiFilter || tanggalBerakhirFilter;
+
+  const getActiveFiltersText = () => {
+    const filters = [];
+    if (namaDiskonFilter) filters.push(`Nama: ${namaDiskonFilter}`);
+    if (namaVariantFilter) filters.push(`Varian: ${namaVariantFilter}`);
+    if (statusFilter) filters.push(`Status: ${statusOptions.find(s => s.value === statusFilter)?.label || statusFilter}`);
+    if (jenisFilter) filters.push(`Jenis: ${jenisFilter === 'percent' ? 'Persen (%)' : 'Nominal (Rp)'}`);
+    if (nilaiFilter) filters.push(`Nilai: ${nilaiFilter}`);
+    if (minNilaiFilter) filters.push(`Min: ${minNilaiFilter}`);
+    if (maxNilaiFilter) filters.push(`Max: ${maxNilaiFilter}`);
+    if (tanggalMulaiFilter) filters.push(`Mulai: ${tanggalMulaiFilter}`);
+    if (tanggalBerakhirFilter) filters.push(`Berakhir: ${tanggalBerakhirFilter}`);
+    return filters.join(', ');
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -221,14 +508,17 @@ console.log(vouchers);
                 setCurrentPage(1);
               }}
             />
-            <Filter onClick={() => setShowFilter(true)} />
+            <div className="relative">
+              <Filter onClick={() => setShowFilter(true)} />
+              {hasActiveFilters && (
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
+              )}
+            </div>
           </div>
           <div className="w-full sm:w-auto">
             <AddButton to="/discounts/create">Buat Diskon</AddButton>
           </div>
         </div>
-
-        {loading && <p>Loading...</p>}
         {error && <p className="text-red-600">{error}</p>}
 
         <div className="overflow-x-auto rounded-lg">
@@ -248,7 +538,7 @@ console.log(vouchers);
               {vouchers.length === 0 && !loading && (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={7}
                     className="px-6 py-4 text-center text-gray-500"
                   >
                     Tidak ada data ditemukan.
@@ -260,16 +550,20 @@ console.log(vouchers);
                   key={item.id}
                   className="border-b border-gray-200 text-gray-600 hover:bg-gray-50"
                 >
-                  <td className="px-6 py-4">{item.name ?? "name"}</td>
+                  <td className="px-6 py-4">{item.name || "-"}</td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
-                      <h1 className="font-semibold">{item.variant_name ?? "variant name"}</h1>
-                      <h1>{item.code_product ?? "Code Product"}</h1>
+                      <h1 className="font-semibold">
+                        {item.variant_name || "-"}
+                      </h1>
+                      <h1>{item.code_product || "-"}</h1>
                     </div>
                   </td>
-                  <td className="px-6 py-4">{item.category ?? "category"}</td>
-                  <td className="px-6 py-4">{item.discount <= 100 ? `% ${item.discount}` : "Rp.100.000"}</td>
-                  <td className="px-6 py-4">{item.expired === null ? "-" : item.expired}</td>
+                  <td className="px-6 py-4">{item.category || "-"}</td>
+                  <td className="px-6 py-4">{formatDiscount(item.discount)}</td>
+                  <td className="px-6 py-4">
+                    {item.expired === null ? "-" : item.expired}
+                  </td>
                   <td className="px-6 py-4">
                     {item.active === 1 ? (
                       <span className="text-green-600 font-semibold bg-green-50 py-1.5 px-5 rounded-lg">
@@ -286,13 +580,16 @@ console.log(vouchers);
                       <ViewIcon to={`/discounts/${item.id}/detail`} />
                       <EditIcon
                         to={`/discounts/${item.id}/edit`}
-                        className="text-blue-500 hover:text-blue-700"
+                        className="text-white hover:bg-yellow-600"
                       />
                       <DeleteIcon onClick={() => deleteVoucher(item.id)} />
                     </div>
                   </td>
                 </tr>
               ))}
+              {loading && <tr>
+                <td  className="px-6 py-4 text-center text-gray-500" colSpan={7}>Loading...</td>
+                </tr>}
             </tbody>
           </table>
         </div>
@@ -310,12 +607,29 @@ console.log(vouchers);
       <FilterModal
         open={showFilter}
         onClose={() => setShowFilter(false)}
+        namaDiskonFilter={namaDiskonFilter}
+        setNamaDiskonFilter={setNamaDiskonFilter}
+        namaVariantFilter={namaVariantFilter}
+        setNamaVariantFilter={setNamaVariantFilter}
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
-        kategoriFilter={kategoriFilter}
-        setKategoriFilter={setKategoriFilter}
-        kategoriOptions={kategoriOptions}
+        jenisFilter={jenisFilter}
+        setJenisFilter={setJenisFilter}
+        nilaiFilter={nilaiFilter}
+        setNilaiFilter={setNilaiFilter}
+        minNilaiFilter={minNilaiFilter}
+        setMinNilaiFilter={setMinNilaiFilter}
+        maxNilaiFilter={maxNilaiFilter}
+        setMaxNilaiFilter={setMaxNilaiFilter}
+        tanggalMulaiFilter={tanggalMulaiFilter}
+        setTanggalMulaiFilter={setTanggalMulaiFilter}
+        tanggalBerakhirFilter={tanggalBerakhirFilter}
+        setTanggalBerakhirFilter={setTanggalBerakhirFilter}
         onApplyFilter={applyFilter}
+        onResetFilter={resetFilter}
+        namaDiskonOptions={namaDiskonOptions}
+        namaVariantOptions={namaVariantOptions}
+        statusOptions={statusOptions}
       />
     </div>
   );

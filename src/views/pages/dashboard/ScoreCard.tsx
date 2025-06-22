@@ -5,47 +5,88 @@ interface ScoreCardItemProps {
   title: string;
   value: number;
   color: string;
-  border:string;
+  border: string;
   icon: JSX.Element;
 }
 
-export const ScoreCard = () => (
-  <div className="grid lg:grid-cols-4 grid-cols-1 gap-5 pt-10">
-    <ScoreCardItem
-      title="Jumlah Semua Produk"
-      value={3000}
-      color="text-blue-500"
-      border="border-blue-500"
-      icon={<ProductIcon />}
-    />
-    <ScoreCardItem
-      title="Jumlah Pesanan"
-      value={2000}
-      color="text-yellow-500"
-      border="border-yellow-500"
-      icon={<CountIcon />}
-    />
-    <ScoreCardItem
-      title="Jumlah Retail"
-      value={10000}
-      color="text-red-500"
-      border="border-red-500"
-      icon={<RetailIcon />}
-    />
-    <ScoreCardItem
-      title="Pendapatan Bulan ini"
-      value={12000}
-      color="text-green-500"
-      border="border-green-500"
-      icon={<Count />}
-    />
-  </div>
-);
+interface DashboardData {
+  total_products: number;
+  total_orders: number;
+  total_users?: number;
+  total_retail?: number;
+  income_this_month: number;
+  role: string;
+}
+
+interface ScoreCardProps {
+  data: DashboardData;
+}
+
+export const ScoreCard = ({ data }: ScoreCardProps) => {
+  const scoreItems: ScoreCardItemProps[] = [
+    {
+      title: data.role === "warehouse" ? "Jumlah Semua Produk" : "Total Produk",
+      value: data.total_products,
+      color: "text-blue-500",
+      border: "border-blue-500",
+      icon: <ProductIcon />,
+    },
+    {
+      title: data.role === "warehouse" ? "Jumlah Pesanan" : "Total Penjualan",
+      value: data.total_orders,
+      color: "text-yellow-500",
+      border: "border-yellow-500",
+      icon: <CountIcon />,
+    },
+  ];
+
+  if (data.role === "warehouse" && data.total_retail !== undefined) {
+    scoreItems.push({
+      title: "Jumlah Retail",
+      value: data.total_retail,
+      color: "text-red-500",
+      border: "border-red-500",
+      icon: <RetailIcon />,
+    });
+  }
+
+  if (data.role === "retail" && data.total_users !== undefined) {
+    scoreItems.push({
+      title: "Total Pengguna",
+      value: data.total_users,
+      color: "text-purple-500",
+      border: "border-purple-500",
+      icon: <UserIcon />,
+    });
+  }
+
+  scoreItems.push({
+    title: "Pendapatan Bulan ini",
+    value: data.income_this_month,
+    color: "text-green-500",
+    border: "border-green-500",
+    icon: <Count />,
+  });
+
+  return (
+    <div className="grid lg:grid-cols-4 sm:grid-cols-2 grid-cols-1 gap-5 pt-10">
+      {scoreItems.map((item, index) => (
+        <ScoreCardItem key={index} {...item} />
+      ))}
+    </div>
+  );
+};
 
 export const toRupiah = (n: number) =>
-  `Rp ${n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
+  `Rp ${n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
 
-const ScoreCardItem = ({ title, value, color, icon,border }: ScoreCardItemProps) => {
+const ScoreCardItem = ({
+  title,
+  value,
+  color,
+  icon,
+  border,
+}: ScoreCardItemProps) => {
   const counterRef = useRef<HTMLSpanElement>(null);
   const [count, setCount] = useState(0);
 
@@ -70,8 +111,7 @@ const ScoreCardItem = ({ title, value, color, icon,border }: ScoreCardItemProps)
     return "text-xs";
   };
 
-  const plainNumber = count;
-  const fontSize = getFontSizeClass(plainNumber);
+  const fontSize = getFontSizeClass(count);
 
   const displayValue = title.toLowerCase().includes("pendapatan")
     ? toRupiah(count)
@@ -81,7 +121,9 @@ const ScoreCardItem = ({ title, value, color, icon,border }: ScoreCardItemProps)
   const bgColor = `${color}`;
 
   return (
-    <div className={`bg-white rounded-xl shadow p-4 flex flex-col gap-3 hover:border ${border} hover:scale-105 transition-all ease-in-out duration-500`}>
+    <div
+      className={`bg-white rounded-xl shadow p-4 flex flex-col gap-3 hover:border ${border} hover:scale-105 transition-all ease-in-out duration-500`}
+    >
       <div className="flex items-center justify-between">
         <span
           ref={counterRef}
@@ -89,14 +131,37 @@ const ScoreCardItem = ({ title, value, color, icon,border }: ScoreCardItemProps)
         >
           {displayValue}
         </span>
-
         <div className={`p-2 rounded-lg ${bgColor}/10`}>{icon}</div>
       </div>
-
       <h2 className="pt-3 text-lg font-medium text-slate-500">{title}</h2>
     </div>
   );
 };
+
+const UserIcon = () => (
+  <svg
+    width="44"
+    height="44"
+    viewBox="0 0 44 44"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M19.25 38.5C19.25 38.5 16.5 38.5 16.5 35.75C16.5 33 19.25 24.75 30.25 24.75C41.25 24.75 44 33 44 35.75C44 38.5 41.25 38.5 41.25 38.5H19.25ZM30.25 22C32.438 22 34.5365 21.1308 36.0836 19.5836C37.6308 18.0365 38.5 15.938 38.5 13.75C38.5 11.562 37.6308 9.46354 36.0836 7.91637C34.5365 6.36919 32.438 5.5 30.25 5.5C28.062 5.5 25.9635 6.36919 24.4164 7.91637C22.8692 9.46354 22 11.562 22 13.75C22 15.938 22.8692 18.0365 24.4164 19.5836C25.9635 21.1308 28.062 22 30.25 22V22Z"
+      fill="#F01E22"
+    />
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M14.344 38.5012C13.9363 37.6427 13.733 36.7014 13.75 35.7512C13.75 32.0249 15.62 28.1887 19.074 25.5212C17.35 24.99 15.5539 24.7302 13.75 24.7512C2.75 24.7512 0 33.0012 0 35.7512C0 38.5012 2.75 38.5012 2.75 38.5012H14.344Z"
+      fill="#F01E22"
+    />
+    <path
+      d="M12.375 22C14.1984 22 15.947 21.2757 17.2364 19.9864C18.5257 18.697 19.25 16.9484 19.25 15.125C19.25 13.3016 18.5257 11.553 17.2364 10.2636C15.947 8.97433 14.1984 8.25 12.375 8.25C10.5516 8.25 8.80295 8.97433 7.51364 10.2636C6.22433 11.553 5.5 13.3016 5.5 15.125C5.5 16.9484 6.22433 18.697 7.51364 19.9864C8.80295 21.2757 10.5516 22 12.375 22V22Z"
+      fill="#F01E22"
+    />
+  </svg>
+);
 
 const ProductIcon = () => (
   <svg
