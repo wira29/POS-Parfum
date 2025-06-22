@@ -9,6 +9,7 @@ import { Barcode, DollarSign, ImageIcon, Plus, Info, X } from "lucide-react";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Toaster } from "@/core/helpers/BaseAlert";
 import { useParams } from "react-router-dom";
+import InputManyText from "@/views/components/Input-v2/InputManyText";
 
 export const ProductEdit = () => {
     const navigate = useNavigate();
@@ -31,6 +32,8 @@ export const ProductEdit = () => {
     const [variantImages, setVariantImages] = useState<(File | string)[][]>([]);
     const [singleDetailMode, setSingleDetailMode] = useState(false);
     const [errors, setErrors] = useState<{ [key: string]: string[] }>({});
+    const [composition, setComposition] = useState<string[]>([""]);
+    const [description, setDescription] = useState("");
 
     const hasVariant = variantMatrix.length > 0;
 
@@ -68,7 +71,7 @@ export const ProductEdit = () => {
         if (!productData) return;
         setProductName(productData.name || "");
         setCategory(productData.category_id || "");
-        setImages(productData.image ? [productData.image] : []); // ✅ gambar dari backend
+        setImages(productData.image ? [productData.image] : []);
 
         const details = productData.details || [];
         if (details.length > 1 || details[0]?.variant_name !== null) {
@@ -258,6 +261,33 @@ export const ProductEdit = () => {
                             onChange={(e) => setCategory(e.target.value)}
                             options={categories}
                             error={errors["category_id"]?.[0]}
+                        />
+                        <div className="space-y-2">
+                            <label className={labelClass}>Deskripsi</label>
+                            <textarea
+                                rows={4}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                placeholder="Masukkan Deskripsi Produk"
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                            />
+                        </div>
+
+                        <InputManyText
+                            label="Komposisi Produk"
+                            items={composition}
+                            onChange={(index, value) =>
+                                setComposition((prev) => {
+                                    const updated = [...prev];
+                                    updated[index] = value;
+                                    return updated;
+                                })
+                            }
+                            onAdd={() => setComposition((prev) => [...prev, ""])}
+                            onRemove={(index) =>
+                                setComposition((prev) => prev.filter((_, i) => i !== index))
+                            }
+                            placeholderPrefix="Komposisi "
                         />
                     </div>
 

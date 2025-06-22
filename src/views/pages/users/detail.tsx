@@ -1,15 +1,22 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import {
+  Calendar,
+  Info,
+  Mail,
+  User,
+  Shield,
+  Warehouse,
+} from "lucide-react";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
-import { ArrowLeft, Calendar, Info } from "lucide-react";
 
 export default function UserDetail() {
   const { id } = useParams();
   const nav = useNavigate();
   const apiClient = useApiClient();
 
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -39,95 +46,129 @@ export default function UserDetail() {
     });
   };
 
-  return (
-    <div className="p-6 space-y-6">
-      <Breadcrumb
-        title="Detail User"
-        desc="Informasi detail pengguna."
-      />
+  if (loading) return <p className="p-6">Loading...</p>;
+  if (!user) return <p className="p-6">User tidak ditemukan.</p>;
 
-      <div className="p-6 space-y-4 shadow-md rounded-2xl">
-        {loading ? (
-          <p>Loading...</p>
-        ) : user ? (
-          <div>
-            <div className="flex gap-4">
-              <div className="w-30 h-30 overflow-hidden rounded-xl bg-gray-100 flex-shrink-0">
-                <img
-                  src={user.image || "/images/profile/user-1.jpg"}
-                  alt={user.name}
-                  className="w-30 h-30 object-cover"
-                />
+  return (
+    <div className="p-6 gap-6">
+      <Breadcrumb title="Detail User" desc="Informasi detail pengguna." />
+
+      <div className="flex mt-4 gap-6">
+        <div className="w-64 bg-white rounded-2xl shadow p-4 flex flex-col items-center">
+          <div className="w-24 h-24 rounded-full overflow-hidden">
+            <img
+              src={user.image || "/images/profile/user-1.jpg"}
+              alt={user.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <h2 className="text-lg font-semibold mt-4 text-gray-800">
+            {user.name}
+          </h2>
+          <p className="text-sm text-gray-500">{user.email}</p>
+          <div className="mt-2 px-3 py-1 text-xs bg-[#E0ECFF] text-[#2F4FFF] rounded-md border border-[#2F4FFF]">
+            {user.roles?.[0]?.name || "Unknown"}
+          </div>
+
+          <button
+            onClick={() => nav("/users")}
+            className="mt-6 text-sm px-4 py-2 rounded-md bg-[#2F4FFF] text-white hover:bg-[#1F3EDC] w-full"
+          >
+            Kembali
+          </button>
+        </div>
+
+        <div className="flex-1 space-y-6">
+          <div className="bg-white rounded-2xl shadow p-6">
+            <h3 className="font-semibold text-gray-700 mb-4 flex items-center gap-2">
+              <Info className="w-4 h-4 text-blue-600" />
+              Informasi Dasar
+            </h3>
+
+            <div className="space-y-4 text-sm">
+              <div className="flex justify-between">
+                <div className="flex items-center gap-3">
+                  <User className="w-4 h-4 text-blue-500 bg-gray-200" />
+                  <div>
+                    <p className="font-semibold text-gray-800">Nama Lengkap</p>
+                    <p className="text-gray-600">{user.name}</p>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-700 self-end bg-gray-100 p-1 flex items-center gap-1">
+                  <Calendar className="w-4 h-4 text-gray-700" />
+                  Terakhir Diubah: {formatDate(user.updated_at)}
+                </p>
               </div>
 
-              <div className="flex-1 space-y-1 text-sm text-gray-600">
-                <div className="bg-blue-100 w-fit h-7 flex justify-center text-xs px-3 py-1 font-medium text-blue-500 border rounded-md border-blue-500 capitalize">
-                  {user.roles?.[0]?.name || user.role?.[0] || "unknown"}
+              <div className="flex justify-between">
+                <div className="flex items-center gap-3">
+                  <Mail className="w-4 h-4 text-blue-500 bg-gray-200" />
+                  <div>
+                    <p className="font-semibold text-gray-800">Email</p>
+                    <p className="text-gray-600">{user.email}</p>
+                  </div>
                 </div>
+              </div>
+
+              <div className="flex justify-between">
+                <div className="flex items-center gap-3">
+                  <Shield className="w-4 h-4 text-blue-500 bg-gray-200" />
+                  <div>
+                    <p className="font-semibold text-gray-800">Role</p>
+                    <p className="text-gray-600">
+                      {user.roles?.[0]?.name || "-"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Calendar className="w-4 h-4 text-blue-500 bg-gray-200" />
                 <div>
-                  <div className="font-bold text-xl text-black">{user.name}</div>
-                  <p className="text-gray-500 text-xm font-semibold mt-2">
-                    {user.email}
+                  <p className="font-semibold text-gray-800">Bergabung Pada</p>
+                  <p className="text-gray-600">
+                    {formatDate(user.created_at)}
                   </p>
                 </div>
               </div>
             </div>
-
-            <div className="mt-5 w-full">
-              <div className="flex justify-between flex-wrap gap-8">
-                <div className="flex-col min-w-[250px]">
-                  <h2 className="text-gray-800 flex mb-5">
-                    <span className="font-semibold">Detail Retail</span>
-                    <Info className="ml-2 bg-gray-50 w-4" />
-                  </h2>
-
-                  <div className="mb-4">
-                    <h1 className="font-semibold text-sm">Username</h1>
-                    <p className="text-xs text-gray-600 mt-1">{user.name}</p>
-                  </div>
-
-                  <div className="mb-4">
-                    <h1 className="font-semibold text-sm">Email Address</h1>
-                    <p className="text-xs text-gray-600 mt-1">{user.email}</p>
-                  </div>
-                </div>
-
-                <div className="flex-col min-w-[250px]">
-                  <h2 className="text-gray-800 flex mb-5">
-                    <span className="font-semibold">Privasi</span>
-                    <Info className="ml-2 bg-gray-50 w-4" />
-
-                  </h2>
-
-                  <div className="mb-4 flex gap-5">
-                    <div className="mt-1 flex gap-2">
-                      <h1 className="font-semibold text-sm">Password</h1>
-                      <p className="text-xs text-gray-600 mt-1">********</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600 mt-1 flex gap-3">
-                        <Calendar className="w-5" />
-                        <span className="mt-1">
-                          Diubah {formatDate(user.updated_at)}
-                        </span>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                className="mt-5 text-blue-600 flex border border-blue-600 p-1.5 rounded-md hover:bg-blue-600 hover:text-white"
-                onClick={() => nav("/users")}
-              >
-                <ArrowLeft className="w-5 mr-2" />
-                Kembali
-              </button>
-            </div>
           </div>
-        ) : (
-          <p>User tidak ditemukan.</p>
-        )}
+
+          <div className="bg-white rounded-2xl shadow p-6">
+            <h3 className="font-semibold text-gray-700 mb-4 flex items-center gap-2">
+              <Info className="w-4 h-4" />
+              Terhubung Dengan
+            </h3>
+
+            <div className="flex">
+              {(user.warehouse || user.outlet) ? (
+                <div className="space-y-2 flex gap-3">
+                  {user.warehouse && (
+                    <div className="flex items-center gap-2 bg-[#E0ECFF] text-[#2F4FFF] px-4 py-2 rounded-md text-sm w-fit border border-[#2F4FFF]">
+                      <Warehouse className="w-4 h-4" />
+                      <div className="flex flex-col">
+                        <span className="font-semibold">{user.warehouse.name}</span>
+                        <span className="text-xs text-blue-600">{user.warehouse.address}</span>
+                      </div>
+                    </div>
+                  )}
+                  {user.outlet && (
+                    <div className="flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-md text-sm w-fit border border-green-200">
+                      <Warehouse className="w-4 h-4" />
+                      <div className="flex flex-col">
+                        <span className="font-semibold">{user.outlet.name}</span>
+                        <span className="text-xs text-green-600">{user.outlet.address}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500 italic">Belum terhubung dengan warehouse atau outlet.</p>
+              )}
+            </div>
+
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -33,6 +33,7 @@ export const CategoryIndex = () => {
   const [perPage, setPerPage] = useState(8);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [statusFilter, setStatusFilter] = useState(""); // New state
 
   const ApiClient = useApiClient();
 
@@ -78,11 +79,11 @@ export const CategoryIndex = () => {
     const itemDate = new Date(item.created_at).toISOString().split("T")[0];
     const isMatchSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
     const isMatchFilter = categoryFilter ? item.name === categoryFilter : true;
-
+    const isMatchStatus = statusFilter ? item.status === statusFilter : true;
     const isAfterStart = startDate ? itemDate >= startDate : true;
     const isBeforeEnd = endDate ? itemDate <= endDate : true;
 
-    return isMatchSearch && isMatchFilter && isAfterStart && isBeforeEnd;
+    return isMatchSearch && isMatchFilter && isMatchStatus && isAfterStart && isBeforeEnd;
   });
 
   const totalPages = Math.ceil(totalData / perPage);
@@ -315,6 +316,18 @@ export const CategoryIndex = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="">Semua</option>
+                  <option value="Berlaku">Berlaku</option>
+                  <option value="Tidak Berlaku">Tidak Berlaku</option>
+                </select>
+              </div>
             </div>
 
             <div className="flex justify-end gap-2 p-4 border-t border-gray-200">
@@ -322,6 +335,7 @@ export const CategoryIndex = () => {
                 onClick={() => {
                   setStartDate("");
                   setEndDate("");
+                  setStatusFilter("");
                   setShowFilter(false);
                 }}
                 className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100"
