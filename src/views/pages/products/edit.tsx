@@ -203,7 +203,7 @@ export const ProductEdit = () => {
                 formData.append(`product_details[${i}][product_code]`, variant.codes?.[0] || "");
 
                 const img = variantImages[i]?.[0];
-                if (img && typeof img !== "string") {
+                if (img instanceof File) {
                     formData.append(`product_details[${i}][product_image]`, img);
                 }
             });
@@ -228,7 +228,6 @@ export const ProductEdit = () => {
             }
         }
     };
-
 
     const labelClass = "block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2";
 

@@ -33,10 +33,12 @@ export default function UserPage() {
   const navigate = useNavigate();
   const apiClient = useApiClient();
 
-  const fetchUsers = async (page = 1) => {
+  const fetchUsers = async (page = 1, customUrl?: string) => {
     setLoading(true);
     try {
-      const response = await apiClient.get(`/users?page=${page}`);
+      const response = customUrl
+        ? await apiClient.get(customUrl)
+        : await apiClient.get(`/users?page=${page}&per_page=8`);
       setUsers(response.data.data);
       setPagination(response.data.pagination);
     } catch (error) {
@@ -47,8 +49,8 @@ export default function UserPage() {
   };
 
   useEffect(() => {
-    fetchUsers(pagination.current_page);
-  }, [pagination.current_page]);
+    fetchUsers(1);
+  }, []);
 
   const filteredUsers = users.filter((user) =>
     `${user.name} ${user.email}`.toLowerCase().includes(searchQuery.toLowerCase())
@@ -80,7 +82,7 @@ export default function UserPage() {
     try {
       await apiClient.delete(`/users/${id}`);
       Swal.fire("Terhapus!", "User berhasil dihapus.", "success");
-      fetchUsers(pagination.current_page);
+      fetchUsers(1);
     } catch (error) {
       Swal.fire("Gagal!", "Gagal menghapus User.", "error");
       console.error(error);
@@ -113,9 +115,7 @@ export default function UserPage() {
 
   const goToPage = (url: string | null) => {
     if (!url) return;
-    const params = new URLSearchParams(url.split("?")[1]);
-    const page = parseInt(params.get("page") || "1");
-    setPagination((prev) => ({ ...prev, current_page: page }));
+    fetchUsers(1, url);
   };
 
   return (
@@ -226,10 +226,10 @@ export default function UserPage() {
           <div className="flex justify-end mt-6 gap-2 flex-wrap">
             {pagination.links.map((link: any, index: number) => (
               <button
-                key={index}
+                key={`${link.label}-${index}`}
                 disabled={!link.url}
                 onClick={() => goToPage(link.url)}
-                className={`px-3 py-1 border rounded ${
+                className={`px-3 py-1 border rounded text-sm ${
                   link.active
                     ? "bg-blue-600 text-white"
                     : "hover:bg-gray-100 text-gray-700"
