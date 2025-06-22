@@ -190,11 +190,11 @@ export default function RoleDetail() {
     setLoading(true);
     setError(null);
     
-    // Simulate API call with filters
+    
     setTimeout(() => {
       let filteredUsers = dummyUsers;
       
-      // Apply search filter
+      
       if (searchQuery) {
         filteredUsers = filteredUsers.filter(user => 
           user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -202,7 +202,7 @@ export default function RoleDetail() {
         );
       }
       
-      // Apply status filter
+      
       if (statusFilter) {
         filteredUsers = filteredUsers.filter(user => user.status === statusFilter);
       }
@@ -237,15 +237,6 @@ export default function RoleDetail() {
     setCurrentPage(1);
   }
 
-  if (loading) {
-    return (
-      <div className="p-6">
-        <div className="flex items-center justify-center h-64">
-          <p className="text-gray-500">Loading...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="p-6 space-y-6">
@@ -254,23 +245,9 @@ export default function RoleDetail() {
         desc="Lorem ipsum dolor sit amet, consectetur adipiscing"
       />
 
-      {/* Header Card */}
-      <div className="bg-blue-600 rounded-2xl p-6 flex justify-between items-center text-white">
-        <div>
-          <h1 className="text-xl font-bold">Detail Role</h1>
-          <p className="text-blue-100 text-sm">Lorem ipsum dolor sit amet, consectetur adipiscing</p>
-        </div>
-        <div className="w-16 h-16">
-          <div className="bg-yellow-400 rounded-lg p-3 w-full h-full flex items-center justify-center">
-            <Shield className="w-8 h-8 text-yellow-800" />
-          </div>
-        </div>
-      </div>
 
-      {/* Role Details Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Nama Role Card */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border">
+        <div className="bg-white rounded-2xl p-6 shadow-sm">
           <div className="flex justify-between items-start mb-4">
             <div>
               <h3 className="text-gray-600 text-sm font-medium">Nama Role</h3>
@@ -283,8 +260,8 @@ export default function RoleDetail() {
           </div>
         </div>
 
-        {/* Tanggal Dibuat Card */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border">
+
+        <div className="bg-white rounded-2xl p-6 shadow-sm">
           <div className="flex justify-between items-start mb-4">
             <div>
               <h3 className="text-gray-600 text-sm font-medium">Tanggal Dibuat</h3>
@@ -297,8 +274,8 @@ export default function RoleDetail() {
           </div>
         </div>
 
-        {/* Guard Name Card */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border">
+
+        <div className="bg-white rounded-2xl p-6 shadow-sm">
           <div className="flex justify-between items-start mb-4">
             <div>
               <h3 className="text-gray-600 text-sm font-medium">Guard Name</h3>
@@ -311,8 +288,8 @@ export default function RoleDetail() {
           </div>
         </div>
 
-        {/* Status Card */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border">
+
+        <div className="bg-white rounded-2xl p-6 shadow-sm">
           <div className="flex justify-between items-start mb-4">
             <div>
               <h3 className="text-gray-600 text-sm font-medium">Status</h3>
@@ -334,8 +311,8 @@ export default function RoleDetail() {
         </div>
       </div>
 
-      {/* Users Table Card */}
-      <div className="bg-white rounded-2xl shadow-sm border">
+
+      <div className="bg-white rounded-2xl shadow-sm">
         <div className="p-6 border-b border-gray-200">
           <div className="flex justify-between items-center">
             <div>
@@ -403,7 +380,7 @@ export default function RoleDetail() {
           </table>
         </div>
 
-        {/* Pagination */}
+
         <div className="px-6 py-4 border-t border-gray-200">
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-700">

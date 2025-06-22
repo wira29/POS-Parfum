@@ -1,7 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Breadcrumb } from "@/views/components/Breadcrumb"
 import { SearchInput } from "@/views/components/SearchInput"
 import AddButton from "@/views/components/AddButton"
+import AddRoleModal from "@/views/pages/roles/widgets/AddPage";
+import EditRoleModal from "@/views/pages/roles/widgets/EditPage";
 import { Users } from "lucide-react"
 
 const dummyRoles = [
@@ -36,6 +39,8 @@ const dummyRoles = [
 
 export default function RolePage() {
   const [searchQuery, setSearchQuery] = useState("")
+  const navigate = useNavigate()
+  const [modalOpen, setModalOpen] = useState(false);
 
   const filteredRoles = dummyRoles.filter(role =>
     role.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -52,17 +57,18 @@ export default function RolePage() {
     if (role.status === "Active") {
       return (
         <>
-          <button className="bg-orange-100 text-orange-600 px-3 py-1 rounded text-xs font-medium hover:bg-orange-200 transition-colors">
+          <button onClick={() => setModalOpen(true)} className="bg-orange-500 text-white px-4 py-1 rounded text-xs font-medium hover:bg-orange-200 transition-colors">
             Edit
           </button>
-          <button className="bg-red-100 text-red-600 px-3 py-1 rounded text-xs font-medium hover:bg-red-200 transition-colors">
+          <EditRoleModal open={modalOpen} onClose={() => setModalOpen(false)} />
+          <button className="bg-red-500 text-white px-4 py-1 rounded text-xs font-medium transition-colors">
             Non-active
           </button>
         </>
       )
     }
     return (
-      <button className="bg-green-100 text-green-600 px-3 py-1 rounded text-xs font-medium hover:bg-green-200 transition-colors">
+      <button className="bg-green-500 text-white px-4 py-1 rounded text-xs font-medium hover:bg-green-200 transition-colors">
         Active
       </button>
     )
@@ -86,7 +92,8 @@ export default function RolePage() {
                 />
               </div>
             </div>
-            <AddButton to="./create">Tambah Role</AddButton>
+            <AddButton onClick={() => setModalOpen(true)} className="bg-blue-600 text-white px-4 py-2 rounded">Tambah Role</AddButton>
+            <AddRoleModal open={modalOpen} onClose={() => setModalOpen(false)} />
           </div>
         </div>
 
@@ -101,12 +108,15 @@ export default function RolePage() {
                     {role.userCount} User
                   </div>
                 </div>
-                <button className="bg-blue-500 text-white px-4 py-2 rounded text-sm hover:bg-blue-600 transition-colors">
+                <button
+                  className="bg-blue-500 text-white px-4 py-1 rounded text-sm hover:bg-blue-600 transition-colors"
+                  onClick={() => navigate(`/roles/${role.id}/Detail`)}
+                >
                   Detail
                 </button>
               </div>
 
-
+              <div className="border-b border-gray-200 my-4"></div>
               <div className="flex flex-wrap items-center justify-between mb-4">
                 <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600">
                   <span>Guard name: <span className="text-gray-900">{role.guardName}</span></span>
