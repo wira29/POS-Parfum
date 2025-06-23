@@ -1,5 +1,4 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { FiArrowLeft } from "react-icons/fi";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { useState, useEffect } from "react";
 
@@ -23,10 +22,12 @@ interface DiscountDetail {
   details: {
     id: string;
     product: {
-      name:string;
-      product_code:string;
+      name: string;
+      product_code: string;
     }
-    variant_name: string;
+    varian: {
+      variant_name: string;
+    }
     material: string;
     unit: string;
     stock: number;
@@ -101,7 +102,8 @@ export const DiscountDetail = () => {
         `/discount-vouchers/${id}`
       );
       const data = response.data.data;
-         
+      console.log(data);
+
       const displayDetail: DisplayDetail = {
         status: data.active === 1 ? "Aktif" : "Tidak Aktif",
         nama: data.name || "Diskon Tidak Diketahui",
@@ -116,7 +118,7 @@ export const DiscountDetail = () => {
           ? [
               {
                 nama: data.details.product.name || "Produk Tidak Ditentukan",
-                varian: data.details.variant_name || "Tidak Ada Varian",
+                varian: data.details.varian.variant_name || "Tidak Ada Varian",
                 kode: data.details.product.product_code || "N/A",
               },
             ]
@@ -142,229 +144,167 @@ export const DiscountDetail = () => {
     getData();
   }, [id]);
 
+  if (loading) {
+    return (
+      <div className="p-4 lg:p-6 text-center text-gray-500">
+        Memuat detail diskon...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 lg:p-6 text-center text-red-500">
+        {error}
+      </div>
+    );
+  }
+
   return (
-    <div className="py-10">
-      {error && <div className="text-center text-red-500">{error}</div>}
-      {!loading && !error && (
-        <>
-          <div className="bg-blue-600 text-white p-4 rounded-lg">
-            <div className="flex items-center gap-3">
+    <div className="p-4 lg:p-6 space-y-4 lg:space-y-6 bg-gray-50 min-h-screen">
+      <div className="bg-white shadow-sm rounded-lg p-4 lg:p-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
+          <div className="flex items-center gap-3 mb-4 lg:mb-0">
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
+            </div>
+            <div>
               <button
                 onClick={() => navigate("/discounts")}
-                className="flex items-center gap-2 text-white hover:text-blue-200 cursor-pointer"
-                aria-label="Kembali ke daftar diskon"
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-2"
               >
-                <FiArrowLeft size={20} />
-                <span className="font-medium">Kembali</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                <span className="text-sm">Kembali</span>
               </button>
+              <h1 className="text-xl lg:text-2xl font-semibold text-gray-900">{detail.nama}</h1>
             </div>
           </div>
+          
+          <div
+            className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${
+              detail.status === "Aktif"
+                ? "bg-green-100 text-green-700"
+                : "bg-red-100 text-red-700"
+            }`}
+          >
+            <div
+              className={`w-2 h-2 rounded-full mr-2 mt-0.5 ${
+                detail.status === "Aktif" ? "bg-green-500" : "bg-red-500"
+              }`}
+            />
+            {detail.status}
+          </div>
+        </div>
 
-          <div className="my-4">
-            <div className="max-w-full mx-auto">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1">
-                  <div className="bg-white rounded-lg shadow-sm">
-                    <div className="border-b border-gray-200 p-4 lg:p-6">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <h2 className="text-lg lg:text-xl font-semibold text-gray-900">
-                          Detail Diskon
-                        </h2>
-                        <div className="flex items-center gap-6">
-                          <div className="flex items-center gap-2">
-                            <div
-                              className={`w-2 h-2 rounded-full ${
-                                detail.status === "Aktif"
-                                  ? "bg-green-500"
-                                  : "bg-red-500"
-                              }`}
-                            ></div>
-                            <span
-                              className={`font-medium ${
-                                detail.status === "Aktif"
-                                  ? "text-green-600"
-                                  : "text-red-600"
-                              }`}
-                            >
-                              {detail.status}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
+              <span className="text-sm font-medium text-blue-900">Jenis Diskon</span>
+            </div>
+            <p className="text-blue-800 font-semibold">{detail.nilai}</p>
+          </div>
 
-                    <div className="p-4 lg:p-6 space-y-6">
-                      <div className="grid grid-cols-1 gap-6">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Nama Diskon
-                          </label>
-                          <input
-                            type="text"
-                            value={detail.nama}
-                            readOnly
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700"
-                          />
-                        </div>
+          <div className="bg-green-50 p-4 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+              </svg>
+              <span className="text-sm font-medium text-green-900">Nilai Diskon</span>
+            </div>
+            <p className="text-green-800 font-semibold">{detail.nilai}</p>
+          </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Jenis
-                          </label>
-                          <input
-                            type="text"
-                            value={detail.jenis}
-                            readOnly
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700"
-                          />
-                        </div>
+          <div className="bg-orange-50 p-4 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 7m0 6v4a2 2 0 002 2h2a2 2 0 002-2v-4M7 13v-3" />
+              </svg>
+              <span className="text-sm font-medium text-orange-900">Min. Pembelian</span>
+            </div>
+            <p className="text-orange-800 font-semibold">{detail.minPembelian}</p>
+          </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Nilai
-                          </label>
-                          <input
-                            type="text"
-                            value={detail.nilai}
-                            readOnly
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700"
-                          />
-                        </div>
+          <div className="bg-purple-50 p-4 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+              <span className="text-sm font-medium text-purple-900">Total Digunakan</span>
+            </div>
+            <p className="text-purple-800 font-semibold">{detail.totalDigunakan}x</p>
+          </div>
+        </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Minimum Pembelian
-                          </label>
-                          <input
-                            type="text"
-                            value={detail.minPembelian}
-                            readOnly
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700"
-                          />
-                        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="flex items-center gap-2 mb-3">
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span className="text-sm font-medium text-gray-900">Tanggal Mulai</span>
+            </div>
+            <p className="text-gray-800 font-semibold">{detail.tanggalMulai}</p>
+          </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Tanggal Mulai
-                          </label>
-                          <div className="relative">
-                            <input
-                              type="text"
-                              value={detail.tanggalMulai}
-                              readOnly
-                              className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md bg-gray-50 text-gray-700"
-                            />
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                              <svg
-                                className="h-4 w-4 text-gray-400"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                />
-                              </svg>
-                            </div>
-                          </div>
-                        </div>
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="flex items-center gap-2 mb-3">
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span className="text-sm font-medium text-gray-900">Tanggal Berakhir</span>
+            </div>
+            <p className="text-gray-800 font-semibold">{detail.tanggalBerakhir}</p>
+          </div>
+        </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Tanggal Berakhir
-                          </label>
-                          <div className="relative">
-                            <input
-                              type="text"
-                              value={detail.tanggalBerakhir}
-                              readOnly
-                              className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md bg-gray-50 text-gray-700"
-                            />
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                              <svg
-                                className="h-4 w-4 text-gray-400"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                />
-                              </svg>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+        <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Deskripsi Diskon
+          </h3>
+          <p className="text-gray-700 leading-relaxed">{detail.deskripsi}</p>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            Produk Terkait
+          </h3>
+          <div className="space-y-4">
+            {detail.produkTerkait.map((produk, index) => (
+              <div key={index} className="bg-gray-50 p-4 rounded-lg">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">Nama Produk</span>
+                    <p className="text-gray-900 font-medium">{produk.nama}</p>
                   </div>
-                </div>
-
-                <div className="lg:col-span-2">
-                  <div className="bg-white rounded-xl">
-                    <div className="border-b border-gray-200 p-4 lg:p-6">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                        <h2 className="text-lg lg:text-xl font-semibold text-gray-900">
-                          Telah digunakan sebanyak :
-                        </h2>
-                        <h2 className="text-lg lg:text-2xl font-semibold text-blue-500">
-                          {detail.totalDigunakan}x
-                        </h2>
-                      </div>
-                    </div>
-                    <div className="py-4 px-4">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                        Deskripsi Diskon
-                      </h3>
-                      <p className="text-sm text-gray-600 leading-relaxed">
-                        {detail.deskripsi}
-                      </p>
-                      <div className="w-full border border-slate-400/[0.3] my-4"></div>
-                    </div>
-
-                    <div className="px-4 pb-5">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                        Produk Terkait
-                      </h3>
-                      <div className="space-y-3">
-                        {detail.produkTerkait.map((produk, index) => (
-                          <div key={index} className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-600">Produk</span>
-                              <span className="text-gray-900">
-                                {produk.nama}
-                              </span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-600">
-                                Varian Produk
-                              </span>
-                              <span className="text-gray-900">
-                                {produk.varian}
-                              </span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-600">Kode Produk</span>
-                              <span className="text-gray-900">
-                                {produk.kode}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">Varian</span>
+                    <p className="text-gray-900 font-medium">{produk.varian}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">Kode Produk</span>
+                    <p className="block w-16 text-center px-2 py-1.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                      {produk.kode === "null" ? "-" : produk.kode}
+                    </p>
                   </div>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
-        </>
-      )}
+        </div>
+      </div>
     </div>
   );
 };

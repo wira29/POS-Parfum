@@ -23,7 +23,7 @@ const InputManyText = ({
 }: InputManyTextProps) => (
     <div className={`space-y-2 ${className}`}>
         <div className="flex items-center gap-2">
-            {label && <label className="font-semibold mb-1 block">{label}</label>}
+            {label && <label className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">{label}</label>}
         </div>
         {Array.from({ length: Math.ceil(items.length / 2) }).map((_, rowIdx) => (
             <div key={rowIdx} className="flex gap-3">

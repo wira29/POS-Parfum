@@ -2,6 +2,7 @@ import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { Toaster } from "@/core/helpers/BaseAlert";
 
 interface Option {
   value: string;
@@ -256,13 +257,12 @@ export function DiscountCreate() {
     try {
       const response = await apiClient.get<{ data: any[] }>("/products");
       const products = response.data.data;
+      console.log(products);
 
       const uniqueOptions = products.flatMap((product: any) =>
         product.details.map((detail: any) => ({
           value: detail.id,
-          label: `${product.name} - ${detail.material} (${
-            detail.variant_name || "No Variant"
-          })`,
+          label: `${product.name} - ${detail.variant_name || "No Variant"}`,
         }))
       );
 
@@ -347,12 +347,14 @@ export function DiscountCreate() {
       } else {
         await apiClient.post("/discount-vouchers", payload);
       }
+      Toaster("success", "Berhasil Edit Diskon");
       navigate("/discounts");
     } catch (err: any) {
       console.error(err);
       const errorMessage =
         err.response?.data?.message || "Gagal menyimpan diskon";
       setApiError(errorMessage);
+      Toaster("error", `${errorMessage}`);
       if (errorMessage.includes("Produk yang dipilih tidak valid")) {
         setFormErrors((prev) => ({
           ...prev,
@@ -514,7 +516,7 @@ export function DiscountCreate() {
           <button
             type="button"
             onClick={handleSubmit}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-6 py-2 rounded-md disabled:bg-blue-400 cursor-pointer"
+            className={`${id ? "bg-yellow-500 hover:bg-yellow-700 disabled:bg-yellow-400" : "bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400"} text-white text-sm px-6 py-2 rounded-md cursor-pointer`}
             disabled={loading}
           >
             {loading ? "Menyimpan..." : id ? "Simpan Perubahan" : "Buat Diskon"}

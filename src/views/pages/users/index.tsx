@@ -5,8 +5,97 @@ import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { SearchInput } from "@/views/components/SearchInput";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import Swal from "sweetalert2";
+import { X } from "lucide-react";
 import { ReactNode } from "react";
+import { Filter } from "@/views/components/Filter";
 
+// Modal Filter
+const UserFilterModal = ({
+  open,
+  onClose,
+  selectedRole,
+  setSelectedRole,
+  availableRoles,
+  startDate,
+  setStartDate,
+  endDate,
+  setEndDate,
+}: any) => {
+  if (!open) return null;
+
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={handleBackdropClick}>
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <h3 className="text-xl font-semibold text-gray-900">Filter Pengguna</h3>
+          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+            <X className="w-6 h-6 cursor-pointer" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+            <select
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Semua Role</option>
+              {availableRoles.map((role: string, i: number) => (
+                <option key={i} value={role}>{role}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Tanggal Mulai</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Tanggal Akhir</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2 p-4 border-t border-gray-200">
+          <button
+            onClick={() => {
+              setSelectedRole("");
+              setStartDate("");
+              setEndDate("");
+              onClose();
+            }}
+            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100"
+          >
+            Reset
+          </button>
+          <button onClick={onClose} className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
+            Terapkan
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Main Page
 type User = {
   [x: string]: ReactNode;
   id: number;
@@ -28,6 +117,12 @@ export default function UserPage() {
     last_page: 1,
     links: [],
   });
+
+  // filter states
+  const [showFilter, setShowFilter] = useState(false);
+  const [selectedRole, setSelectedRole] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -52,9 +147,14 @@ export default function UserPage() {
     fetchUsers(1);
   }, []);
 
-  const filteredUsers = users.filter((user) =>
-    `${user.name} ${user.email}`.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredUsers = users.filter((user) => {
+    const matchSearch = `${user.name} ${user.email}`.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchRole = selectedRole ? user.roles?.some((r) => r.name === selectedRole) : true;
+    const createdDate = new Date(user.created_at);
+    const matchStartDate = startDate ? createdDate >= new Date(startDate) : true;
+    const matchEndDate = endDate ? createdDate <= new Date(endDate) : true;
+    return matchSearch && matchRole && matchStartDate && matchEndDate;
+  });
 
   const handleDropdownToggle = (id: number) => {
     setDropdownOpenId(dropdownOpenId === id ? null : id);
@@ -85,7 +185,6 @@ export default function UserPage() {
       fetchUsers(1);
     } catch (error) {
       Swal.fire("Gagal!", "Gagal menghapus User.", "error");
-      console.error(error);
     }
   };
 
@@ -98,9 +197,7 @@ export default function UserPage() {
       confirmButtonText: "Ya, hapus!",
       cancelButtonText: "Batal",
     }).then((result) => {
-      if (result.isConfirmed) {
-        deleteUser(id);
-      }
+      if (result.isConfirmed) deleteUser(id);
     });
   };
 
@@ -122,19 +219,17 @@ export default function UserPage() {
     <div className="p-6 space-y-6">
       <Breadcrumb
         title="Daftar Pengguna"
-        desc="Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, voluptatibus."
+        desc="Kelola daftar akun pengguna pada sistem."
       />
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
         <div className="flex items-center gap-2 mb-4 w-full sm:w-auto max-w-lg">
-          <SearchInput
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+          <SearchInput value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+          <Filter onClick={() => setShowFilter(true)} />
         </div>
-        <div className="w-full sm:w-auto">
+        <div className="flex gap-2 w-full sm:w-auto">
           <button
-            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center sm:justify-start gap-2 px-4 py-2 rounded-lg font-medium"
+            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 px-4 py-2 rounded-lg font-medium"
             onClick={() => navigate("/users/create")}
           >
             <FiPlus /> Tambah Akun
@@ -171,31 +266,13 @@ export default function UserPage() {
                     </button>
                     {dropdownOpenId === user.id && (
                       <div className="absolute right-2 top-10 w-36 bg-white border rounded shadow-lg z-20">
-                        <button
-                          className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-                          onClick={() => {
-                            setDropdownOpenId(null);
-                            handleDetail(user);
-                          }}
-                        >
+                        <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" onClick={() => { setDropdownOpenId(null); handleDetail(user); }}>
                           Detail
                         </button>
-                        <button
-                          className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-                          onClick={() => {
-                            setDropdownOpenId(null);
-                            handleEdit(user);
-                          }}
-                        >
+                        <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" onClick={() => { setDropdownOpenId(null); handleEdit(user); }}>
                           Edit
                         </button>
-                        <button
-                          className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-red-600"
-                          onClick={() => {
-                            setDropdownOpenId(null);
-                            confirmDelete(user.id);
-                          }}
-                        >
+                        <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-red-600" onClick={() => { setDropdownOpenId(null); confirmDelete(user.id); }}>
                           Hapus
                         </button>
                       </div>
@@ -229,17 +306,26 @@ export default function UserPage() {
                 key={`${link.label}-${index}`}
                 disabled={!link.url}
                 onClick={() => goToPage(link.url)}
-                className={`px-3 py-1 border rounded text-sm ${
-                  link.active
-                    ? "bg-blue-600 text-white"
-                    : "hover:bg-gray-100 text-gray-700"
-                } ${!link.url ? "cursor-not-allowed opacity-50" : ""}`}
+                className={`px-3 py-1 border rounded text-sm ${link.active ? "bg-blue-600 text-white" : "hover:bg-gray-100 text-gray-700"
+                  } ${!link.url ? "cursor-not-allowed opacity-50" : ""}`}
                 dangerouslySetInnerHTML={{ __html: link.label }}
               />
             ))}
           </div>
         </>
       )}
+
+      <UserFilterModal
+        open={showFilter}
+        onClose={() => setShowFilter(false)}
+        selectedRole={selectedRole}
+        setSelectedRole={setSelectedRole}
+        availableRoles={Array.from(new Set(users.flatMap(u => u.roles?.map(r => r.name) || [])))}
+        startDate={startDate}
+        setStartDate={setStartDate}
+        endDate={endDate}
+        setEndDate={setEndDate}
+      />
     </div>
   );
 }

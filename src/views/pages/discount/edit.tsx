@@ -123,7 +123,6 @@ export const DiscountEdit = () => {
       setSelectedBarang(Discount.barang || "");
       setStartDate(Discount.startDate || "");
       setEndDate(Discount.endDate || "");
-      // setMinPurchase( ... ) // jika ada field minimum pembelian di data
     }
   }, [id, navigate]);
 
@@ -196,7 +195,6 @@ export const DiscountEdit = () => {
           />
         </div>
 
-        {/* Input tanggal dimulai dan tanggal berakhir */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
           <div>
             <label className="block mb-1 text-sm text-gray-700">Tanggal Dimulai</label>

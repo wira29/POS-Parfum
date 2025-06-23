@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import AddButton from "@/views/components/AddButton";
 import { useEffect } from "react";
 import { useApiClient } from "@/core/helpers/ApiClient";
+import { Toast, Toaster } from "@/core/helpers/BaseAlert";
 
 interface ProductVariant {
   id: string;
@@ -54,7 +55,9 @@ export const BlendingCreate: React.FC = () => {
   const [showModal, setShowModal] = useState<boolean>(false);
   const [expandedProducts, setExpandedProducts] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [selectedVariants, setSelectedVariants] = useState<SelectedVariant[]>([]);
+  const [selectedVariants, setSelectedVariants] = useState<SelectedVariant[]>(
+    []
+  );
   const [products, setProducts] = useState<Product[]>([]);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const API = useApiClient();
@@ -108,13 +111,21 @@ export const BlendingCreate: React.FC = () => {
     setCompositions((prev) => prev.filter((comp) => comp.id !== id));
   };
 
-  const handleQuantityChange = (id: string, quantity: number): void => {
-    if (quantity > formData.quantity) {
-      alert(`Quantity tidak boleh lebih dari ${formData.quantity}`);
+  const handleQuantityChange = (id: string, quantity: number | ""): void => {
+    if (quantity === "") {
+      setCompositions((prev) =>
+        prev.map((comp) => (comp.id === id ? { ...comp, quantity: "" } : comp))
+      );
       return;
     }
+
+    if (quantity > formData.quantity) {
+      Toast("info", `Quantity tidak boleh lebih dari ${formData.quantity}`);
+      return;
+    }
+
     if (quantity < 1) {
-      alert("Quantity minimal adalah 1");
+      Toast("info", "Quantity minimal adalah 1");
       return;
     }
 
@@ -142,13 +153,19 @@ export const BlendingCreate: React.FC = () => {
 
   const handleSubmit = async (): Promise<void> => {
     if (!formData.name || !formData.quantity || compositions.length === 0) {
-      alert("Mohon lengkapi semua field yang diperlukan");
+      Toast("info", "Mohon lengkapi semua field yang diperlukan");
       return;
     }
 
-    const totalUsedQuantity = compositions.reduce((sum, comp) => sum + comp.quantity, 0);
+    const totalUsedQuantity = compositions.reduce(
+      (sum, comp) => sum + comp.quantity,
+      0
+    );
     if (totalUsedQuantity > formData.quantity) {
-      alert(`Total quantity variant (${totalUsedQuantity}) tidak boleh lebih dari quantity keseluruhan (${formData.quantity})`);
+      Toaster(
+        "info",
+        `Total quantity variant (${totalUsedQuantity}) tidak boleh lebih dari quantity keseluruhan (${formData.quantity})`
+      );
       return;
     }
 
@@ -169,20 +186,18 @@ export const BlendingCreate: React.FC = () => {
         ],
       };
 
-      console.log("Sending request:", requestBody);
-
       const response = await API.post("/product-blend", requestBody);
-      
+
       if (response.data.success) {
-        alert("Berhasil membuat blending produk!");
+        Toaster("success", "Berhasil membuat blending produk!");
         setFormData({ name: "", quantity: 0, description: "" });
         setCompositions([]);
       } else {
-        alert("Gagal membuat blending produk");
+        Toaster("error", "Gagal membuat blending produk!");
       }
     } catch (error) {
       console.error("Error creating blend:", error);
-      alert("Terjadi kesalahan saat membuat blending produk");
+      Toast("error", "Terjadi kesalahan saat membuat blending produk");
     } finally {
       setIsSubmitting(false);
     }
@@ -200,9 +215,8 @@ export const BlendingCreate: React.FC = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await API.get("/products");
+        const res = await API.get("/products/no-paginate");
         const apiProducts = res.data?.data || [];
-        console.log("API Products:", apiProducts);
 
         if (!Array.isArray(apiProducts)) {
           console.error("Data produk tidak valid:", apiProducts);
@@ -217,10 +231,10 @@ export const BlendingCreate: React.FC = () => {
           totalStock: product.total_stock,
           unit: product.unit?.name || "Unit",
           imageUrl: product.image_url || null,
-          variants: Array.isArray(product.variants)
-            ? product.variants.map((variant: any) => ({
+          variants: Array.isArray(product.details)
+            ? product.details.map((variant: any) => ({
                 id: variant.id,
-                name: variant.name,
+                name: variant.variant_name,
                 stock: variant.stock,
                 unit: product.unit?.name || "Unit",
               }))
@@ -352,26 +366,36 @@ export const BlendingCreate: React.FC = () => {
 
               {!canShowAddButton && (
                 <div className="text-sm text-gray-500 italic">
-                  Isi quantity keseluruhan terlebih dahulu untuk menambah komposisi
+                  Isi quantity keseluruhan terlebih dahulu untuk menambah
+                  komposisi
                 </div>
               )}
 
-              <div className="space-y-3 max-h-64 overflow-y-auto">
+              <div className="space-y-3 max-h-80 overflow-y-auto">
                 {compositions.map((item) => (
                   <div key={item.id} className="flex items-center gap-2">
                     <div className="flex gap-2 w-full">
                       <input
                         type="number"
-                        min="1"
                         max={formData.quantity}
-                        value={item.quantity}
-                        onChange={(e) =>
-                          handleQuantityChange(item.id, parseInt(e.target.value) || 1)
+                        value={
+                          item.quantity === 0 || item.quantity
+                            ? item.quantity
+                            : ""
                         }
-                        className="w-20 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) =>
+                          handleQuantityChange(
+                            item.id,
+                            e.target.value === ""
+                              ? ""
+                              : parseInt(e.target.value)
+                          )
+                        }
+                        className="w-20 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none"
                         placeholder="Qty"
                         required
                       />
+
                       <input
                         type="text"
                         value={item.label}
@@ -392,7 +416,9 @@ export const BlendingCreate: React.FC = () => {
 
               {compositions.length > 0 && (
                 <div className="text-xs text-gray-500 mt-2">
-                  Total quantity variant: {compositions.reduce((sum, comp) => sum + comp.quantity, 0)} / {formData.quantity}
+                  Total quantity variant:{" "}
+                  {compositions.reduce((sum, comp) => sum + comp.quantity, 0)} /{" "}
+                  {formData.quantity}
                 </div>
               )}
 
@@ -409,9 +435,14 @@ export const BlendingCreate: React.FC = () => {
             >
               Cancel
             </Link>
-            <AddButton 
+            <AddButton
               onClick={handleSubmit}
-              disabled={isSubmitting || !formData.name || !formData.quantity || compositions.length === 0}
+              disabled={
+                isSubmitting ||
+                !formData.name ||
+                !formData.quantity ||
+                compositions.length === 0
+              }
             >
               {isSubmitting ? "Menyimpan..." : "Tambah"}
             </AddButton>
@@ -497,9 +528,6 @@ export const BlendingCreate: React.FC = () => {
                               <div>
                                 <div className="font-medium text-sm text-gray-900">
                                   {product.name}
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  Kode : {product.code}
                                 </div>
                               </div>
                             </div>
