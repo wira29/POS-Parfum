@@ -30,7 +30,7 @@ export const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear()); // default: tahun ini
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const API = useApiClient();
 
   const getData = async (year: number) => {
@@ -47,22 +47,14 @@ export const Dashboard = () => {
     }
   };
 
-  
   useEffect(() => {
-<<<<<<< HEAD
     getData(selectedYear);
   }, [selectedYear]);
 
   const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedYear(parseInt(e.target.value));
   };
-
-=======
-    getData();
-  }, []);  
-  console.log(dashboardData);
-  
->>>>>>> c99651fd15c882f85a8a9b536714e7ade807a200
+ 
   if (loading) {
     return <div className="flex items-center justify-center min-h-[400px]">Loading...</div>;
   }
