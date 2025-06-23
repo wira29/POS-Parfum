@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { FiSearch } from "react-icons/fi";
 
-export default function RoleCreate({ open, onClose }: { open: boolean, onClose: () => void }) {
+export default function RoleCreate ({ open, onClose }: { open: boolean, onClose: () => void }) {
   const [name, setName] = useState("");
   const [guard, setGuard] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
