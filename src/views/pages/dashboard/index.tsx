@@ -30,13 +30,14 @@ export const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear()); // default: tahun ini
   const API = useApiClient();
 
-  const getData = async () => {
+  const getData = async (year: number) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await API.get("/dashboard");
+      const response = await API.get(`/dashboard?year=${year}`);
       setDashboardData(response.data.data);
     } catch (err) {
       setError("Gagal memuat data dashboard");
@@ -47,43 +48,25 @@ export const Dashboard = () => {
   };
 
   useEffect(() => {
-    getData();
-  }, []);  
+    getData(selectedYear);
+  }, [selectedYear]);
+
+  const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedYear(parseInt(e.target.value));
+  };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-      </div>
-    );
+    return <div className="flex items-center justify-center min-h-[400px]">Loading...</div>;
   }
 
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <div className="text-red-500 text-lg font-medium">{error}</div>
-        <button
-          onClick={getData}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-        >
-          Coba Lagi
-        </button>
-      </div>
-    );
-  }
-
-  if (!dashboardData) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-gray-500">Tidak ada data</div>
-      </div>
-    );
+  if (error || !dashboardData) {
+    return <div className="text-red-500">{error || "Tidak ada data"}</div>;
   }
 
   return (
     <div className="flex gap-6 flex-col">
       <ScoreCard data={dashboardData} />
-      <Statistik data={dashboardData} />
+      <Statistik data={dashboardData} selectedYear={selectedYear} onYearChange={handleYearChange} />
     </div>
   );
 };
