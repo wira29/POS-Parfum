@@ -1,10 +1,86 @@
-import { useState } from "react";
-import { Breadcrumb } from "@/views/components/Breadcrumb";
+import { useEffect, useState } from "react";
 import { Plus, Edit, Trash2 } from "lucide-react";
-import { SearchInput } from "@/views/components/SearchInput"
-import { Filter } from "@/views/components/Filter"
-import AddUnitModal from "@/views/pages/unit/widgets/AddPage";
-import EditUnitModal from "@/views/pages/unit/widgets/EditPage";
+import { Breadcrumb } from "@/views/components/Breadcrumb";
+import { SearchInput } from "@/views/components/SearchInput";
+import AddUnitModal from "./widgets/AddPage";
+import EditUnitModal from "./widgets/EditPage";
+import { useApiClient } from "@/core/helpers/ApiClient";
+import Swal from "sweetalert2";
+import { format } from "date-fns";
+import { Filter } from "@/views/components/Filter";
+
+function UnitFilter({ open, onClose, onFilter, initialFilter }) {
+  const [dateFrom, setDateFrom] = useState(initialFilter.dateFrom || "");
+  const [dateTo, setDateTo] = useState(initialFilter.dateTo || "");
+  const [minUser, setMinUser] = useState(initialFilter.minUser || "");
+  const [maxUser, setMaxUser] = useState(initialFilter.maxUser || "");
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-xl">
+        <h2 className="text-xl font-semibold text-gray-800 mb-6">Filter Unit</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Tanggal Dari</label>
+            <input
+              type="date"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Tanggal Sampai</label>
+            <input
+              type="date"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Minimal Jumlah Item</label>
+            <input
+              type="number"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              value={minUser}
+              onChange={(e) => setMinUser(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Maksimal Jumlah Item</label>
+            <input
+              type="number"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              value={maxUser}
+              onChange={(e) => setMaxUser(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 mt-6">
+          <button
+            className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100"
+            onClick={onClose}
+          >
+            Batal
+          </button>
+          <button
+            className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+            onClick={() => {
+              onFilter({ dateFrom, dateTo, minUser, maxUser });
+              onClose();
+            }}
+          >
+            Terapkan
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function UnitPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -12,34 +88,72 @@ export default function UnitPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editUnit, setEditUnit] = useState(null);
+  const [units, setUnits] = useState([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalData, setTotalData] = useState(0);
+  const [loading, setLoading] = useState(false);
 
-  // Dummy data
-  const units = [
-    { id: 1, name: "Kilogram", code: "kg", itemCount: 10, createdDate: "13 Mei 2025" },
-    { id: 2, name: "Kilogram", code: "kg", itemCount: 20, createdDate: "13 Mei 2025" },
-    { id: 3, name: "Milliliter", code: "ml", itemCount: 30, createdDate: "13 Mei 2025" },
-    { id: 4, name: "Milliliter", code: "ml", itemCount: 0, createdDate: "13 Mei 2025" },
-    { id: 5, name: "Liter", code: "l", itemCount: 13, createdDate: "13 Mei 2025" },
-    { id: 6, name: "Liter", code: "l", itemCount: 9, createdDate: "13 Mei 2025" },
-  ];
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filters, setFilters] = useState({ dateFrom: "", dateTo: "", minUser: "", maxUser: "" });
 
+  const ApiClient = useApiClient();
   const itemsPerPage = 6;
-  const totalPages = Math.ceil(units.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentUnits = units.slice(startIndex, endIndex);
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
+  const fetchUnits = async () => {
+    setLoading(true);
+    try {
+      const query = new URLSearchParams({
+        page: currentPage.toString(),
+        per_page: itemsPerPage.toString(),
+        search: searchTerm,
+        date_from: filters.dateFrom,
+        date_to: filters.dateTo,
+        min_user: filters.minUser,
+        max_user: filters.maxUser,
+      });
+
+      const { data } = await ApiClient.get(`/unit?${query.toString()}`);
+
+      const mapped = data.data.map((unit) => ({
+        id: unit.id,
+        name: unit.name,
+        code: unit.code,
+        itemCount: unit.item_count || 0,
+        createdDate: format(new Date(unit.created_at), "dd MMM yyyy"),
+      }));
+
+      setUnits(mapped);
+      setTotalPages(data.pagination.last_page);
+      setTotalData(data.pagination.total);
+    } catch (error) {
+      console.error("Gagal mengambil data unit", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleEdit = (unit) => {
-    setEditUnit(unit);
-    setEditModalOpen(true);
-  };
+  useEffect(() => {
+    fetchUnits();
+  }, [currentPage, searchTerm, filters]);
 
-  const handleDelete = (id) => {
-    console.log("Delete unit:", id);
+  const handleDelete = async (id) => {
+    const confirm = await Swal.fire({
+      title: "Yakin ingin menghapus unit ini?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, hapus!",
+      cancelButtonText: "Batal",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      await ApiClient.delete(`/unit/${id}`);
+      fetchUnits();
+      Swal.fire("Berhasil!", "Unit berhasil dihapus.", "success");
+    } catch (error) {
+      Swal.fire("Gagal!", "Terjadi kesalahan saat menghapus unit.", "error");
+    }
   };
 
   return (
@@ -56,7 +170,7 @@ export default function UnitPage() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <Filter />
+              <Filter onClick={() => setFilterOpen(true)} />
             </div>
             <button
               className="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-600"
@@ -72,91 +186,103 @@ export default function UnitPage() {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Unit</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kode Unit</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah Item</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dibuat Tanggal</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">No</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Unit</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kode Unit</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jumlah Item</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dibuat Tanggal</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {currentUnits.map((unit, index) => (
-                <tr key={unit.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {startIndex + index + 1}.
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {unit.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {unit.code}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {unit.itemCount} Item
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {unit.createdDate}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleEdit(unit)}
-                        className="p-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(unit.id)}
-                        className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-6 text-gray-500">Memuat data...</td>
                 </tr>
-              ))}
+              ) : units.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-6 text-gray-500">Tidak ada data</td>
+                </tr>
+              ) : (
+                units.map((unit, index) => (
+                  <tr key={unit.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">{(currentPage - 1) * itemsPerPage + index + 1}.</td>
+                    <td className="px-6 py-4">{unit.name}</td>
+                    <td className="px-6 py-4">{unit.code}</td>
+                    <td className="px-6 py-4">{unit.itemCount} Item</td>
+                    <td className="px-6 py-4">{unit.createdDate}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            setEditUnit(unit);
+                            setEditModalOpen(true);
+                          }}
+                          className="p-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(unit.id)}
+                          className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
 
         <div className="px-6 py-4 bg-gray-50 flex items-center justify-between">
           <div className="text-sm text-gray-500">
-            Menampilkan {startIndex + 1} dari {units.length} data
+            Menampilkan {(currentPage - 1) * itemsPerPage + 1} dari {totalData} data
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50"
             >
               Previous
             </button>
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
               <button
                 key={page}
-                onClick={() => handlePageChange(page)}
-                className={`px-3 py-1 text-sm border rounded-md ${
-                  currentPage === page
+                onClick={() => setCurrentPage(page)}
+                className={`px-3 py-1 text-sm border rounded-md ${currentPage === page
                     ? "bg-blue-500 text-white border-blue-500"
                     : "border-gray-300 hover:bg-gray-100"
-                }`}
+                  }`}
               >
                 {page}
               </button>
             ))}
             <button
-              onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages}
-              className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50"
             >
               Next
             </button>
           </div>
         </div>
       </div>
-      <AddUnitModal open={modalOpen} onClose={() => setModalOpen(false)} />
-      <EditUnitModal open={editModalOpen} unit={editUnit} onClose={() => setEditModalOpen(false)} />
+
+      <AddUnitModal open={modalOpen} onClose={() => setModalOpen(false)} onSuccess={fetchUnits} />
+      <EditUnitModal open={editModalOpen} unit={editUnit} onClose={() => setEditModalOpen(false)} onSuccess={fetchUnits} />
+      <UnitFilter
+        open={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        onFilter={(f) => {
+          setFilters(f);
+          setCurrentPage(1);
+        }}
+        initialFilter={filters}
+      />
     </div>
   );
 }

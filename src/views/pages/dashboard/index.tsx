@@ -46,10 +46,12 @@ export const Dashboard = () => {
     }
   };
 
+  
   useEffect(() => {
     getData();
   }, []);  
-
+  console.log(dashboardData);
+  
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">

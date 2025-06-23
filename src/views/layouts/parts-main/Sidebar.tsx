@@ -42,6 +42,7 @@ const menuItems = [
       { label: "Blending Produk", icon: <FiCoffee />, path: "/blendings", roles: ["warehouse"] },
       { label: "Audit", icon: <AiOutlineFileSearch />, path: "/audit", roles: ["admin", "outlet"] },
       { label: "Diskon", icon: <FiPercent />, path: "/discounts", roles: ["owner", "warehouse", "outlet"] },
+      { label: "Units", icon: <FaUserTag />, path: "/units", roles: ["owner", "warehouse"] },
     ],
   },
   {
@@ -52,6 +53,7 @@ const menuItems = [
       { label: "Tambah Pengguna", icon: <FiUsers />, path: "/users", roles: ["owner", "warehouse", "outlet"] },
       { label: "Laporan", icon: <TbCoinTakaFilled />, path: "/laporan", roles: ["owner", "outlet"] },
       { label: "Pengeluaran", icon: <Wallet2Icon />, path: "/pengeluaran", roles: ["owner", "outlet"] },
+      { label: "Role", icon: <FaUserTag />, path: "/roles", roles: ["owner", "warehouse"] },
     ],
   },
 ];
