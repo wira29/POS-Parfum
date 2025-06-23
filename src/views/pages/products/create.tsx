@@ -168,6 +168,8 @@ export const ProductCreate = () => {
         Toaster("error", "Terjadi kesalahan saat menyimpan produk.");
       }
     }
+
+    console.log("inputan", formData);
   };
 
   const labelClass = "block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2";

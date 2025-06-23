@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import React from "react";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 
@@ -10,16 +10,14 @@ import { EditIcon } from "@/views/components/EditIcon";
 import AddButton from "@/views/components/AddButton";
 import ViewIcon from "@/views/components/ViewIcon";
 import { Pagination } from "@/views/components/Pagination";
-
-import Swal from "sweetalert2";
-import { Toaster } from "@/core/helpers/BaseAlert";
 import { useApiClient } from "@/core/helpers/ApiClient";
+import { Toaster } from "@/core/helpers/BaseAlert";
+import Swal from "sweetalert2";
 import { FilterModal } from "@/views/components/filter/ProductFilter";
 
 export const ProductIndex = () => {
   const api = useApiClient();
   const [products, setProducts] = useState<any[]>([]);
-  const [allProducts, setAllProducts] = useState<any[]>([]);
   const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -32,29 +30,40 @@ export const ProductIndex = () => {
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [variantPage, setVariantPage] = useState<Record<string, number>>({});
-  const pageSize = 8;
+  const pageSize = 5;
   const variantPageSize = 5;
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    fetchData(page);
+  }, [page, search, categoryFilter, stockMin, stockMax]);
 
-  useEffect(() => {
-    filterProducts();
-  }, [search, categoryFilter, stockMin, stockMax, allProducts]);
-
-  const fetchData = async () => {
+  const fetchData = async (page: number = 1) => {
     setLoading(true);
     try {
-      const res = await api.get("/products");
-      const data = res.data.data;
-      setAllProducts(data);
+      const query = new URLSearchParams({
+        page: page.toString(),
+        per_page: pageSize.toString(),
+        search,
+        category: categoryFilter,
+        stock_min: stockMin,
+        stock_max: stockMax,
+      });
+
+      const res = await api.get(`/products?${query.toString()}`);
+      const pagination = res.data.pagination;
+
+      setProducts(pagination.data);
+      setPage(pagination.current_page);
+      setLastPage(pagination.last_page);
 
       const categories = Array.from(
-        new Set(data.map((p: any) => p.category?.name).filter(Boolean))
+        new Set(
+          pagination.data
+            .map((p: any) => p.category?.name)
+            .filter(Boolean)
+        )
       );
       setCategoryOptions(categories);
-      setLastPage(Math.ceil(data.length / pageSize));
     } catch (error) {
       Toaster("error", "Gagal memuat data produk");
     } finally {
@@ -62,32 +71,16 @@ export const ProductIndex = () => {
     }
   };
 
-  const filterProducts = () => {
-    let filtered = allProducts.filter((product) => {
-      const nameMatch = product.name.toLowerCase().includes(search.toLowerCase());
-      const categoryMatch = categoryFilter ? product.category?.name === categoryFilter : true;
-      const totalStock = (product.details || []).reduce((sum, v) => sum + (v.product_stock_warehouse?.stock ?? v.stock ?? 0), 0);
-      const stockMinMatch = stockMin ? totalStock >= Number(stockMin) : true;
-      const stockMaxMatch = stockMax ? totalStock <= Number(stockMax) : true;
-      return nameMatch && categoryMatch && stockMinMatch && stockMaxMatch;
-    });
-
-    setLastPage(Math.ceil(filtered.length / pageSize));
-    const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
-    setProducts(paged);
-  };
-
-  useEffect(() => {
-    filterProducts();
-  }, [page]);
-
   const toggleExpand = (productId: string) => {
     setExpandedProducts((prev) => {
       const isExpanded = prev.includes(productId);
       if (!isExpanded) {
         setVariantPage((vp) => ({ ...vp, [productId]: 1 }));
         setTimeout(() => {
-          expandRefs.current[productId]?.scrollIntoView({ behavior: "smooth", block: "start" });
+          expandRefs.current[productId]?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
         }, 200);
       }
       return isExpanded ? prev.filter((id) => id !== productId) : [...prev, productId];
@@ -102,7 +95,7 @@ export const ProductIndex = () => {
       stock: detail.product_stock_warehouse?.stock ?? detail.stock ?? 0,
       price: detail.price ?? 0,
       category: detail.category || product.category || { name: "Umum" },
-      penjualan: detail.sales || 0,
+      penjualan: detail.transaction_details_count || 0,
       image: detail.product_image
         ? detail.product_image.startsWith("http")
           ? detail.product_image
@@ -128,7 +121,7 @@ export const ProductIndex = () => {
     try {
       await api.delete(`/products/${id}`);
       Swal.fire("Terhapus!", "Product berhasil dihapus.", "success");
-      fetchData();
+      fetchData(page);
     } catch (error) {
       Swal.fire("Gagal!", "Gagal menghapus Product.", "error");
     }
