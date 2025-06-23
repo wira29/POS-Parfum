@@ -37,7 +37,7 @@ export const Dashboard = () => {
       setLoading(true);
       setError(null);
       const response = await API.get("/dashboard");
-      setDashboardData(response.data.data);
+      setDashboardData(response.data);
     } catch (err) {
       setError("Gagal memuat data dashboard");
       console.error("Dashboard API Error:", err);
@@ -46,12 +46,10 @@ export const Dashboard = () => {
     }
   };
 
-  
   useEffect(() => {
     getData();
-  }, []);  
-  console.log(dashboardData);
-  
+  }, []);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
