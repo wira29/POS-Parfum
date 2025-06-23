@@ -72,6 +72,8 @@ export const ProductEdit = () => {
         setProductName(productData.name || "");
         setCategory(productData.category_id || "");
         setImages(productData.image ? [productData.image] : []);
+        setDescription(productData.description || "");
+        setComposition(productData.composition || [""]);
 
         const details = productData.details || [];
         if (details.length > 1 || details[0]?.variant_name !== null) {
@@ -184,7 +186,11 @@ export const ProductEdit = () => {
             formData.append("image", images[0]);
         }
         formData.append("unit_type", "weight");
+        formData.append("description", description);
         formData.append("category_id", category);
+        composition.forEach((item, i) => {
+            formData.append(`composition[${i}]`, item);
+        });
 
         if (!hasVariant) {
             formData.append("product_details[0][category_id]", category);
@@ -284,9 +290,7 @@ export const ProductEdit = () => {
                                 })
                             }
                             onAdd={() => setComposition((prev) => [...prev, ""])}
-                            onRemove={(index) =>
-                                setComposition((prev) => prev.filter((_, i) => i !== index))
-                            }
+                            onRemove={(index) => setComposition((prev) => prev.filter((_, i) => i !== index))}
                             placeholderPrefix="Komposisi "
                         />
                     </div>
