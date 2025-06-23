@@ -37,7 +37,7 @@ export const Dashboard = () => {
       setLoading(true);
       setError(null);
       const response = await API.get("/dashboard");
-      setDashboardData(response.data);
+      setDashboardData(response.data.data);
     } catch (err) {
       setError("Gagal memuat data dashboard");
       console.error("Dashboard API Error:", err);
@@ -48,7 +48,7 @@ export const Dashboard = () => {
 
   useEffect(() => {
     getData();
-  }, []);
+  }, []);  
 
   if (loading) {
     return (

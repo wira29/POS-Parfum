@@ -5,8 +5,18 @@ const rupiah = (v: number) =>
   `Rp ${v.toLocaleString("id-ID", { minimumFractionDigits: 0 })}`;
 
 const MONTHS = [
-  "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
-  "Jul", "Agst", "Sep", "Okt", "Nov", "Des",
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "Mei",
+  "Jun",
+  "Jul",
+  "Agst",
+  "Sep",
+  "Okt",
+  "Nov",
+  "Des",
 ];
 
 interface ChartData {
@@ -18,14 +28,16 @@ interface StatistikPendapatanProps {
   chartData: ChartData;
 }
 
-const StatistikPendapatan: React.FC<StatistikPendapatanProps> = ({ chartData }) => {
+const StatistikPendapatan: React.FC<StatistikPendapatanProps> = ({
+  chartData,
+}) => {  
   const [selectedYear] = useState<number>(chartData.year);
 
   const { series, options } = useMemo(() => {
     const data = chartData.data;
     const maxValue = Math.max(...data);
     const maxIndex = data.indexOf(maxValue);
-    
+
     return {
       series: [{ name: "Jumlah", data }],
       options: {
@@ -54,11 +66,26 @@ const StatistikPendapatan: React.FC<StatistikPendapatanProps> = ({ chartData }) 
           size: 6,
           strokeWidth: 0,
           colors: ["#111"],
-          discrete: [
-            { seriesIndex: 0, dataPointIndex: 0, fillColor: "#111" },
-            { seriesIndex: 0, dataPointIndex: data.length - 1, fillColor: "#111" },
-            ...(maxValue > 0 ? [{ seriesIndex: 0, dataPointIndex: maxIndex, fillColor: "#ff0000" }] : []),
-          ],
+          discrete:
+            !data || data.length === 0
+              ? []
+              : [
+                  { seriesIndex: 0, dataPointIndex: 0, fillColor: "#111" },
+                  {
+                    seriesIndex: 0,
+                    dataPointIndex: data.length - 1,
+                    fillColor: "#111",
+                  },
+                  ...(maxValue > 0
+                    ? [
+                        {
+                          seriesIndex: 0,
+                          dataPointIndex: maxIndex,
+                          fillColor: "#ff0000",
+                        },
+                      ]
+                    : []),
+                ],
           hover: { size: 8 },
         },
         xaxis: {
@@ -67,12 +94,12 @@ const StatistikPendapatan: React.FC<StatistikPendapatanProps> = ({ chartData }) 
           labels: { style: { fontWeight: 500 } },
         },
         yaxis: {
-          labels: { 
+          labels: {
             formatter: (v) => {
               if (v >= 1000000) return `${Math.round(v / 1000000)} Jt`;
               if (v >= 1000) return `${Math.round(v / 1000)} Rb`;
               return `${v}`;
-            }
+            },
           },
         },
         grid: {
@@ -83,7 +110,9 @@ const StatistikPendapatan: React.FC<StatistikPendapatanProps> = ({ chartData }) 
           shared: false,
           intersect: false,
           marker: { show: true },
-          x: { formatter: (_: any, { dataPointIndex }) => MONTHS[dataPointIndex] },
+          x: {
+            formatter: (_: any, { dataPointIndex }) => MONTHS[dataPointIndex],
+          },
           y: {
             formatter: (v) => rupiah(v),
             title: { formatter: () => "Jumlah" },

@@ -1,5 +1,6 @@
 import StatistikPendapatan from "./StatistikPendapatan";
 import LatestOrder from "./LatestOrder";
+import LowStockproduct from "./LowStockProducts";
 
 interface DashboardData {
   chart: {
@@ -24,14 +25,20 @@ interface StatistikProps {
   data: DashboardData;
 }
 
-export const Statistik = ({ data }: StatistikProps) => {
+export const Statistik = ({ data }: StatistikProps) => { 
+  console.log(data);
+     
   return (
     <div className="w-full flex gap-5">
       <div className="flex-[9.5]">
         <StatistikPendapatan chartData={data.chart} />
       </div>
       <div className="flex-[3]">
-        <LatestOrder orders={data.recent_orders} />
+        {data.role === "outlet" ? (
+          <LowStockproduct product={data.low_stock_products} />
+        ): (
+          <LatestOrder orders={data.recent_orders} />
+        )}
       </div>
     </div>
   );

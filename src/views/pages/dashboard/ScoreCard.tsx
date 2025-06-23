@@ -50,7 +50,7 @@ export const ScoreCard = ({ data }: ScoreCardProps) => {
     });
   }
 
-  if (data.role === "retail" && data.total_users !== undefined) {
+  if (data.role === "outlet" && data.total_users !== undefined) {
     scoreItems.push({
       title: "Total Pengguna",
       value: data.total_users,
