@@ -9,7 +9,7 @@ import { EditIcon } from "@/views/components/EditIcon";
 import { Filter } from "@/views/components/Filter";
 import { Toaster } from "@/core/helpers/BaseAlert";
 import { useApiClient } from "@/core/helpers/ApiClient";
-import { CategoryFilterModal } from "@/views/components/Filter/CategoryFilterModal";
+import { CategoryFilterModal } from "@/views/components/filter/CategoryFilterModal";
 
 interface Category {
   id: number;
@@ -47,7 +47,9 @@ export const CategoryIndex = () => {
       if (startDate) queryParams.append("start_date", startDate);
       if (endDate) queryParams.append("end_date", endDate);
 
-      const response = await ApiClient.get(`/categories?${queryParams.toString()}`);
+      const response = await ApiClient.get(
+        `/categories?${queryParams.toString()}`
+      );
       if (response.data.success) {
         const apiData: Category[] = response.data.data.map((item: any) => ({
           id: item.id,
@@ -77,13 +79,21 @@ export const CategoryIndex = () => {
 
   const filteredData = categories.filter((item) => {
     const itemDate = new Date(item.created_at).toISOString().split("T")[0];
-    const isMatchSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const isMatchSearch = item.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
     const isMatchFilter = categoryFilter ? item.name === categoryFilter : true;
     const isMatchStatus = statusFilter ? item.status === statusFilter : true;
     const isAfterStart = startDate ? itemDate >= startDate : true;
     const isBeforeEnd = endDate ? itemDate <= endDate : true;
 
-    return isMatchSearch && isMatchFilter && isMatchStatus && isAfterStart && isBeforeEnd;
+    return (
+      isMatchSearch &&
+      isMatchFilter &&
+      isMatchStatus &&
+      isAfterStart &&
+      isBeforeEnd
+    );
   });
 
   const totalPages = Math.ceil(totalData / perPage);
@@ -106,7 +116,11 @@ export const CategoryIndex = () => {
     try {
       const response = await ApiClient.post("/categories", { name });
       if (response.data.success) return response.data.data;
-      Swal.fire("Error", response.data.message || "Gagal membuat kategori", "error");
+      Swal.fire(
+        "Error",
+        response.data.message || "Gagal membuat kategori",
+        "error"
+      );
       return null;
     } catch (error) {
       console.error("Error creating category:", error);
@@ -119,7 +133,11 @@ export const CategoryIndex = () => {
     try {
       const response = await ApiClient.put(`/categories/${id}`, { name });
       if (response.data.success) return response.data.data;
-      Swal.fire("Error", response.data.message || "Gagal mengupdate kategori", "error");
+      Swal.fire(
+        "Error",
+        response.data.message || "Gagal mengupdate kategori",
+        "error"
+      );
       return null;
     } catch (error) {
       console.error("Error updating category:", error);
@@ -135,7 +153,11 @@ export const CategoryIndex = () => {
         Toaster("success", "Kategori berhasil dihapus");
         fetchCategories(currentPage);
       } else {
-        Swal.fire("Error", response.data.message || "Gagal menghapus kategori", "error");
+        Swal.fire(
+          "Error",
+          response.data.message || "Gagal menghapus kategori",
+          "error"
+        );
       }
     } catch (error) {
       console.error("Error deleting category:", error);
@@ -149,7 +171,12 @@ export const CategoryIndex = () => {
       : await createCategory(name);
 
     if (success) {
-      Toaster("success", editingCategory ? "Kategori berhasil diupdate" : "Kategori berhasil dibuat");
+      Toaster(
+        "success",
+        editingCategory
+          ? "Kategori berhasil diupdate"
+          : "Kategori berhasil dibuat"
+      );
       fetchCategories(currentPage);
       closeModal();
     }
@@ -169,7 +196,9 @@ export const CategoryIndex = () => {
   };
 
   const Modal = () => {
-    const [name, setName] = useState(editingCategory ? editingCategory.name : "");
+    const [name, setName] = useState(
+      editingCategory ? editingCategory.name : ""
+    );
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
@@ -178,7 +207,8 @@ export const CategoryIndex = () => {
 
     const onSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      if (!name.trim()) return Swal.fire("Error", "Nama kategori wajib diisi", "error");
+      if (!name.trim())
+        return Swal.fire("Error", "Nama kategori wajib diisi", "error");
       setIsLoading(true);
       await handleModalSubmit(name);
       setIsLoading(false);
@@ -188,23 +218,57 @@ export const CategoryIndex = () => {
 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-        <form onSubmit={onSubmit} className="bg-white rounded-lg shadow-lg p-6 min-w-[300px]">
-          <h2 className="font-semibold text-lg mb-4">{editingCategory ? "Edit Kategori" : "Tambah Kategori"}</h2>
-          <div className="mb-4">
-            <label className="block mb-1 text-sm">Nama Kategori</label>
-            <input
-              type="text"
-              className="border rounded px-2 py-1 w-full"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              autoFocus
-            />
+        <form
+          onSubmit={onSubmit}
+          className="bg-white rounded-lg shadow-lg overflow-hidden min-w-[400px] max-w-md w-full mx-4"
+        >
+          <div className="bg-blue-600 px-6 py-4">
+            <h2 className="font-semibold text-lg text-white">
+              {editingCategory ? "Edit Kategori" : "Tambah Kategori Baru"}
+            </h2>
           </div>
-          <div className="flex justify-end gap-2">
-            <button type="button" className="px-3 py-1 rounded border border-gray-300" onClick={closeModal}>Batal</button>
-            <button type="submit" className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50" disabled={isLoading}>
-              {isLoading ? "Menyimpan..." : "Simpan"}
-            </button>
+
+          <div className="p-6">
+            <div className="mb-6">
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                Nama<span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                placeholder="Nama Kategori"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                autoFocus
+              />
+            </div>
+          </div>
+
+          <div className="px-6 pb-6">
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                className="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium cursor-pointer hover:bg-gray-50 transition-colors"
+                onClick={closeModal}
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                className={`${
+                  editingCategory
+                    ? "bg-yellow-400 hover:bg-yellow-500 "
+                    : "bg-blue-600"
+                } cursor-pointer px-6 py-2 rounded-lg text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
+                disabled={isLoading}
+              >
+                {isLoading
+                  ? "Menyimpan..."
+                  : editingCategory
+                  ? "Simpan"
+                  : "Tambah"}
+              </button>
+            </div>
           </div>
         </form>
       </div>
@@ -213,17 +277,22 @@ export const CategoryIndex = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <Breadcrumb title="Kategori" desc="List kategori yang ada pada toko anda" />
+      <Breadcrumb
+        title="Kategori"
+        desc="List kategori yang ada pada toko anda"
+      />
       <div className="bg-white shadow-md p-4 rounded-md flex flex-col gap-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <SearchInput
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
-          />
-          <Filter onClick={() => setShowFilter(true)} />
+          <div className="flex gap-5">
+            <SearchInput
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
+            <Filter onClick={() => setShowFilter(true)} />
+          </div>
           <AddButton onClick={openCreateModal}>Tambah Category</AddButton>
         </div>
 
@@ -241,11 +310,19 @@ export const CategoryIndex = () => {
             <tbody>
               {filteredData.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500">Tidak ada data ditemukan.</td>
+                  <td
+                    colSpan={5}
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
+                    Tidak ada data ditemukan.
+                  </td>
                 </tr>
               ) : (
                 filteredData.map((item, index) => (
-                  <tr key={index} className="border-b border-gray-200 text-gray-600 hover:bg-gray-50">
+                  <tr
+                    key={index}
+                    className="border-b border-gray-200 text-gray-600 hover:bg-gray-50"
+                  >
                     <td className="px-6 py-4">{item.name}</td>
                     <td className="px-6 py-4">{item.products_count} item</td>
                     <td className="px-6 py-4">
@@ -273,7 +350,11 @@ export const CategoryIndex = () => {
 
         <div className="flex justify-between mt-6">
           <span className="text-gray-700">{filteredData.length} Data</span>
-          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
 
