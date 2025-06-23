@@ -5,7 +5,7 @@ import AddButton from "@/views/components/AddButton";
 import { SearchInput } from "@/views/components/SearchInput";
 import { Filter } from "@/views/components/Filter";
 import ViewIcon from "@/views/components/ViewIcon";
-import { X, Calendar } from "lucide-react";
+import { X } from "lucide-react";
 import { useApiClient } from "@/core/helpers/ApiClient";
 
 interface BlendingProduct {
@@ -55,7 +55,7 @@ export default function BlendingIndex() {
 
   const getData = async () => {
     try {
-      const response = await ApiClient.get("/product-blend");
+      const response = await ApiClient.get("/product-blend?per_page=100");
       const apiData = response.data.data ?? [];
 
       const transformed: BlendingProduct[] = apiData.map((item: any) => ({
@@ -93,7 +93,6 @@ export default function BlendingIndex() {
       item.kategori.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.status.toLowerCase().includes(searchQuery.toLowerCase());
 
-    // Date filter
     let matchDate = true;
     if (filters.dateFrom || filters.dateTo) {
       const itemDate = new Date(item.tanggalPembuatan);
@@ -105,7 +104,6 @@ export default function BlendingIndex() {
       }
     }
 
-    // Quantity filter
     let matchQuantity = true;
     if (filters.quantityFrom || filters.quantityTo) {
       const itemQuantity = parseInt(item.stok.replace('G', '')) || 0;

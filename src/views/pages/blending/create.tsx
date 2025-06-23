@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { PlusCircle, XCircle, Search } from "lucide-react";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AddButton from "@/views/components/AddButton";
 import { useEffect } from "react";
 import { useApiClient } from "@/core/helpers/ApiClient";
@@ -61,6 +61,7 @@ export const BlendingCreate: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const API = useApiClient();
+  const navigate = useNavigate();
 
   const toggleExpand = (id: string): void => {
     setExpandedProducts((prev) =>
@@ -190,14 +191,19 @@ export const BlendingCreate: React.FC = () => {
 
       if (response.data.success) {
         Toaster("success", "Berhasil membuat blending produk!");
+        navigate("/blendings");
         setFormData({ name: "", quantity: 0, description: "" });
         setCompositions([]);
       } else {
         Toaster("error", "Gagal membuat blending produk!");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating blend:", error);
-      Toast("error", "Terjadi kesalahan saat membuat blending produk");
+
+      const errorMessage =
+        error?.response?.data?.message ||
+        "Terjadi kesalahan saat membuat blending produk";
+      Toast("error", errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -216,7 +222,7 @@ export const BlendingCreate: React.FC = () => {
     const fetchProducts = async () => {
       try {
         const res = await API.get("/products/no-paginate");
-        const apiProducts = res.data?.data || [];
+        const apiProducts = res.data?.data || [];        
 
         if (!Array.isArray(apiProducts)) {
           console.error("Data produk tidak valid:", apiProducts);

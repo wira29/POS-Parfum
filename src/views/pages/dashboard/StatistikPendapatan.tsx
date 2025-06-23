@@ -26,17 +26,24 @@ interface ChartData {
 
 interface StatistikPendapatanProps {
   chartData: ChartData;
+  selectedYear: number;
+  onYearChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+}
+
+interface StatistikPendapatanProps {
+  chartData: ChartData;
 }
 
 const StatistikPendapatan: React.FC<StatistikPendapatanProps> = ({
   chartData,
-}) => {  
-  const [selectedYear] = useState<number>(chartData.year);
-
+  selectedYear,
+  onYearChange,
+}) => {
   const { series, options } = useMemo(() => {
     const data = chartData.data;
     const maxValue = Math.max(...data);
     const maxIndex = data.indexOf(maxValue);
+
 
     return {
       series: [{ name: "Jumlah", data }],
@@ -123,17 +130,25 @@ const StatistikPendapatan: React.FC<StatistikPendapatanProps> = ({
       } as ApexCharts.ApexOptions,
     };
   }, [chartData]);
-
+ const years = Array.from({ length: 20 }, (_, i) => new Date().getFullYear() - i);
   return (
-    <div className="bg-white rounded-2xl shadow p-6">
+   <div className="bg-white rounded-2xl shadow p-6">
       <header className="flex items-center justify-between mb-5 gap-3 flex-wrap">
         <h1 className="text-3xl font-semibold">Statistik Pendapatan</h1>
-        <div className="border border-slate-300 px-5 py-2 rounded-xl text-lg font-medium text-slate-800 bg-slate-50">
-          {selectedYear}
-        </div>
+        <select
+          className="border border-slate-300 px-5 py-2 rounded-xl text-lg font-medium text-slate-800 bg-slate-50"
+          value={selectedYear}
+          onChange={onYearChange}
+        >
+          {years.map((year) => (
+            <option key={year} value={year}>
+              {year}
+            </option>
+          ))}
+        </select>
       </header>
 
-      <Chart options={options} series={series} height={360} />
+      <Chart options={options} type="area" series={series} height={360} />
     </div>
   );
 };

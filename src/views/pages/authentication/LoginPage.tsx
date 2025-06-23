@@ -5,6 +5,7 @@ import { useApiClient } from "@/core/helpers/ApiClient";
 import { useAuthStore } from "@/core/stores/AuthStore";
 import { Toaster } from "@/core/helpers/BaseAlert";
 import { setToken } from "@/core/helpers/TokenHandle";
+import { Eye, EyeOff } from "lucide-react";
 
 const LoginFormSchema = z.object({
   email: z
@@ -28,8 +29,11 @@ export const LoginPage = () => {
     password: "",
   });
 
-  const [formErrorMsg, setFormErrorMsg] = useState<{ [key: string]: string[] }>({});
-  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [formErrorMsg, setFormErrorMsg] = useState<{ [key: string]: string[] }>(
+    {}
+  );
+  const [showPassword, setShowPassword] = useState(false);
+  const togglePassword = () => setShowPassword((prev) => !prev);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -133,23 +137,32 @@ export const LoginPage = () => {
                 ))}
             </div>
 
-            <div>
+            <div className="relative">
               <label className="text-sm font-medium" htmlFor="password">
                 Kata Sandi
               </label>
               <input
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="Kata Sandi (min. 8 karakter)"
                 value={formData.password}
                 onChange={handleInputChange}
-                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                 className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                     formErrorMsg.password ? "border-gray-300" : "border-gray-300"
-                }`}
-                />
+                  }`}
+              />
+              <button
+                type="button"
+                onClick={togglePassword}
+                className="absolute right-3 top-[38px] text-gray-500 hover:text-gray-700"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff size={18} className="cursor-pointer"/> : <Eye className="cursor-pointer" size={18} />}
+              </button>
+
               {formErrorMsg.password &&
-                formErrorMsg.password.map((msg, idx) => (
+                formErrorMsg.password.map((msg: string, idx: number) => (
                   <p key={idx} className="text-red-500 text-xs mt-1">
                     {msg}
                   </p>
@@ -169,7 +182,11 @@ export const LoginPage = () => {
               className="bg-blue-500 hover:bg-blue-700 cursor-pointer disabled:opacity-50 text-white w-full py-2 rounded-md font-medium"
             >
               {isLoading ? (
-                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                <span
+                  className="spinner-border spinner-border-sm me-2"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
               ) : null}
               {isLoading ? "Masuk" : "Masuk"}
             </button>

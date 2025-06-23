@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="640" height="480">
   <defs>
     <clipPath id="a">
-      <path fill-rule="evenodd" d="M60 0h1200v900H60z"/>
+      <path fillRule="evenodd" d="M60 0h1200v900H60z"/>
     </clipPath>
   </defs>
-  <g transform="matrix(.53333 0 0 .53333 -32 0)" clip-path="url(#a)">
+  <g transform="matrix(.53333 0 0 .53333 -32 0)" clipPath="url(#a)">
     <path fill="#fff" d="M0 0h1350v900H0z"/>
     <path fill="#0c4076" d="M0 0h1350v600H0z"/>
     <path fill="#c6363c" d="M0 0h1350v300H0z"/>

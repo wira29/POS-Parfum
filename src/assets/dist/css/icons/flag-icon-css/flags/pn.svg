@@ -5,7 +5,7 @@
     </clipPath>
   </defs>
   <path fill="#00247d" d="M-15-11.25h30v22.5h-30z"/>
-  <g clip-path="url(#a)" transform="translate(0 -3.75)">
+  <g clipPath="url(#a)" transform="translate(0 -3.75)">
     <circle r="20" fill="#00247d"/>
     <path stroke-width="3" stroke="#fff" d="M-20-10l40 20m-40 0l40-20"/>
     <path stroke-width="2" stroke="#cf142b" d="M-20-10l40 20m-40 0l40-20"/>

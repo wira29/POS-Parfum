@@ -1,7 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import React from "react";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
-import { X } from "lucide-react";
 
 import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { SearchInput } from "@/views/components/SearchInput";
@@ -11,100 +10,11 @@ import { EditIcon } from "@/views/components/EditIcon";
 import AddButton from "@/views/components/AddButton";
 import ViewIcon from "@/views/components/ViewIcon";
 import { Pagination } from "@/views/components/Pagination";
-
-import Swal from "sweetalert2";
-import { Toaster } from "@/core/helpers/BaseAlert";
 import { useApiClient } from "@/core/helpers/ApiClient";
+import { Toaster } from "@/core/helpers/BaseAlert";
+import Swal from "sweetalert2";
+import { FilterModal } from "@/views/components/filter/ProductFilter";
 
-// Filter Modal Component
-const FilterModal = ({
-  open,
-  onClose,
-  categoryFilter,
-  setCategoryFilter,
-  categoryOptions,
-  stockMin,
-  setStockMin,
-  stockMax,
-  setStockMax,
-}: any) => {
-  if (!open) return null;
-
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) onClose();
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={handleBackdropClick}>
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h3 className="text-xl font-semibold text-gray-900">Filter Produk</h3>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-            <X className="w-6 h-6 cursor-pointer" />
-          </button>
-        </div>
-
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Kategori Produk</label>
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Semua Kategori</option>
-              {categoryOptions.map((cat: string) => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Stok Minimum</label>
-              <input
-                type="number"
-                value={stockMin}
-                onChange={(e) => setStockMin(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Contoh: 10"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Stok Maksimum</label>
-              <input
-                type="number"
-                value={stockMax}
-                onChange={(e) => setStockMax(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Contoh: 100"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-2 p-4 border-t border-gray-200">
-          <button
-            onClick={() => {
-              setCategoryFilter("");
-              setStockMin("");
-              setStockMax("");
-              onClose();
-            }}
-            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100"
-          >
-            Reset
-          </button>
-          <button onClick={onClose} className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
-            Terapkan
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Main Component
 export const ProductIndex = () => {
   const api = useApiClient();
   const [products, setProducts] = useState<any[]>([]);
@@ -120,33 +30,38 @@ export const ProductIndex = () => {
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [variantPage, setVariantPage] = useState<Record<string, number>>({});
-  const pageSize = 8;
+  const pageSize = 5;
   const variantPageSize = 5;
 
-  // Reset page when filter/search changes
   useEffect(() => {
-    setPage(1);
-  }, [categoryFilter, search, stockMin, stockMax]);
+    fetchData(page);
+  }, [page, search, categoryFilter, stockMin, stockMax]);
 
-  const fetchData = async () => {
+  const fetchData = async (page: number = 1) => {
     setLoading(true);
     try {
-      const res = await api.get("/products", {
-        params: {
-          page,
-          search,
-          category: categoryFilter,
-          per_page: pageSize,
-          stock_min: stockMin || undefined,
-          stock_max: stockMax || undefined,
-        },
+      const query = new URLSearchParams({
+        page: page.toString(),
+        per_page: pageSize.toString(),
+        search,
+        category: categoryFilter,
+        stock_min: stockMin,
+        stock_max: stockMax,
       });
 
-      setProducts(res.data.data);
-      setLastPage(res.data.pagination.last_page || 1);
+      const res = await api.get(`/products?${query.toString()}`);
+      const pagination = res.data.pagination;
+
+      setProducts(pagination.data);
+      setPage(pagination.current_page);
+      setLastPage(pagination.last_page);
 
       const categories = Array.from(
-        new Set(res.data.data.map((p: any) => p.category?.name).filter(Boolean))
+        new Set(
+          pagination.data
+            .map((p: any) => p.category?.name)
+            .filter(Boolean)
+        )
       );
       setCategoryOptions(categories);
     } catch (error) {
@@ -156,17 +71,16 @@ export const ProductIndex = () => {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, [page, categoryFilter, search, stockMin, stockMax]);
-
   const toggleExpand = (productId: string) => {
     setExpandedProducts((prev) => {
       const isExpanded = prev.includes(productId);
       if (!isExpanded) {
         setVariantPage((vp) => ({ ...vp, [productId]: 1 }));
         setTimeout(() => {
-          expandRefs.current[productId]?.scrollIntoView({ behavior: "smooth", block: "start" });
+          expandRefs.current[productId]?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
         }, 200);
       }
       return isExpanded ? prev.filter((id) => id !== productId) : [...prev, productId];
@@ -181,7 +95,7 @@ export const ProductIndex = () => {
       stock: detail.product_stock_warehouse?.stock ?? detail.stock ?? 0,
       price: detail.price ?? 0,
       category: detail.category || product.category || { name: "Umum" },
-      penjualan: detail.sales || 0,
+      penjualan: detail.transaction_details_count || 0,
       image: detail.product_image
         ? detail.product_image.startsWith("http")
           ? detail.product_image
@@ -207,8 +121,7 @@ export const ProductIndex = () => {
     try {
       await api.delete(`/products/${id}`);
       Swal.fire("Terhapus!", "Product berhasil dihapus.", "success");
-      fetchData();
-      setPage(1);
+      fetchData(page);
     } catch (error) {
       Swal.fire("Gagal!", "Gagal menghapus Product.", "error");
     }
@@ -342,7 +255,10 @@ export const ProductIndex = () => {
 
       <FilterModal
         open={showFilter}
-        onClose={() => setShowFilter(false)}
+        onClose={() => {
+          setShowFilter(false);
+          setPage(1);
+        }}
         categoryFilter={categoryFilter}
         setCategoryFilter={setCategoryFilter}
         categoryOptions={categoryOptions}

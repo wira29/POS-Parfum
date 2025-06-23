@@ -44,6 +44,7 @@ const menuItems = [
       { label: "Unit", icon: <LayoutGrid />, path: "/unit", roles: ["admin", "warehouse", "retail"] },
       { label: "Audit", icon: <AiOutlineFileSearch />, path: "/audit", roles: ["admin", "outlet"] },
       { label: "Diskon", icon: <FiPercent />, path: "/discounts", roles: ["owner", "warehouse", "outlet"] },
+      { label: "Units", icon: <FaUserTag />, path: "/units", roles: ["owner", "warehouse"] },
     ],
   },
   {
@@ -55,6 +56,7 @@ const menuItems = [
       { label: "Role", icon: <FaUserTag />, path: "/roles", roles: ["owner", "warehouse","retail"] },
       { label: "Laporan", icon: <TbCoinTakaFilled />, path: "/laporan", roles: ["owner", "outlet"] },
       { label: "Pengeluaran", icon: <Wallet2Icon />, path: "/pengeluaran", roles: ["owner", "outlet"] },
+      { label: "Role", icon: <FaUserTag />, path: "/roles", roles: ["owner", "warehouse"] },
     ],
   },
 ];
