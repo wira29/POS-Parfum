@@ -16,8 +16,6 @@ import {
   UserPage,
   RolePage,
   RoleDetail,
-  RoleCreate,
-  RoleEdit,
   VariantIndex,
   WarehouseIndex,
   WarehouseDetail,
@@ -29,8 +27,6 @@ import {
   UserEdit,
   RetailIndex,
   UnitPage,
-  UnitCreate,
-  UnitEdit,
   BlendingCreate,
   RiwayatPenjualan,
   // BlendingEdit
@@ -181,14 +177,6 @@ export const router = createBrowserRouter([
             element: <RolePage />,
           },
           {
-            path: "roles/create",
-            element: <RoleCreate />,
-          },
-          {
-            path: "roles/:id/edit",
-            element: <RoleEdit />,
-          },
-          {
             path: "roles/:id/Detail",
             element: <RoleDetail />,
           },
@@ -235,16 +223,8 @@ export const router = createBrowserRouter([
             element: <RestockCreate />,
           },
           {
-            path: "unit",
+            path: "units",
             element: < UnitPage />,
-          },
-          {
-            path: "Unit/create",
-            element: <UnitCreate />,
-          },
-          {
-            path: "Unit/:id/edit",
-            element: <UnitEdit />,
           },
           {
             path: "audit",

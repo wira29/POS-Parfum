@@ -9,7 +9,7 @@ import { EditIcon } from "@/views/components/EditIcon";
 import { Filter } from "@/views/components/Filter";
 import { Toaster } from "@/core/helpers/BaseAlert";
 import { useApiClient } from "@/core/helpers/ApiClient";
-import { X } from "lucide-react";
+import { CategoryFilterModal } from "@/views/components/Filter/CategoryFilterModal";
 
 interface Category {
   id: number;
@@ -33,7 +33,7 @@ export const CategoryIndex = () => {
   const [perPage, setPerPage] = useState(8);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [statusFilter, setStatusFilter] = useState(""); // New state
+  const [statusFilter, setStatusFilter] = useState("");
 
   const ApiClient = useApiClient();
 
@@ -241,9 +241,7 @@ export const CategoryIndex = () => {
             <tbody>
               {filteredData.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
-                    Tidak ada data ditemukan.
-                  </td>
+                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500">Tidak ada data ditemukan.</td>
                 </tr>
               ) : (
                 filteredData.map((item, index) => (
@@ -279,82 +277,22 @@ export const CategoryIndex = () => {
         </div>
       </div>
 
-      {showFilter && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setShowFilter(false);
-          }}
-        >
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
-              <h3 className="text-xl font-semibold text-gray-900">Filter Tanggal Dibuat</h3>
-              <button
-                onClick={() => setShowFilter(false)}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <X className="w-6 h-6 cursor-pointer" />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Dari Tanggal</label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Sampai Tanggal</label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                >
-                  <option value="">Semua</option>
-                  <option value="Berlaku">Berlaku</option>
-                  <option value="Tidak Berlaku">Tidak Berlaku</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 p-4 border-t border-gray-200">
-              <button
-                onClick={() => {
-                  setStartDate("");
-                  setEndDate("");
-                  setStatusFilter("");
-                  setShowFilter(false);
-                }}
-                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100"
-              >
-                Reset
-              </button>
-              <button
-                onClick={() => {
-                  setShowFilter(false);
-                  setCurrentPage(1);
-                }}
-                className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
-              >
-                Terapkan
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <CategoryFilterModal
+        show={showFilter}
+        onClose={() => setShowFilter(false)}
+        startDate={startDate}
+        endDate={endDate}
+        statusFilter={statusFilter}
+        setStartDate={setStartDate}
+        setEndDate={setEndDate}
+        setStatusFilter={setStatusFilter}
+        onApply={() => setCurrentPage(1)}
+        onReset={() => {
+          setStartDate("");
+          setEndDate("");
+          setStatusFilter("");
+        }}
+      />
 
       <Modal />
     </div>

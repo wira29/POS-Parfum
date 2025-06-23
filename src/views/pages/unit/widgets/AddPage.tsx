@@ -1,62 +1,73 @@
 import { useState } from "react";
-import { FiSearch } from "react-icons/fi";
+import { useApiClient } from "@/core/helpers/ApiClient";
 
-export default function UnitCreate({ open, onClose }: { open: boolean, onClose: () => void }) {
+export default function AddUnitModal({ open, onClose, onSuccess }) {
+  const ApiClient = useApiClient();
   const [name, setName] = useState("");
-  const [guard, setGuard] = useState("");
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [code, setCode] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const guardOptions = [
-    { value: "web", label: "Web" },
-    { value: "api", label: "API" },
-    { value: "admin", label: "Admin" },
-  ];
+  const handleCreate = async () => {
+    if (!name.trim() || !code.trim()) {
+      setError("Nama dan kode tidak boleh kosong.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      await ApiClient.post("/unit", { name, code });
+      setName("");
+      setCode("");
+      onSuccess();
+      onClose();
+    } catch {
+      setError("Gagal menambahkan unit.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-      <div className="w-full max-w-[450px] rounded-2xl overflow-hidden shadow-lg bg-white">
-        <div className="bg-blue-600 px-8 py-6">
-          <h2 className="text-white text-xl font-bold text-center">Tambah Unit Baru</h2>
-        </div>
-        <div className="px-8 py-8 min-h-[300px]">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Nama <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            className="w-full border border-gray-300 rounded-md px-3 py-2 mb-6 focus:outline-none focus:ring-2 focus:ring-blue-200"
-            placeholder="Mililiter"
-            value={name}
-            onChange={e => setName(e.target.value)}
-          />
-          
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Kode Unit <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            className="w-full border border-gray-300 rounded-md px-3 py-2 mb-6 focus:outline-none focus:ring-2 focus:ring-blue-200"
-            placeholder="ml"
-            value={name}
-            onChange={e => setName(e.target.value)}
-          />
+    <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
+      <div className="bg-white p-6 rounded-lg w-full max-w-md space-y-4">
+        <h2 className="text-lg font-semibold">Tambah Unit</h2>
 
+        {error && <div className="text-red-500 text-sm">{error}</div>}
+
+        <div className="space-y-2">
+          <div>
+            <label className="text-sm font-medium">Nama Unit</label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full border px-3 py-2 mt-1 rounded"
+              placeholder="Contoh: Kilogram"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Kode Unit</label>
+            <input
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              className="w-full border px-3 py-2 mt-1 rounded"
+              placeholder="Contoh: kg"
+            />
+          </div>
         </div>
-        
-        <div className="border-t border-gray-200 px-8 py-4 bg-white flex justify-end gap-2">
+
+        <div className="flex justify-end gap-2 pt-4">
+          <button onClick={onClose} className="px-4 py-2 bg-gray-200 rounded">Batal</button>
           <button
-            className="px-4 py-2 rounded border border-gray-300"
-            onClick={onClose}
+            onClick={handleCreate}
+            className="px-4 py-2 bg-blue-500 text-white rounded"
+            disabled={loading}
           >
-            Batal
-          </button>
-          <button
-            className="px-4 py-2 rounded bg-blue-600 text-white font-semibold"
-            // onClick={}
-          >
-            Tambah
+            {loading ? "Menyimpan..." : "Simpan"}
           </button>
         </div>
       </div>

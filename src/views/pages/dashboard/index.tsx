@@ -47,7 +47,9 @@ export const Dashboard = () => {
     }
   };
 
+  
   useEffect(() => {
+<<<<<<< HEAD
     getData(selectedYear);
   }, [selectedYear]);
 
@@ -55,6 +57,12 @@ export const Dashboard = () => {
     setSelectedYear(parseInt(e.target.value));
   };
 
+=======
+    getData();
+  }, []);  
+  console.log(dashboardData);
+  
+>>>>>>> c99651fd15c882f85a8a9b536714e7ade807a200
   if (loading) {
     return <div className="flex items-center justify-center min-h-[400px]">Loading...</div>;
   }
