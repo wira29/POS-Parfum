@@ -41,10 +41,9 @@ const menuItems = [
       { label: "Produk", icon: <FiBox />, path: "/products", roles: ["owner", "warehouse", "outlet"] },
       { label: "Bundling", icon: <FiBox />, path: "/bundlings", roles: ["owner", "warehouse", "outlet"] },
       { label: "Blending Produk", icon: <FiCoffee />, path: "/blendings", roles: ["warehouse"] },
-      { label: "Unit", icon: <LayoutGrid />, path: "/unit", roles: ["admin", "warehouse", "retail"] },
+      { label: "Unit", icon: <LayoutGrid />, path: "/units", roles: ["admin", "warehouse", "retail"] },
       { label: "Audit", icon: <AiOutlineFileSearch />, path: "/audit", roles: ["admin", "outlet"] },
       { label: "Diskon", icon: <FiPercent />, path: "/discounts", roles: ["owner", "warehouse", "outlet"] },
-      { label: "Units", icon: <FaUserTag />, path: "/units", roles: ["owner", "warehouse"] },
     ],
   },
   {
