@@ -37,7 +37,7 @@ export default function FilterModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
       <div className="bg-white rounded-xl shadow-lg w-full max-w-[600px]">
         <div className="px-6 pt-6 pb-3">
-          <h2 className="text-lg font-bold text-gray-900">Filter</h2>
+          <h2 className="text-lg font-bold text-gray-900">Filter Data</h2>
         </div>
         <div className="border-b border-gray-200"></div>
 

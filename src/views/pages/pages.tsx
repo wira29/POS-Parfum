@@ -5,6 +5,10 @@ export { ProductIndex as ProductIndex } from "./products";
 export { ProductCreate as ProductCreate } from "./products/create";
 export { ProductEdit as ProductEdit } from "./products/edit";
 export {ProductShow as ProductShow} from './products/show'
+export { default as BundlingPage} from './bundling'
+export { default as BundlingDetail } from './bundling/detail';
+export { default as BundlingCreate } from './bundling/widgets/AddPage';
+export { default as BundlingEdit } from './bundling/widgets/EditPage';
 export { WarehouseIndex as WarehouseIndex } from "./warehouse";
 export { default as WarehouseDetail } from './warehouse/detail';
 export { default as WarehouseCreate } from './warehouse/widgets/AddPage';

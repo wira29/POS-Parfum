@@ -29,6 +29,10 @@ import {
   UnitPage,
   BlendingCreate,
   RiwayatPenjualan,
+  BundlingPage,
+  BundlingDetail,
+  BundlingCreate,
+  BundlingEdit,
   // BlendingEdit
 } from "@/views/pages/pages";
 import RequestStockIndex from "@/views/pages/request-stock";
@@ -103,6 +107,22 @@ export const router = createBrowserRouter([
           {
             path: "products/:id",
             element: <ProductShow />,
+          },
+          {
+            path: "bundlings",
+            element: <BundlingPage />,
+          },
+          {
+            path: "bundlings/create",
+            element: <BundlingCreate />,
+          },
+          {
+            path: "bundlings/:id/edit",
+            element: <BundlingEdit />,
+          },
+          {
+            path: "bundlings/:id/Detail",
+            element: <BundlingDetail />,
           },
           {
             path: "blendings",

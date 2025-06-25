@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import InputSelect from "@/views/components/Input-v2/InputSelect";
 import InputText from "@/views/components/Input-v2/InputText";
 import InputNumber from "@/views/components/Input-v2/InputNumber";
@@ -8,8 +8,6 @@ import PreviewCard from "@/views/components/Card/PreviewCard";
 import { Barcode, DollarSign, ImageIcon, Plus, Info, X } from "lucide-react";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Toaster } from "@/core/helpers/BaseAlert";
-import { useParams } from "react-router-dom";
-import InputManyText from "@/views/components/Input-v2/InputManyText";
 
 export const ProductEdit = () => {
     const navigate = useNavigate();
@@ -32,10 +30,8 @@ export const ProductEdit = () => {
     const [variantImages, setVariantImages] = useState<(File | string)[][]>([]);
     const [singleDetailMode, setSingleDetailMode] = useState(false);
     const [errors, setErrors] = useState<{ [key: string]: string[] }>({});
-    const [composition, setComposition] = useState<string[]>([""]);
     const [description, setDescription] = useState("");
-
-    const hasVariant = variantMatrix.length > 0;
+    const [selectedCategoryName, setSelectedCategoryName] = useState("");
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -73,10 +69,10 @@ export const ProductEdit = () => {
         setCategory(productData.category_id || "");
         setImages(productData.image ? [productData.image] : []);
         setDescription(productData.description || "");
-        setComposition(productData.composition || [""]);
 
         const details = productData.details || [];
         if (details.length > 1 || details[0]?.variant_name !== null) {
+            setSingleDetailMode(false);
             const newVariations = details.map((v: any, i: number) => ({
                 name: v.variant_name || `Varian ${i + 1}`,
             }));
@@ -93,25 +89,17 @@ export const ProductEdit = () => {
             const imageMatrix = details.map((v: any) => [v.product_image || ""]);
             setVariantImages(imageMatrix);
         } else if (details.length === 1) {
+            setSingleDetailMode(true);
             const detail = details[0];
             setProductCode(detail.product_code || "");
             setPrice(detail.price || 0);
             setStock(detail.stock || 0);
             setCategory(detail.category_id || "");
+            setVariations([]);
+            setVariantMatrix([]);
+            setVariantImages([]);
         }
     }, [productData]);
-
-
-    useEffect(() => {
-        if (variantMatrix.length > 0 && category) {
-            setVariantMatrix(prev =>
-                prev.map(variant => ({
-                    ...variant,
-                    category_id: category,
-                }))
-            );
-        }
-    }, [category]);
 
     useEffect(() => {
         if (variantMatrix.length > 0 && category) {
@@ -177,6 +165,28 @@ export const ProductEdit = () => {
         setGlobalCode("");
     };
 
+    // Sinkronisasi: jika hanya 1 varian, tampilkan data varian di input atas
+    useEffect(() => {
+        if (!singleDetailMode && variantMatrix.length === 1) {
+            setProductCode(variantMatrix[0].codes[0] || "");
+            setPrice(Number(variantMatrix[0].prices[0]) || 0);
+            setStock(Number(variantMatrix[0].stocks[0]) || 0);
+        }
+    }, [variantMatrix, singleDetailMode]);
+
+    // Sinkronisasi sebaliknya: jika user edit input atas, update matrix juga
+    useEffect(() => {
+        if (!singleDetailMode && variantMatrix.length === 1) {
+            setVariantMatrix([{
+                ...variantMatrix[0],
+                codes: [productCode],
+                prices: [String(price)],
+                stocks: [String(stock)],
+            }]);
+        }
+        // eslint-disable-next-line
+    }, [productCode, price, stock]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const formData = new FormData();
@@ -188,21 +198,22 @@ export const ProductEdit = () => {
         formData.append("unit_type", "weight");
         formData.append("description", description);
         formData.append("category_id", category);
-        composition.forEach((item, i) => {
-            formData.append(`composition[${i}]`, item);
-        });
 
-        if (!hasVariant) {
+        if (singleDetailMode || variantMatrix.length === 0 || variantMatrix.length === 1) {
             formData.append("product_details[0][category_id]", category);
             formData.append("product_details[0][stock]", String(stock));
             formData.append("product_details[0][price]", String(price));
             formData.append("product_details[0][product_code]", productCode);
-            formData.append("product_details[0][variant_name]", "Default");
+            formData.append(
+                "product_details[0][variant_name]",
+                variantMatrix.length === 1 && variantMatrix[0]?.aroma
+                    ? variantMatrix[0].aroma
+                    : "Default"
+            );
 
             if (images.length > 0 && typeof images[0] !== "string") {
                 formData.append("image", images[0]);
             }
-
         } else {
             variantMatrix.forEach((variant, i) => {
                 formData.append(`product_details[${i}][category_id]`, category);
@@ -264,9 +275,13 @@ export const ProductEdit = () => {
                             label="Kategori Barang"
                             labelClass={labelClass}
                             value={category}
-                            onChange={(e) => setCategory(e.target.value)}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                setCategory(val);
+                                const found = categories.find((cat) => cat.value === val);
+                                setSelectedCategoryName(found?.label || "");
+                            }}
                             options={categories}
-                            error={errors["category_id"]?.[0]}
                         />
                         <div className="space-y-2">
                             <label className={labelClass}>Deskripsi</label>
@@ -278,24 +293,9 @@ export const ProductEdit = () => {
                                 onChange={(e) => setDescription(e.target.value)}
                             />
                         </div>
-
-                        <InputManyText
-                            label="Komposisi Produk"
-                            items={composition}
-                            onChange={(index, value) =>
-                                setComposition((prev) => {
-                                    const updated = [...prev];
-                                    updated[index] = value;
-                                    return updated;
-                                })
-                            }
-                            onAdd={() => setComposition((prev) => [...prev, ""])}
-                            onRemove={(index) => setComposition((prev) => prev.filter((_, i) => i !== index))}
-                            placeholderPrefix="Komposisi "
-                        />
                     </div>
 
-                    {!hasVariant && (
+                    {(singleDetailMode || variantMatrix.length === 1) && (
                         <div className="bg-white shadow rounded-2xl p-6">
                             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-blue-600">
                                 <DollarSign size={18} /> Harga & Stok Produk
@@ -332,7 +332,6 @@ export const ProductEdit = () => {
                                         <p className="text-sm text-red-500 mt-1">{errors["product_details.0.product_code"][0]}</p>
                                     )}
                                 </div>
-
                             </div>
                         </div>
                     )}
@@ -353,148 +352,165 @@ export const ProductEdit = () => {
                         />
                     </div>
 
-                    <div className="bg-white shadow rounded-2xl p-6">
-                        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-blue-600">
-                            <Info size={18} /> Variasi Produk
-                        </h3>
+                    {!singleDetailMode && variantMatrix.length > 0 && (
+                        <div className="bg-white shadow rounded-2xl p-6">
+                            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-blue-600">
+                                <Info size={18} /> Variasi Produk
+                            </h3>
 
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <h1 className="text-xl text-gray-500">Varian</h1>
-                                <button
-                                    type="button"
-                                    onClick={() => setVariations((prev) => [...prev, { name: "" }])}
-                                    className="text-blue-600 text-sm flex items-center gap-1"
-                                >
-                                    <Plus size={16} /> Tambah Variasi
-                                </button>
-                            </div>
-                            {variations.map((variation, i) => (
-                                <div key={i} className="bg-gray-200 p-4 rounded-lg shadow space-y-3">
-                                    <div className="flex justify-between items-center">
-                                        <div className="flex gap-4 items-center">
-                                            <span className="font-medium">Variasi {i + 1}</span>
-                                            <input
-                                                placeholder="Nama Varian"
-                                                value={variation.name}
-                                                onChange={(e) => {
-                                                    const updated = [...variations];
-                                                    updated[i].name = e.target.value;
-                                                    setVariations(updated);
-                                                }}
-                                                className="w-100 border bg-white border-gray-300 rounded-lg px-3 py-2"
-                                            />
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => setVariations((prev) => prev.filter((_, idx) => idx !== i))}
-                                            className="text-black"
-                                        >
-                                            <X size={32} />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        {variantMatrix.length > 0 && (
-                            <>
-                                <div className="mt-6 flex items-center gap-4">
-                                    <div className="flex border rounded-lg overflow-hidden divide-x w-full max-w-3xl">
-                                        <div className="flex items-center px-3 bg-gray-50 text-gray-500">Rp.</div>
-                                        <input type="number" placeholder="Harga" className="w-1/3 px-3 py-2 focus:outline-none" value={globalPrice} onChange={(e) => setGlobalPrice(e.target.value)} />
-                                        <input type="number" placeholder="Stok" className="w-1/3 px-3 py-2 focus:outline-none" value={globalStock} onChange={(e) => setGlobalStock(e.target.value)} />
-                                        <input type="text" placeholder="Kode Varian" className="w-1/3 px-3 py-2 focus:outline-none" value={globalCode} onChange={(e) => setGlobalCode(e.target.value)} />
-                                    </div>
-                                    <button type="button" className="bg-blue-600 text-white px-3 rounded-lg" onClick={applyToAllVariants}>
-                                        Terapkan Ke Semua
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <h1 className="text-xl text-gray-500">Varian</h1>
+                                    <button
+                                        type="button"
+                                        onClick={() => setVariations((prev) => [...prev, { name: "" }])}
+                                        className="text-blue-600 text-sm flex items-center gap-1"
+                                    >
+                                        <Plus size={16} /> Tambah Variasi
                                     </button>
                                 </div>
 
-                                <div className="mt-6 grid font-semibold bg-gray-400 text-white grid-cols-4">
-                                    <div className="p-3">Variasi</div>
-                                    <div className="p-3">Kode Varian</div>
-                                    <div className="p-3">Harga</div>
-                                    <div className="p-3">Stok</div>
-                                </div>
-
-                                {variantMatrix.map((variant, i) => (
-                                    <div className="grid grid-cols-4 items-center bg-white" key={i}>
-                                        <div className="p-3">
-                                            <p className="font-medium mb-2">{variant.aroma}</p>
-                                            <InputOneImage
-                                                images={variantImages[i]?.[0] ? [variantImages[i][0]] : []}
-                                                onImageUpload={handleVariantImageUpload(i)}
-                                                onRemoveImage={handleRemoveVariantImage(i)}
-                                                label="Unggah"
-                                                error={errors[`product_details.${i}.product_image`]?.[0]}
-                                            />
-                                        </div>
-                                        <div className="p-3">
-                                            <input
-                                                type="text"
-                                                className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
-                                                value={variant.codes[0]}
-                                                onChange={(e) => {
-                                                    const updated = [...variantMatrix];
-                                                    updated[i].codes[0] = e.target.value;
-                                                    setVariantMatrix(updated);
-                                                }}
-                                            />
-                                            {errors[`product_details.${i}.product_code`] && (
-                                                <p className="text-sm text-red-500 mt-1">{errors[`product_details.${i}.product_code`][0]}</p>
-                                            )}
-                                        </div>
-                                        <div className="p-3">
-                                            <input
-                                                type="number"
-                                                className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
-                                                value={variant.prices[0]}
-                                                onChange={(e) => {
-                                                    const updated = [...variantMatrix];
-                                                    updated[i].prices[0] = e.target.value;
-                                                    setVariantMatrix(updated);
-                                                }}
-                                            />
-                                            {errors[`product_details.${i}.price`] && (
-                                                <p className="text-sm text-red-500 mt-1">{errors[`product_details.${i}.price`][0]}</p>
-                                            )}
-                                        </div>
-                                        <div className="p-3">
-                                            <input
-                                                type="number"
-                                                className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
-                                                value={variant.stocks[0]}
-                                                onChange={(e) => {
-                                                    const updated = [...variantMatrix];
-                                                    updated[i].stocks[0] = e.target.value;
-                                                    setVariantMatrix(updated);
-                                                }}
-                                            />
-                                            {errors[`product_details.${i}.stock`] && (
-                                                <p className="text-sm text-red-500 mt-1">{errors[`product_details.${i}.stock`][0]}</p>
-                                            )}
+                                {variations.map((variation, i) => (
+                                    <div key={i} className="bg-gray-200 p-4 rounded-lg shadow space-y-3">
+                                        <div className="flex justify-between items-center">
+                                            <div className="flex gap-4 items-center">
+                                                <span className="font-medium">Variasi {i + 1}</span>
+                                                <input
+                                                    placeholder="Nama Varian"
+                                                    value={variation.name}
+                                                    onChange={(e) => {
+                                                        const updated = [...variations];
+                                                        updated[i].name = e.target.value;
+                                                        setVariations(updated);
+                                                    }}
+                                                    className="w-100 border bg-white border-gray-300 rounded-lg px-3 py-2"
+                                                />
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setVariations((prev) => prev.filter((_, idx) => idx !== i))}
+                                                className="text-black"
+                                            >
+                                                <X size={32} />
+                                            </button>
                                         </div>
                                     </div>
                                 ))}
-                            </>
-                        )}
-                    </div>
+                            </div>
+
+                            {variantMatrix.length > 1 && (
+                                <>
+                                    {variantMatrix.length > 1 && (
+                                        <div className="mt-6 flex items-center gap-4">
+                                            <div className="flex border rounded-lg overflow-hidden divide-x w-full max-w-3xl">
+                                                <div className="flex items-center px-3 bg-gray-50 text-gray-500">Rp.</div>
+                                                <input type="number" placeholder="Harga" className="w-1/3 px-3 py-2 focus:outline-none" value={globalPrice} onChange={(e) => setGlobalPrice(e.target.value)} />
+                                                <input type="number" placeholder="Stok" className="w-1/3 px-3 py-2 focus:outline-none" value={globalStock} onChange={(e) => setGlobalStock(e.target.value)} />
+                                                <input type="text" placeholder="Kode Varian" className="w-1/3 px-3 py-2 focus:outline-none" value={globalCode} onChange={(e) => setGlobalCode(e.target.value)} />
+                                            </div>
+                                            <button type="button" className="bg-blue-600 text-white px-3 rounded-lg" onClick={applyToAllVariants}>
+                                                Terapkan Ke Semua
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    <div className="mt-6 grid font-semibold bg-gray-400 text-white grid-cols-4">
+                                        <div className="p-3">Variasi</div>
+                                        <div className="p-3">Kode Varian</div>
+                                        <div className="p-3">Harga</div>
+                                        <div className="p-3">Stok</div>
+                                    </div>
+
+                                    {variantMatrix.map((variant, i) => (
+                                        <div className="grid grid-cols-4 items-center bg-white" key={i}>
+                                            <div className="p-3">
+                                                <p className="font-medium mb-2">{variant.aroma}</p>
+                                                <InputOneImage
+                                                    images={variantImages[i]?.[0] ? [variantImages[i][0]] : []}
+                                                    onImageUpload={handleVariantImageUpload(i)}
+                                                    onRemoveImage={handleRemoveVariantImage(i)}
+                                                    label="Unggah"
+                                                    error={errors[`product_details.${i}.product_image`]?.[0]}
+                                                />
+                                            </div>
+                                            <div className="p-3">
+                                                <input
+                                                    type="text"
+                                                    className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
+                                                    value={variant.codes[0]}
+                                                    onChange={(e) => {
+                                                        const updated = [...variantMatrix];
+                                                        updated[i].codes[0] = e.target.value;
+                                                        setVariantMatrix(updated);
+                                                    }}
+                                                    disabled={variantMatrix.length === 1}
+                                                />
+                                                {variantMatrix.length === 1 && (
+                                                    <div className="text-xs text-blue-500">Gunakan input atas</div>
+                                                )}
+                                                {errors[`product_details.${i}.product_code`] && (
+                                                    <p className="text-sm text-red-500 mt-1">{errors[`product_details.${i}.product_code`][0]}</p>
+                                                )}
+                                            </div>
+                                            <div className="p-3">
+                                                <input
+                                                    type="number"
+                                                    className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
+                                                    value={variant.prices[0]}
+                                                    onChange={(e) => {
+                                                        const updated = [...variantMatrix];
+                                                        updated[i].prices[0] = e.target.value;
+                                                        setVariantMatrix(updated);
+                                                    }}
+                                                    disabled={variantMatrix.length === 1}
+                                                />
+                                                {variantMatrix.length === 1 && (
+                                                    <div className="text-xs text-blue-500">Gunakan input atas</div>
+                                                )}
+                                                {errors[`product_details.${i}.price`] && (
+                                                    <p className="text-sm text-red-500 mt-1">{errors[`product_details.${i}.price`][0]}</p>
+                                                )}
+                                            </div>
+                                            <div className="p-3">
+                                                <input
+                                                    type="number"
+                                                    className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
+                                                    value={variant.stocks[0]}
+                                                    onChange={(e) => {
+                                                        const updated = [...variantMatrix];
+                                                        updated[i].stocks[0] = e.target.value;
+                                                        setVariantMatrix(updated);
+                                                    }}
+                                                    disabled={variantMatrix.length === 1}
+                                                />
+                                                {variantMatrix.length === 1 && (
+                                                    <div className="text-xs text-blue-500">Gunakan input atas</div>
+                                                )}
+                                                {errors[`product_details.${i}.stock`] && (
+                                                    <p className="text-sm text-red-500 mt-1">{errors[`product_details.${i}.stock`][0]}</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </>
+                            )}
+                        </div>
+                    )}
 
                     <div className="flex justify-end gap-4">
                         <button type="button" onClick={() => navigate("/products")} className="border border-gray-300 rounded-lg px-4 py-2">Kembali</button>
-                        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg">Tambah</button>
+                        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg">Simpan</button>
                     </div>
                 </div>
 
                 <div className="lg:col-span-4">
                     <PreviewCard
                         images={images}
-                        price={variantMatrix.length ? variantMatrix[0].prices[0] : 0}
-                        category={category}
+                        price={variantMatrix.length > 1 ? variantMatrix[0].prices[0] : price}
+                        category={selectedCategoryName || categories.find(cat => cat.value === category)?.label || ""}
                         productName={productName}
                         productCode={productCode}
-                        stock={variantMatrix.length ? variantMatrix[0].stocks[0] : 0}
+                        stock={variantMatrix.length > 1 ? variantMatrix[0].stocks[0] : stock}
                         variantImages={variantImages}
                     />
                 </div>
