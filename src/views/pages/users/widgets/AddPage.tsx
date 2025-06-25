@@ -1,24 +1,51 @@
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Toaster } from "@/core/helpers/BaseAlert";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const availableRoles = [
-    { value: "warehouse", label: "Warehouse" },
-    { value: "outlet", label: "Outlet" },
-    { value: "admin", label: "Admin" },
-];
+const roleOptionsMap: Record<string, { value: string; label: string }[]> = {
+    admin: [
+        { value: "warehouse", label: "Warehouse" },
+        { value: "outlet", label: "Outlet" },
+        { value: "admin", label: "Admin" },
+        { value: "staff_outlet", label: "Karyawan Outlet" },
+        { value: "staff_warehouse", label: "Karyawan Warehouse" },
+    ],
+    warehouse: [
+        { value: "warehouse", label: "Warehouse" },
+        { value: "staff_warehouse", label: "Karyawan Warehouse" },
+    ],
+    outlet: [
+        { value: "outlet", label: "Outlet" },
+        { value: "staff_outlet", label: "Karyawan Outlet" },
+    ],
+    owner: [
+        { value: "warehouse", label: "Warehouse" },
+        { value: "outlet", label: "Outlet" },
+        { value: "admin", label: "Admin" },
+        { value: "staff_outlet", label: "Karyawan Outlet" },
+        { value: "staff_warehouse", label: "Karyawan Warehouse" },
+    ],
+    manager: [
+        { value: "staff_outlet", label: "Karyawan Outlet" },
+    ],
+    auditor: [], // misalnya auditor tidak boleh menambahkan user
+};
 
 export default function UserCreateSelect() {
     const api = useApiClient();
     const navigate = useNavigate();
+
+    const [userRoles, setUserRoles] = useState<string[]>([]);
+    const [availableRoles, setAvailableRoles] = useState<{ value: string; label: string }[]>([]);
 
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [showPassword, setShowPassword] = useState(false);
 
     const [userData, setUserData] = useState({
         username: "",
@@ -27,11 +54,36 @@ export default function UserCreateSelect() {
         password: "",
     });
 
-    const [showPassword, setShowPassword] = useState(false);
+    useEffect(() => {
+        fetchUserRole();
+    }, []);
 
-    const handleUploadClick = () => {
-        fileInputRef.current?.click();
+    const fetchUserRole = async () => {
+        try {
+            const res = await api.get("/me");
+            const roles = res.data.data.roles.map((r: any) => r.name);
+            setUserRoles(roles);
+
+            // Combine all allowed roles from user's roles
+            const mergedRoles: Record<string, boolean> = {};
+            roles.forEach((r: string) => {
+                (roleOptionsMap[r] || []).forEach((opt) => {
+                    mergedRoles[opt.value] = true;
+                });
+            });
+
+            const finalRoleList = Object.keys(mergedRoles).map((val) => {
+                const found = Object.values(roleOptionsMap).flat().find((r) => r.value === val);
+                return found || { value: val, label: val };
+            });
+
+            setAvailableRoles(finalRoleList);
+        } catch (err) {
+            console.error("Gagal mengambil role user:", err);
+        }
     };
+
+    const handleUploadClick = () => fileInputRef.current?.click();
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -43,10 +95,7 @@ export default function UserCreateSelect() {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        setUserData({
-            ...userData,
-            [name]: value,
-        });
+        setUserData({ ...userData, [name]: value });
         setErrors((prev) => ({ ...prev, [name]: "" }));
     };
 
@@ -97,19 +146,11 @@ export default function UserCreateSelect() {
             if (error.response?.data?.data) {
                 const apiErrors = error.response.data.data;
                 const mappedErrors: Record<string, string> = {};
-
-                const fieldMap: Record<string, string> = {
-                    "users.0.email": "email",
-                    "telp": "telp", // add more mappings if needed
-                };
-
                 Object.entries(apiErrors).forEach(([key, val]) => {
-                    const mappedKey = fieldMap[key] || key;
                     if (Array.isArray(val)) {
-                        mappedErrors[mappedKey] = val[0];
+                        mappedErrors[key] = val[0];
                     }
                 });
-
                 setErrors(mappedErrors);
                 Toaster("error", "Terdapat kesalahan pada input");
             } else {
@@ -119,97 +160,47 @@ export default function UserCreateSelect() {
         }
     };
 
-    const handleBack = () => {
-        navigate("/users");
-    };
+    const handleBack = () => navigate("/users");
 
     const labelClass = "block mb-1 text-sm font-semibold";
 
     return (
         <div className="p-6 space-y-6">
-            <Breadcrumb
-                title="Tambah Pengguna"
-                desc="Isi informasi dasar untuk menambahkan pengguna baru."
-            />
-
+            <Breadcrumb title="Tambah Pengguna" desc="Isi informasi dasar untuk menambahkan pengguna baru." />
             <div className="bg-white rounded-xl p-6 shadow space-y-6">
                 <div className="flex items-center gap-4">
                     <div className="w-32 h-32 border rounded flex items-center justify-center bg-gray-50 overflow-hidden">
                         {previewUrl ? (
-                            <img
-                                src={previewUrl}
-                                alt="Preview"
-                                className="w-full h-full object-cover"
-                            />
+                            <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
                         ) : (
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="64"
-                                height="64"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#ccc"
-                                strokeWidth="1"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="none" stroke="#ccc" strokeWidth="1" viewBox="0 0 24 24">
                                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                                 <circle cx="8.5" cy="8.5" r="1.5" />
                                 <polyline points="21 15 16 10 5 21" />
                             </svg>
                         )}
-                        <input
-                            type="file"
-                            accept="image/png, image/jpeg"
-                            className="hidden"
-                            ref={fileInputRef}
-                            onChange={handleFileChange}
-                        />
+                        <input type="file" accept="image/png, image/jpeg" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
                     </div>
-                    <button
-                        onClick={handleUploadClick}
-                        className="px-4 py-2 bg-blue-600 text-white rounded"
-                    >
+                    <button onClick={handleUploadClick} className="px-4 py-2 bg-blue-600 text-white rounded">
                         Unggah Gambar
                     </button>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label className={labelClass}>
-                            Username <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                            type="text"
-                            name="username"
-                            value={userData.username}
-                            onChange={handleInputChange}
-                            placeholder="Masukkan username"
-                            className="w-full border border-gray-300 rounded px-3 py-2"
-                        />
+                        <label className={labelClass}>Username <span className="text-red-500">*</span></label>
+                        <input type="text" name="username" value={userData.username} onChange={handleInputChange} placeholder="Masukkan username" className="w-full border border-gray-300 rounded px-3 py-2" />
                         {errors.username && <p className="text-red-500 text-sm mt-1">{errors.username}</p>}
                     </div>
 
                     <div>
-                        <label className={labelClass}>
-                            Email <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                            type="email"
-                            name="email"
-                            value={userData.email}
-                            onChange={handleInputChange}
-                            placeholder="johndoe@example.com"
-                            className="w-full border border-gray-300 rounded px-3 py-2"
-                        />
+                        <label className={labelClass}>Email <span className="text-red-500">*</span></label>
+                        <input type="email" name="email" value={userData.email} onChange={handleInputChange} placeholder="johndoe@example.com" className="w-full border border-gray-300 rounded px-3 py-2" />
                         {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
                     </div>
 
                     <div className="md:col-span-1 space-y-3">
-                        <label className={labelClass}>
-                            Role <span className="text-red-500">*</span>
-                        </label>
-
+                        <label className={labelClass}>Role <span className="text-red-500">*</span></label>
                         {userData.role.map((role, i) => {
                             const selectedRolesExceptCurrent = userData.role.filter((_, idx) => idx !== i);
                             return (
@@ -229,12 +220,7 @@ export default function UserCreateSelect() {
                                             ))}
                                     </select>
                                     {userData.role.length > 1 && (
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRemoveRole(i)}
-                                            className="text-red-600 hover:text-red-800"
-                                            title="Hapus role"
-                                        >
+                                        <button type="button" onClick={() => handleRemoveRole(i)} className="text-red-600 hover:text-red-800" title="Hapus role">
                                             &times;
                                         </button>
                                     )}
@@ -242,20 +228,11 @@ export default function UserCreateSelect() {
                             );
                         })}
                         {errors.role && <p className="text-red-500 text-sm mt-1">{errors.role}</p>}
-
-                        <button
-                            type="button"
-                            onClick={handleAddRole}
-                            className="text-blue-600 text-sm flex items-center gap-1 mt-1"
-                        >
-                            + Tambah Role
-                        </button>
+                        <button type="button" onClick={handleAddRole} className="text-blue-600 text-sm mt-1">+ Tambah Role</button>
                     </div>
 
                     <div>
-                        <label className={labelClass}>
-                            Password <span className="text-red-500">*</span>
-                        </label>
+                        <label className={labelClass}>Password <span className="text-red-500">*</span></label>
                         <div className="relative">
                             <input
                                 type={showPassword ? "text" : "password"}
@@ -265,39 +242,14 @@ export default function UserCreateSelect() {
                                 placeholder="Masukkan password"
                                 className="w-full border border-gray-300 rounded px-3 py-2"
                             />
-                            <button
-                                type="button"
-                                className="absolute right-3 top-2.5 text-gray-500"
-                                onClick={() => setShowPassword(!showPassword)}
-                                title={showPassword ? "Sembunyikan password" : "Tampilkan password"}
-                            >
+                            <button type="button" className="absolute right-3 top-2.5 text-gray-500" onClick={() => setShowPassword(!showPassword)}>
                                 {showPassword ? (
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="20"
-                                        height="20"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                                         <path d="M17.94 17.94A10.97 10.97 0 0 1 12 19c-5 0-9-4-9-7a6.12 6.12 0 0 1 1.64-3.94" />
                                         <path d="M1 1l22 22" />
                                     </svg>
                                 ) : (
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="20"
-                                        height="20"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                                         <circle cx="12" cy="12" r="3" />
                                     </svg>
@@ -309,22 +261,14 @@ export default function UserCreateSelect() {
                 </div>
 
                 <div className="flex justify-end space-x-3 mt-8">
-                    <button
-                        type="button"
-                        onClick={handleBack}
-                        className="px-6 py-2 bg-gray-400 text-white rounded"
-                    >
+                    <button type="button" onClick={handleBack} className="px-6 py-2 bg-gray-400 text-white rounded">
                         Kembali
                     </button>
-                    <button
-                        type="button"
-                        onClick={handleSubmit}
-                        className="px-6 py-2 bg-blue-600 text-white rounded"
-                    >
+                    <button type="button" onClick={handleSubmit} className="px-6 py-2 bg-blue-600 text-white rounded">
                         Tambah
                     </button>
                 </div>
-        </div>
+            </div>
         </div>
     );
 }

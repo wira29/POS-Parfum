@@ -248,7 +248,7 @@ export default function BundlingPage() {
     <div className="p-6 space-y-6">
       <Breadcrumb
         title="Bundling"
-        desc="Lorem ipsum dolor sit amet, consectetur adipiscing"
+        desc="Data Bundling Produk"
       />
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
@@ -261,7 +261,7 @@ export default function BundlingPage() {
             className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 px-4 py-2 rounded-lg font-medium"
             onClick={() => navigate("/bundlings/create")}
             >
-            <FiPlus /> Tambah Role
+            <FiPlus /> Tambah Bundling
           </button>
         </div>
       </div>

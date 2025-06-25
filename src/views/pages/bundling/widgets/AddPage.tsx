@@ -76,7 +76,7 @@ export default function BundlingCreate() {
     <div className="p-6 space-y-6">
       <Breadcrumb
         title="Buat Bundling Produk"
-        desc="Lorem ipsum dolor sit amet, consectetur adipiscing"
+        desc="Data Bundling Produk"
       />
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-8">
@@ -170,7 +170,7 @@ export default function BundlingCreate() {
               <div className="flex justify-center gap-4 pt-6">
                 <button
                   type="button"
-                  onClick={() => navigate("/products")}
+                  onClick={() => navigate("/bundlings")}
                   className="px-8 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Batal

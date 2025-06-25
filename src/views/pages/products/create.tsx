@@ -28,17 +28,38 @@ export const ProductCreate = () => {
   const [variantMatrix, setVariantMatrix] = useState([]);
   const [variantImages, setVariantImages] = useState([]);
   const [errors, setErrors] = useState({});
-  const [composition, setComposition] = useState<string[]>([""]);
   const [description, setDescription] = useState("");
+  const [selectedCategoryName, setSelectedCategoryName] = useState("");
 
   const hasVariant = variantMatrix.length > 0;
 
+  // --- Variasi utils ---
+  const handleOptionChange = (variations, setVariations, variantIndex, optionIndex, value) => {
+    const updated = [...variations];
+    updated[variantIndex].options[optionIndex] = value;
+    setVariations(updated);
+  };
+
+  const handleAddOption = (variations, setVariations, variantIndex) => {
+    const updated = [...variations];
+    if (!updated[variantIndex].options) updated[variantIndex].options = [];
+    updated[variantIndex].options.push("");
+    setVariations(updated);
+  };
+
+  const handleRemoveOption = (variations, setVariations, variantIndex, optionIndex) => {
+    const updated = [...variations];
+    updated[variantIndex].options.splice(optionIndex, 1);
+    setVariations(updated);
+  };
+
+  // --- Fetch Categories ---
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const res = await apiClient.get("/categories");
         const mapped = res.data?.data?.map((cat) => ({
-          value: cat.id,
+          value: String(cat.id),
           label: cat.name,
         })) || [];
         setCategories(mapped);
@@ -49,6 +70,7 @@ export const ProductCreate = () => {
     fetchCategories();
   }, []);
 
+  // --- Update variantMatrix when category changes ---
   useEffect(() => {
     if (hasVariant && category) {
       setVariantMatrix((prev) =>
@@ -57,19 +79,22 @@ export const ProductCreate = () => {
     }
   }, [category]);
 
+  // --- Sync variantImages length with matrix ---
   useEffect(() => {
     setVariantImages((prev) =>
       variantMatrix.map((_, i) => [prev?.[i]?.[0] ?? ""])
     );
   }, [variantMatrix]);
 
+  // --- Create variantMatrix based on variations ---
   useEffect(() => {
     if (variations.length === 0) return setVariantMatrix([]);
     const matrix = variations.map((variation, i) => ({
       aroma: variation.name || `Varian ${i + 1}`,
-      prices: [variantMatrix[i]?.prices?.[0] || ""],
-      stocks: [variantMatrix[i]?.stocks?.[0] || ""],
-      codes: [variantMatrix[i]?.codes?.[0] || ""],
+      prices: [variantMatrix?.[i]?.prices?.[0] || ""],
+      stocks: [variantMatrix?.[i]?.stocks?.[0] || ""],
+      codes: [variantMatrix?.[i]?.codes?.[0] || ""],
+      volumes: variation.options && variation.options.length > 0 ? variation.options : [null],
     }));
     setVariantMatrix(matrix);
   }, [variations]);
@@ -120,20 +145,24 @@ export const ProductCreate = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!productName) {
+      setErrors({ message: ["Nama produk wajib diisi"] });
+      Toaster("error", "Nama produk wajib diisi");
+      return;
+    }
+
     const formData = new FormData();
-    formData.append("name", productName);
+    formData.append("name", productName || "");
     formData.append("unit_type", "weight");
-    formData.append("category_id", category);
-    formData.append("description", description);
-    composition.forEach((item, idx) => {
-      formData.append(`composition[${idx}]`, item);
-    });
+    formData.append("category_id", category || "");
+    formData.append("description", description || "");
 
     if (!hasVariant) {
-      formData.append("product_details[0][category_id]", category);
-      formData.append("product_details[0][stock]", String(stock));
-      formData.append("product_details[0][price]", String(price));
-      formData.append("product_details[0][product_code]", productCode);
+      formData.append("product_details[0][category_id]", category || "");
+      formData.append("product_details[0][stock]", String(stock || 0));
+      formData.append("product_details[0][price]", String(price || 0));
+      formData.append("product_details[0][product_code]", productCode || "");
       formData.append("product_details[0][variant_name]", "Default");
       if (images.length > 0) {
         formData.append("product_details[0][product_image]", images[0]);
@@ -141,7 +170,7 @@ export const ProductCreate = () => {
     } else {
       if (images.length > 0) formData.append("image", images[0]);
       variantMatrix.forEach((variant, i) => {
-        formData.append(`product_details[${i}][category_id]`, category);
+        formData.append(`product_details[${i}][category_id]`, category || "");
         formData.append(`product_details[${i}][variant_name]`, variations[i]?.name || `Varian ${i + 1}`);
         formData.append(`product_details[${i}][stock]`, variant.stocks?.[0] || "0");
         formData.append(`product_details[${i}][price]`, variant.prices?.[0] || "0");
@@ -158,7 +187,7 @@ export const ProductCreate = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
       navigate("/products");
-      Toaster("success", "Product berhasil dibuat");
+      Toaster("success", "Produk berhasil dibuat");
     } catch (error) {
       console.error("Gagal membuat produk:", error);
       if (error?.response?.data?.data) {
@@ -168,8 +197,6 @@ export const ProductCreate = () => {
         Toaster("error", "Terjadi kesalahan saat menyimpan produk.");
       }
     }
-
-    console.log("inputan", formData);
   };
 
   const labelClass = "block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2";
@@ -183,8 +210,18 @@ export const ProductCreate = () => {
               <Info size={18} /> Informasi Produk
             </h3>
             <InputText label="Nama Barang" labelClass={labelClass} value={productName} onChange={(e) => setProductName(e.target.value)} />
-            <InputSelect label="Kategori Barang" labelClass={labelClass} value={category} onChange={(e) => setCategory(e.target.value)} options={categories} />
-
+            <InputSelect
+              label="Kategori Barang"
+              labelClass={labelClass}
+              value={category}
+              onChange={(e) => {
+                const val = e.target.value;
+                setCategory(val);
+                const found = categories.find((cat) => cat.value === val);
+                setSelectedCategoryName(found?.label || "");
+              }}
+              options={categories}
+            />
             <div className="space-y-2">
               <label className={labelClass}>Deskripsi</label>
               <textarea
@@ -195,23 +232,6 @@ export const ProductCreate = () => {
                 onChange={(e) => setDescription(e.target.value)}
               />
             </div>
-
-            <InputManyText
-              label="Komposisi Produk"
-              items={composition}
-              onChange={(index, value) =>
-                setComposition((prev) => {
-                  const updated = [...prev];
-                  updated[index] = value;
-                  return updated;
-                })
-              }
-              onAdd={() => setComposition((prev) => [...prev, ""])}
-              onRemove={(index) =>
-                setComposition((prev) => prev.filter((_, i) => i !== index))
-              }
-              placeholderPrefix="Komposisi "
-            />
           </div>
 
           {!hasVariant && (
@@ -276,19 +296,19 @@ export const ProductCreate = () => {
                 <h1 className="text-xl text-gray-500">Varian</h1>
                 <button
                   type="button"
-                  onClick={() => setVariations((prev) => [...prev, { name: "" }])}
+                  onClick={() => setVariations((prev) => [...prev, { name: "", options: [] }])}
                   className="text-blue-600 text-sm flex items-center gap-1"
                 >
                   <Plus size={16} /> Tambah Variasi
                 </button>
               </div>
+
               {variations.map((variation, i) => (
                 <div key={i} className="bg-gray-200 p-4 rounded-lg shadow space-y-3">
                   <div className="flex justify-between items-center">
                     <div className="flex gap-4 items-center">
                       <span className="font-medium">Variasi {i + 1}</span>
                       <input
-                        key={i}
                         placeholder="Nama Varian"
                         value={variation.name}
                         onChange={(e) => setVariantName(i, e.target.value)}
@@ -303,66 +323,105 @@ export const ProductCreate = () => {
                       <X size={32} />
                     </button>
                   </div>
+
+                  <div className="gap-13 flex items-center">
+                    <span className="font-medium">Opsi</span>
+                    <InputManyText
+                      items={variation.options}
+                      onChange={(j, v) =>
+                        handleOptionChange(variations, setVariations, i, j, v)
+                      }
+                      onAdd={() => handleAddOption(variations, setVariations, i)}
+                      onRemove={(j) =>
+                        handleRemoveOption(variations, setVariations, i, j)
+                      }
+                      className="min-w-105"
+                      maxLength={50}
+                      placeholderPrefix="Opsi "
+                    />
+                  </div>
                 </div>
               ))}
             </div>
 
             {variantMatrix.length > 0 && (
-              <>
-                <div className="mt-6 flex items-center gap-4">
-                  <div className="flex border rounded-lg overflow-hidden divide-x w-full max-w-3xl">
-                    <div className="flex items-center px-3 bg-gray-50 text-gray-500">Rp.</div>
-                    <input type="number" placeholder="Harga" className="w-1/3 px-3 py-2 focus:outline-none" value={globalPrice} onChange={(e) => setGlobalPrice(e.target.value)} />
-                    <input type="number" placeholder="Stok" className="w-1/3 px-3 py-2 focus:outline-none" value={globalStock} onChange={(e) => setGlobalStock(e.target.value)} />
-                    <input type="text" placeholder="Kode Varian" className="w-1/3 px-3 py-2 focus:outline-none" value={globalCode} onChange={(e) => setGlobalCode(e.target.value)} />
-                  </div>
-                  <button type="button" className="bg-blue-600 text-white px-3 rounded-lg" onClick={applyToAllVariants}>
-                    Terapkan Ke Semua
-                  </button>
-                </div>
-
-                <div className="mt-6 grid font-semibold bg-gray-400 text-white grid-cols-4">
+              <div className="mt-6">
+                {/* Header */}
+                <div className="grid font-semibold bg-gray-400 text-white grid-cols-5">
                   <div className="p-3">Variasi</div>
-                  <div className="p-3">Kode Varian</div>
+                  <div className="p-3">Opsi</div>
                   <div className="p-3">Harga</div>
-                  <div className="p-3">Stok</div>
+                  <div className="p-3">Kode varian</div>
+                  <div className="p-3">Stock</div>
                 </div>
 
-                {variantMatrix.map((variant, i) => (
-                  <div className="grid grid-cols-4 items-center bg-white" key={i}>
-                    <div className="p-3">
-                      <p className="font-medium mb-2">{variant.aroma}</p>
-                      <InputOneImage
-                        images={variantImages[i]?.[0] ? [variantImages[i][0]] : []}
-                        onImageUpload={handleVariantImageUpload(i)}
-                        onRemoveImage={handleRemoveVariantImage(i)}
-                        label="Unggah"
-                      />
+                {variantMatrix.map((variant, i) =>
+                  (variant.volumes && variant.volumes.filter(Boolean).length > 0
+                    ? variant.volumes.filter(Boolean)
+                    : [null]
+                  ).map((option, j) => (
+                    <div key={`${i}-${j}`} className="grid grid-cols-5 items-start bg-white border-b border-gray-100">
+                      {j === 0 ? (
+                        <div className="p-3" rowSpan={variant.volumes.length}>
+                          <p className="font-medium mb-2">{variant.aroma}</p>
+                          <InputOneImage
+                            images={variantImages[i]?.[0] ? [variantImages[i][0]] : []}
+                            onImageUpload={handleVariantImageUpload(i)}
+                            onRemoveImage={handleRemoveVariantImage(i)}
+                            label="Tambah Gambar"
+                          />
+                        </div>
+                      ) : <div />}
+                      <div className="p-3 text-gray-800">{option || "-"}</div>
+                      <div className="p-3">
+                        <div className="flex items-center">
+                          <span className="text-gray-500 mr-1">Rp.</span>
+                          <input
+                            type="number"
+                            className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
+                            placeholder="Harga"
+                            value={variant.prices[j] || ""}
+                            onChange={(e) => {
+                              const updated = [...variantMatrix];
+                              if (!updated[i].prices) updated[i].prices = [];
+                              updated[i].prices[j] = e.target.value;
+                              setVariantMatrix(updated);
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <div className="p-3">
+                        <input
+                          type="text"
+                          className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
+                          placeholder="Kode"
+                          value={variant.codes[j] || ""}
+                          onChange={(e) => {
+                            const updated = [...variantMatrix];
+                            if (!updated[i].codes) updated[i].codes = [];
+                            updated[i].codes[j] = e.target.value;
+                            setVariantMatrix(updated);
+                          }}
+                        />
+                      </div>
+                      <div className="p-3">
+                        <input
+                          type="number"
+                          className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
+                          placeholder="Stok"
+                          value={variant.stocks[j] || ""}
+                          onChange={(e) => {
+                            const updated = [...variantMatrix];
+                            if (!updated[i].stocks) updated[i].stocks = [];
+                            updated[i].stocks[j] = e.target.value;
+                            setVariantMatrix(updated);
+                          }}
+                        />
+                      </div>
                     </div>
-                    <div className="p-3">
-                      <input type="text" className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none" value={variant.codes[0]} onChange={(e) => {
-                        const updated = [...variantMatrix];
-                        updated[i].codes[0] = e.target.value;
-                        setVariantMatrix(updated);
-                      }} />
-                    </div>
-                    <div className="p-3">
-                      <input type="number" className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none" value={variant.prices[0]} onChange={(e) => {
-                        const updated = [...variantMatrix];
-                        updated[i].prices[0] = e.target.value;
-                        setVariantMatrix(updated);
-                      }} />
-                    </div>
-                    <div className="p-3">
-                      <input type="number" className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none" value={variant.stocks[0]} onChange={(e) => {
-                        const updated = [...variantMatrix];
-                        updated[i].stocks[0] = e.target.value;
-                        setVariantMatrix(updated);
-                      }} />
-                    </div>
-                  </div>
-                ))}
-              </>
+                  ))
+                )}
+              </div>
             )}
           </div>
 
@@ -375,11 +434,11 @@ export const ProductCreate = () => {
         <div className="lg:col-span-4">
           <PreviewCard
             images={images}
-            price={variantMatrix.length ? variantMatrix[0].prices[0] : 0}
-            category={category}
+            price={variantMatrix.length ? variantMatrix[0].prices[0] : price}
+            category={selectedCategoryName}
             productName={productName}
             productCode={productCode}
-            stock={variantMatrix.length ? variantMatrix[0].stocks[0] : 0}
+            stock={variantMatrix.length ? variantMatrix[0].stocks[0] : stock}
             variantImages={variantImages}
           />
         </div>

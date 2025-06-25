@@ -1,5 +1,5 @@
 import React from "react"
-import { Trash2, Image } from "react-feather"
+import { Trash2 } from "react-feather"
 
 interface InputImageProps {
     images: (File | string)[]
@@ -20,8 +20,9 @@ const InputOneImage = ({
     <div className={`${className}`}>
         <div className="flex gap-4 flex-wrap">
             {images.length === 0 && (
-                <label className="w-24 h-24 border border-dashed border-gray-300 flex flex-col items-center justify-center rounded cursor-pointer text-gray-500 text-sm">
-                    <span><Image size={50} /></span>
+                <label className="w-24 h-24 border border-dashed border-gray-300 flex flex-col items-center justify-center rounded cursor-pointer text-gray-500 text-sm text-center hover:bg-gray-50 transition">
+                    <span className="text-2xl font-bold">+</span>
+                    <span className="text-xs mt-1">Drop here</span>
                     <input
                         type="file"
                         accept="image/*"

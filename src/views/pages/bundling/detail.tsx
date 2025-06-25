@@ -101,19 +101,34 @@ export default function BundlingDetailPage() {
   useEffect(() => {
     const foundPackage = mockData.find(pkg => pkg.id === parseInt(id || "1"));
     setPackageData(foundPackage || null);
+    setSelectedImageIndex(0);
   }, [id]);
 
   const formatPrice = (price: number) => {
     return price.toLocaleString("id-ID");
   };
 
+  if (!packageData) {
+    return (
+      <div className="p-6 space-y-6">
+        <Breadcrumb
+          title="Detail Bundling Produk"
+          desc="Lorem ipsum dolor sit amet, consectetur adipiscing"
+        />
+        <div className="bg-white rounded-lg p-8 text-center text-gray-500 py-12">
+          Loading...
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       <Breadcrumb
         title="Detail Bundling Produk"
-        desc="Lorem ipsum dolor sit amet, consectetur adipiscing"
+        desc="Data Bundling Produk"
       />
-      <div className="bg-white rounded-lg p-8">
+      <div className="bg-white rounded-lg p-8 shadow-2xl">
         <div className="flex flex-col md:flex-row gap-8 md:gap-12">
           <div className="flex-shrink-0 mb-8 md:mb-0">
             <div className="w-80 h-96 bg-gray-50 rounded-lg flex items-center justify-center mb-4">
@@ -164,18 +179,18 @@ export default function BundlingDetailPage() {
                     {packageData.image.map((img, index) => (
                       <div key={index} className="flex items-center gap-2 bg-white rounded px-2 py-1 border border-gray-400">
                         <div className="w-8 h-8 bg-white rounded flex items-center justify-center">
-                            <img
+                          <img
                             src={img}
                             alt={`Item ${index + 1}`}
                             className="w-6 h-6 object-contain"
                             onError={(e) => {
-                                e.currentTarget.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjRjlGQUZCIi8+CjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjQiIGZpbGw9IiNEMUQ3REIiLz4KPC9zdmc+";
+                              e.currentTarget.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjRjlGQUZCIi8+CjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjQiIGZpbGw9IiNEMUQ3REIiLz4KPC9zdmc+";
                             }}
-                            />
+                          />
                         </div>
                         <span className="text-black text-base font-semibold">1</span>
                         <span className="text-black text-base">Parfum werty 10pm</span>
-                    </div>
+                      </div>
                     ))}
                   </div>
                 </div>
