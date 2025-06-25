@@ -10,6 +10,7 @@ import Swal from "sweetalert2";
 import { Toaster } from "@/core/helpers/BaseAlert";
 import ViewIcon from "@/views/components/ViewIcon";
 import { useApiClient } from "@/core/helpers/ApiClient";
+import { FormatTime } from "@/core/helpers/FormatTime";
 
 const SearchableSelect = ({
   value,
@@ -382,12 +383,15 @@ export default function DiscountIndex() {
         url += `&end_date=${tanggalBerakhirFilter}`;
       }
 
-      const response = await ApiClient.get(url);
+      const response = await ApiClient.get(url);     
+      console.log(response.data.data);
+       
       if (response.data.success) {
         const apiData = response.data.data.map((item: any) => ({
           id: item.id,
           name: item.name,
-          expired: item.expired,
+          start_date: item.start_date,
+          expired: item.end_date,
           min: item.min,
           max_used: item.max_used,
           variant_name: item.details?.variant_name || '',
@@ -429,6 +433,9 @@ export default function DiscountIndex() {
   useEffect(() => {
     fetchVouchers(currentPage);
   }, [currentPage, searchQuery]);
+
+  // console.log(vouchers);
+  
 
   function deleteVoucher(id: string) {
     Swal.fire({
@@ -478,6 +485,7 @@ export default function DiscountIndex() {
     return `${value}%`;
   };
 
+
   const hasActiveFilters = namaDiskonFilter || namaVariantFilter || statusFilter || jenisFilter || 
                           nilaiFilter || minNilaiFilter || maxNilaiFilter || tanggalMulaiFilter || tanggalBerakhirFilter;
 
@@ -526,8 +534,6 @@ export default function DiscountIndex() {
             <thead className="bg-gray-100 border border-gray-300 text-gray-700">
               <tr>
                 <th className="px-6 py-4 font-medium">Nama Diskon</th>
-                <th className="px-6 py-4 font-medium">Produk Variant</th>
-                <th className="px-6 py-4 font-medium">Kategori</th>
                 <th className="px-6 py-4 font-medium">Nilai</th>
                 <th className="px-6 py-4 font-medium">Tanggal Berakhir</th>
                 <th className="px-6 py-4 font-medium">Status</th>
@@ -551,18 +557,9 @@ export default function DiscountIndex() {
                   className="border-b border-gray-200 text-gray-600 hover:bg-gray-50"
                 >
                   <td className="px-6 py-4">{item.name || "-"}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-col">
-                      <h1 className="font-semibold">
-                        {item.variant_name || "-"}
-                      </h1>
-                      <h1>{item.code_product || "-"}</h1>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">{item.category || "-"}</td>
                   <td className="px-6 py-4">{formatDiscount(item.discount)}</td>
                   <td className="px-6 py-4">
-                    {item.expired === null ? "-" : item.expired}
+                    {item.expired === null ? "-" : FormatTime(item.expired)}
                   </td>
                   <td className="px-6 py-4">
                     {item.active === 1 ? (

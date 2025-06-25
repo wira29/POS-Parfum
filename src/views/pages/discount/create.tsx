@@ -11,13 +11,15 @@ interface Option {
 
 interface DiscountFormData {
   name: string;
-  discount: number;
   desc: string;
   product_detail_id: string;
-  minimum_purchase: string;
-  category: string;
+  percentage?: number;
+  nominal?: number;
+  type: "percentage" | "nominal";
   start_date: string;
   end_date: string;
+  is_member: number;
+  minimum_purchase: string;
 }
 
 interface SearchableSelectProps {
@@ -119,7 +121,7 @@ function SearchableSelect({
 interface InputDiscountSelectProps {
   label: string;
   labelClass: string;
-  discountType: "Rp" | "%";
+  discountType: "%" | "Rp";
   onDiscountTypeChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   discountValue: number;
   onDiscountValueChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -148,8 +150,15 @@ function InputDiscountSelect({
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value.replace(/[^0-9]/g, "");
     const numericValue = rawValue === "" ? "0" : rawValue;
-    setDisplayValue(numericValue);
-    e.target.value = numericValue;
+    
+    // Validasi berdasarkan tipe diskon
+    let finalValue = numericValue;
+    if (discountType === "%" && parseInt(numericValue) > 100) {
+      finalValue = "100";
+    }
+    
+    setDisplayValue(finalValue);
+    e.target.value = finalValue;
     onDiscountValueChange(e);
   };
 
@@ -177,6 +186,11 @@ function InputDiscountSelect({
           className="flex-1 px-3 py-2 text-sm text-gray-700 focus:outline-none"
         />
       </div>
+      {discountType === "%" && (
+        <div className="text-xs text-gray-500 mt-1">
+          Nilai diskon 1-100%
+        </div>
+      )}
       {error && <div className="text-red-500 text-sm mt-1">{error}</div>}
     </div>
   );
@@ -237,25 +251,27 @@ export function DiscountCreate() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState<DiscountFormData>({
     name: "",
-    discount: 0,
     desc: "",
     product_detail_id: "",
-    minimum_purchase: "0",
-    category: "",
+    percentage: 0,
+    nominal: 0,
+    type: "nominal",
     start_date: "",
     end_date: "",
+    is_member: 0,
+    minimum_purchase: "0",
   });
-  const [discountType, setDiscountType] = useState<"Rp" | "%">("Rp");
+  const [discountType, setDiscountType] = useState<"%" | "Rp">("Rp");
   const [barangOptions, setBarangOptions] = useState<Option[]>([]);
   const [loading, setLoading] = useState(false);
-  const [formErrors, setFormErrors] = useState<Partial<DiscountFormData>>({});
+  const [formErrors, setFormErrors] = useState<Partial<DiscountFormData & {discount: string}>>({});
   const [apiError, setApiError] = useState<string | null>(null);
   const labelClass =
     "block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2";
 
   const fetchProductOptions = async () => {
     try {
-      const response = await apiClient.get<{ data: any[] }>("/products");
+      const response = await apiClient.get<{ data: any[] }>("/products/no-paginate");
       const products = response.data.data;
       console.log(products);
 
@@ -280,17 +296,24 @@ export function DiscountCreate() {
       );
       const data = response.data.data;
 
+      // Parsing data dari API
+      const isPercentage = data.type === "percentage";
+      const discountValue = isPercentage ? data.percentage : data.nominal;
+
       setFormData({
         name: data.name || "",
-        discount: parseInt(data.discount?.toString().replace("%", ""), 10) || 0,
         desc: data.desc || "",
         product_detail_id: data.product_detail_id || "",
-        minimum_purchase: data.min ? parseInt(data.min, 10).toString() : "0",
-        category: data.category || data.type || "",
+        percentage: isPercentage ? discountValue : 0,
+        nominal: !isPercentage ? discountValue : 0,
+        type: data.type || "nominal",
         start_date: data.start_date || "",
-        end_date: data.end_date || data.expired || "",
+        end_date: data.end_date || "",
+        is_member: data.is_member || 0,
+        minimum_purchase: data.minimum_purchase || "0",
       });
-      setDiscountType(data.discount?.toString().includes("%") ? "%" : "Rp");
+      
+      setDiscountType(isPercentage ? "%" : "Rp");
     } catch (err) {
       console.error(err);
       setApiError("Gagal mengambil data diskon");
@@ -304,22 +327,54 @@ export function DiscountCreate() {
     }
   }, [id]);
 
-  const validateForm = (): Partial<DiscountFormData> => {
-    const errors: Partial<DiscountFormData> = {};
+  const validateForm = (): Partial<DiscountFormData & {discount: string}> => {
+    const errors: Partial<DiscountFormData & {discount: string}> = {};
+    
     if (!formData.name) errors.name = "Nama diskon wajib diisi";
     if (!formData.product_detail_id)
       errors.product_detail_id = "Produk wajib dipilih";
     if (
       !formData.minimum_purchase ||
       isNaN(parseInt(formData.minimum_purchase, 10)) ||
-      parseInt(formData.minimum_purchase, 10) < 1
+      parseInt(formData.minimum_purchase, 10) < 0
     ) {
-      errors.minimum_purchase =
-        "Minimum pembelian harus berupa angka lebih dari 0";
+      errors.minimum_purchase = "Minimum pembelian harus berupa angka valid";
     }
-    if (formData.discount <= 0)
-      errors.discount = "Nilai diskon harus lebih dari 0";
+    
+    // Validasi nilai diskon berdasarkan tipe
+    if (formData.type === "percentage") {
+      if (!formData.percentage || formData.percentage <= 0 || formData.percentage > 100) {
+        errors.discount = "Nilai diskon harus antara 1-100%";
+      }
+    } else {
+      if (!formData.nominal || formData.nominal <= 0) {
+        errors.discount = "Nilai diskon harus lebih dari 0";
+      }
+    }
+    
     return errors;
+  };
+
+  const handleDiscountTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newType = e.target.value as "%" | "Rp";
+    setDiscountType(newType);
+    
+    // Update form data type
+    setFormData(prev => ({
+      ...prev,
+      type: newType === "%" ? "percentage" : "nominal",
+      percentage: newType === "%" ? prev.percentage : 0,
+      nominal: newType === "Rp" ? prev.nominal : 0,
+    }));
+  };
+
+  const handleDiscountValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Number(e.target.value);
+    
+    setFormData(prev => ({
+      ...prev,
+      [discountType === "%" ? "percentage" : "nominal"]: value,
+    }));
   };
 
   const handleSubmit = async () => {
@@ -335,19 +390,33 @@ export function DiscountCreate() {
     }
 
     try {
-      const payload = {
-        ...formData,
-        discount: parseInt(formData.discount.toString(), 10),
-        minimum_purchase:
-          parseInt(formData.minimum_purchase, 10).toString() || "0",
+      // Prepare payload sesuai dengan format API
+      const payload: any = {
+        name: formData.name,
+        desc: formData.desc,
+        product_detail_id: formData.product_detail_id,
+        type: formData.type,
+        start_date: formData.start_date,
+        end_date: formData.end_date,
+        is_member: formData.is_member,
+        minimum_purchase: formData.minimum_purchase,
       };
+
+      // Add percentage or nominal based on type
+      if (formData.type === "percentage") {
+        payload.percentage = formData.percentage;
+      } else {
+        payload.nominal = formData.nominal;
+      }
 
       if (id) {
         await apiClient.put(`/discount-vouchers/${id}`, payload);
+        Toaster("success", "Berhasil mengubah diskon");
       } else {
         await apiClient.post("/discount-vouchers", payload);
+        Toaster("success", "Berhasil membuat diskon");
       }
-      Toaster("success", "Berhasil Edit Diskon");
+      
       navigate("/discounts");
     } catch (err: any) {
       console.error(err);
@@ -355,6 +424,7 @@ export function DiscountCreate() {
         err.response?.data?.message || "Gagal menyimpan diskon";
       setApiError(errorMessage);
       Toaster("error", `${errorMessage}`);
+      
       if (errorMessage.includes("Produk yang dipilih tidak valid")) {
         setFormErrors((prev) => ({
           ...prev,
@@ -364,6 +434,10 @@ export function DiscountCreate() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const getCurrentDiscountValue = () => {
+    return formData.type === "percentage" ? formData.percentage || 0 : formData.nominal || 0;
   };
 
   return (
@@ -379,9 +453,10 @@ export function DiscountCreate() {
           {id ? "Edit Diskon" : "Buat Diskon"}
         </h2>
         {apiError && <div className="text-red-500 text-sm">{apiError}</div>}
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className={labelClass}>Nama Diskon</label>
+            <label className={labelClass}>Nama Diskon*</label>
             <input
               type="text"
               name="name"
@@ -398,28 +473,34 @@ export function DiscountCreate() {
               <div className="text-red-500 text-sm mt-1">{formErrors.name}</div>
             )}
           </div>
+          
           <InputDiscountSelect
-            label="Atur Diskon"
+            label="Tipe & Nilai Diskon*"
             labelClass={labelClass}
             discountType={discountType}
-            onDiscountTypeChange={(e) =>
-              setDiscountType(e.target.value as "Rp" | "%")
-            }
-            discountValue={formData.discount}
-            onDiscountValueChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                discount: Number(e.target.value),
-              }))
-            }
-            placeholder="Masukkan nilai diskon"
+            onDiscountTypeChange={handleDiscountTypeChange}
+            discountValue={getCurrentDiscountValue()}
+            onDiscountValueChange={handleDiscountValueChange}
+            placeholder={discountType === "%" ? "Masukkan nominal" : "Masukkan nominal"}
             error={formErrors.discount}
           />
         </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <SearchableSelect
+            label="Pilih Varian Produk*"
+            options={barangOptions}
+            value={formData.product_detail_id}
+            onChange={(value) =>
+              setFormData((prev) => ({ ...prev, product_detail_id: value }))
+            }
+            placeholder="Ketik atau pilih"
+            error={formErrors.product_detail_id}
+          />
+          
           <InputNumber
             labelClass={labelClass}
-            placeholder="500000"
+            placeholder="100000"
             prefix="Rp"
             value={formData.minimum_purchase}
             onChange={(e) => {
@@ -438,37 +519,14 @@ export function DiscountCreate() {
             }}
             error={formErrors.minimum_purchase}
           />
-          <SearchableSelect
-            label="Nama Barang"
-            options={barangOptions}
-            value={formData.product_detail_id}
-            onChange={(value) =>
-              setFormData((prev) => ({ ...prev, product_detail_id: value }))
-            }
-            placeholder="Pilih Barang"
-            error={formErrors.product_detail_id}
-          />
         </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className={labelClass}>Kategori</label>
-            <input
-              type="text"
-              name="category"
-              value={formData.category}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, category: e.target.value }))
-              }
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Masukkan kategori"
-            />
-          </div>
-          <div>
-            <label className={labelClass}>Tanggal Dimulai</label>
+            <label className={labelClass}>Tanggal Mulai*</label>
             <input
               type="date"
               name="start_date"
-              min={formData.start_date || undefined}
               value={formData.start_date}
               max={formData.end_date || undefined}
               onChange={(e) =>
@@ -477,8 +535,9 @@ export function DiscountCreate() {
               className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+          
           <div>
-            <label className={labelClass}>Tanggal Berakhir</label>
+            <label className={labelClass}>Tanggal Berakhir*</label>
             <input
               type="date"
               name="end_date"
@@ -491,8 +550,9 @@ export function DiscountCreate() {
             />
           </div>
         </div>
+
         <div>
-          <label className={labelClass}>Deskripsi</label>
+          <label className={labelClass}>Deskripsi*</label>
           <textarea
             name="desc"
             rows={4}
@@ -501,9 +561,28 @@ export function DiscountCreate() {
               setFormData((prev) => ({ ...prev, desc: e.target.value }))
             }
             className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Masukkan deskripsi diskon (opsional)"
+            placeholder="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec vulputate."
           />
         </div>
+
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="is_member"
+            checked={formData.is_member === 1}
+            onChange={(e) =>
+              setFormData((prev) => ({ 
+                ...prev, 
+                is_member: e.target.checked ? 1 : 0 
+              }))
+            }
+            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          />
+          <label htmlFor="is_member" className="text-sm text-gray-700">
+            Diskon berlaku khusus untuk member?
+          </label>
+        </div>
+
         <div className="flex gap-4 justify-end">
           <button
             type="button"
@@ -511,15 +590,15 @@ export function DiscountCreate() {
             className="bg-gray-400 hover:bg-gray-500 text-white text-sm px-6 py-2 rounded-md cursor-pointer"
             disabled={loading}
           >
-            Kembali
+            Batal
           </button>
           <button
             type="button"
             onClick={handleSubmit}
-            className={`${id ? "bg-yellow-500 hover:bg-yellow-700 disabled:bg-yellow-400" : "bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400"} text-white text-sm px-6 py-2 rounded-md cursor-pointer`}
+            className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm px-6 py-2 rounded-md cursor-pointer"
             disabled={loading}
           >
-            {loading ? "Menyimpan..." : id ? "Simpan Perubahan" : "Buat Diskon"}
+            {loading ? "Menyimpan..." : "Tambah"}
           </button>
         </div>
       </div>

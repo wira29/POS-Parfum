@@ -6,6 +6,7 @@ import { SearchInput } from "@/views/components/SearchInput";
 import { NoData } from "@/views/components/NoData";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import Swal from "sweetalert2";
+import { ImageHelper } from "@/core/helpers/ImageHelper";
 
 interface Retail {
   id: string;
@@ -37,9 +38,7 @@ export const RetailIndex = () => {
       const mappedRetails: Retail[] = data.data.map((item: any) => ({
         id: item.id,
         name: item.name,
-        image: item.image
-          ? `${import.meta.env.VITE_API_BASE_URL}/${item.image}`
-          : "",
+        image: ImageHelper(item.image),
         telp: item.telp,
         address: item.address,
         owner: item.users?.[0]?.name || "-",
@@ -86,7 +85,7 @@ export const RetailIndex = () => {
     try {
       await apiClient.delete(`/outlets/${id}`);
       Swal.fire("Terhapus!", "Outlet berhasil dihapus.", "success");
-      fetchRetails(); // fetch ulang data setelah hapus
+      fetchRetails();
     } catch (error) {
       Swal.fire("Gagal!", "Gagal menghapus outlet.", "error");
       console.error(error);
@@ -150,13 +149,14 @@ export const RetailIndex = () => {
             {filteredRetails.map((retail) => (
               <div
                 key={retail.id}
-                className="bg-white rounded-xl shadow-sm border flex-col border-gray-100"
+                onClick={() => handleView(retail)}
+                className="bg-white rounded-xl shadow-sm border flex-col border-gray-100 overflow-hidden"
               >
                 <div className="h-32 overflow-hidden">
                   <img
                     src={retail.image}
                     alt={retail.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover cursor-pointer"
                   />
                 </div>
                 <div className="p-4">
@@ -168,28 +168,28 @@ export const RetailIndex = () => {
                   <p className="text-[13px] font-medium text-gray-600 mt-3">
                     Pemilik Retail
                   </p>
-                  <p className="text-[15px] font-bold text-black mb-4">
+                  <p className="text-[15px] font-semibold text-black mb-4">
                     {retail.owner}
                   </p>
                   <div className="flex gap-2 mt-4">
                     <button
-                      className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl text-sm font-medium flex-1"
+                      className="bg-blue-600 cursor-pointer hover:bg-blue-700 text-white py-2 rounded-xl text-sm font-medium flex-1"
                       onClick={() => handleView(retail)}
                     >
                       Detail
                     </button>
                     <div className="relative">
                       <button
-                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-400 hover:bg-gray-300"
+                        className="w-10 h-10 flex items-center justify-center rounded-lg bg-slate-400 cursor-pointer hover:bg-gray-300"
                         onClick={() => handleDropdownToggle(retail.id)}
                         type="button"
                       >
                         <FiMoreHorizontal size={30} color="white" />
                       </button>
                       {dropdownOpenId === retail.id && (
-                        <div className="absolute right-0 top-12 w-36 bg-white border rounded shadow-lg z-20">
+                        <div className="absolute right-0 top-12 w-36 bg-white border border-slate-300 rounded shadow-lg z-20">
                           <button
-                            className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                            className="block w-full text-left cursor-pointer px-4 py-2 hover:bg-gray-100 text-sm"
                             onClick={() => {
                               setDropdownOpenId(null);
                               handleEdit(retail);
@@ -198,7 +198,7 @@ export const RetailIndex = () => {
                             Edit
                           </button>
                           <button
-                            className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-red-600"
+                            className="block w-full text-left cursor-pointer px-4 py-2 hover:bg-gray-100 text-sm text-red-600"
                             onClick={() => {
                               setDropdownOpenId(null);
                               confirmDelete(retail.id);

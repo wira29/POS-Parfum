@@ -46,14 +46,14 @@ export default function RolePage() {
     role.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status : any) => {
     if (status === "Active") {
       return <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">Active</span>
     }
     return <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-medium">Non-active</span>
   }
 
-  const getActionButtons = (role) => {
+  const getActionButtons = (role  :any) => {
     if (role.status === "Active") {
       return (
         <>
@@ -81,8 +81,8 @@ export default function RolePage() {
         desc="Lorem ipsum dolor sit amet, consectetur adipiscing"
       />
 
-      <div className="bg-white rounded-lg shadow-sm">
-        <div className="p-6 border-b border-gray-200">
+      <div>
+        <div className="p-6">
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
             <div className="flex flex-col sm:flex-row gap-4 flex-1">
               <div className="flex-1 max-w-md">

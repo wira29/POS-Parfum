@@ -1,11 +1,21 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { useState, useEffect } from "react";
+import {
+  ArrowLeft,
+  Package,
+  Tag,
+  Calendar,
+  Users,
+  FileText,
+} from "lucide-react";
+import { ImageHelper } from "@/core/helpers/ImageHelper";
 
 interface ProductDetail {
   nama: string;
   varian: string;
   kode: string;
+  image: string;
 }
 
 interface DiscountDetail {
@@ -24,10 +34,11 @@ interface DiscountDetail {
     product: {
       name: string;
       product_code: string;
-    }
+      image: string | null;
+    };
     varian: {
       variant_name: string;
-    }
+    };
     material: string;
     unit: string;
     stock: number;
@@ -85,6 +96,7 @@ export const DiscountDetail = () => {
         nama: "Produk Tidak Ditentukan",
         varian: "Tidak Ada Varian",
         kode: "N/A",
+        image: "",
       },
     ],
   });
@@ -108,7 +120,10 @@ export const DiscountDetail = () => {
         status: data.active === 1 ? "Aktif" : "Tidak Aktif",
         nama: data.name || "Diskon Tidak Diketahui",
         jenis: data.type === "Rp" ? "Rp (Rupiah)" : "% (Persen)",
-        nilai: data.discount < 100 ? "% (persen)" : "Rp (rupiah)",
+        nilai:
+          data.type === "Rp"
+            ? formatCurrency(data.discount)
+            : `${data.discount}%`,
         minPembelian: formatCurrency(data.min),
         tanggalMulai: formatDate(data.start_date),
         tanggalBerakhir: formatDate(data.expired),
@@ -119,7 +134,9 @@ export const DiscountDetail = () => {
               {
                 nama: data.details.product.name || "Produk Tidak Ditentukan",
                 varian: data.details.varian.variant_name || "Tidak Ada Varian",
+                catgeory:data.details.product.category || null,
                 kode: data.details.product.product_code || "N/A",
+                image: data.details.product.image || null,
               },
             ]
           : [
@@ -153,155 +170,198 @@ export const DiscountDetail = () => {
   }
 
   if (error) {
-    return (
-      <div className="p-4 lg:p-6 text-center text-red-500">
-        {error}
-      </div>
-    );
+    return <div className="p-4 lg:p-6 text-center text-red-500">{error}</div>;
   }
 
   return (
     <div className="p-4 lg:p-6 space-y-4 lg:space-y-6 bg-gray-50 min-h-screen">
-      <div className="bg-white shadow-sm rounded-lg p-4 lg:p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
-          <div className="flex items-center gap-3 mb-4 lg:mb-0">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-              </svg>
+      {/* Header */}
+      <div className="bg-blue-600 w-full rounded-lg py-3 px-4 flex">
+        <Link
+          to={"/discounts"}
+          className="flex gap-2 text-white cursor-pointer hover:text-blue-100 transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          Kembali
+        </Link>
+      </div>
+
+      {/* Status Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Jenis Diskon */}
+        <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+          <div className="flex items-center gap-2 text-blue-600 mb-2">
+            <Tag className="w-5 h-5" />
+            <span className="text-sm font-medium">Jenis Diskon</span>
+          </div>
+          <p className="text-blue-800 font-semibold">{detail.jenis}</p>
+        </div>
+
+        {/* Nilai Diskon */}
+        <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
+          <div className="flex items-center gap-2 text-orange-600 mb-2">
+            <span className="text-sm font-medium">Nilai Diskon</span>
+          </div>
+          <p className="text-orange-800 font-semibold">{detail.nilai}</p>
+        </div>
+
+        {/* Status Diskon */}
+        <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+          <div className="flex items-center gap-2 text-green-600 mb-2">
+            <span className="text-sm font-medium">Status Diskon</span>
+          </div>
+          <p className="text-green-800 font-semibold">{detail.status}</p>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Detail Diskon */}
+        <div className="lg:col-span-1 bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex items-center gap-2 text-blue-600">
+              <FileText className="w-5 h-5" />
+              <h2 className="text-lg font-semibold">Detail Diskon</h2>
             </div>
+          </div>
+          <div className="p-4 space-y-4">
+            {/* Nama Diskon */}
             <div>
-              <button
-                onClick={() => navigate("/discounts")}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-2"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                <span className="text-sm">Kembali</span>
-              </button>
-              <h1 className="text-xl lg:text-2xl font-semibold text-gray-900">{detail.nama}</h1>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Nama Diskon
+              </label>
+              <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                <p className="text-gray-800">{detail.nama}</p>
+              </div>
             </div>
-          </div>
-          
-          <div
-            className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${
-              detail.status === "Aktif"
-                ? "bg-green-100 text-green-700"
-                : "bg-red-100 text-red-700"
-            }`}
-          >
-            <div
-              className={`w-2 h-2 rounded-full mr-2 mt-0.5 ${
-                detail.status === "Aktif" ? "bg-green-500" : "bg-red-500"
-              }`}
-            />
-            {detail.status}
+
+            {/* Nilai */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Nilai
+              </label>
+              <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 flex items-center">
+                <span className="text-blue-600 font-medium mr-2">Rp</span>
+                <p className="text-gray-800">
+                  {detail.nilai.replace("Rp ", "").replace("%", "")}
+                </p>
+              </div>
+            </div>
+
+            {/* Minimum Pembelian */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Minimum Pembelian
+              </label>
+              <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 flex items-center">
+                <span className="text-blue-600 font-medium mr-2">Rp</span>
+                <p className="text-gray-800">
+                  {detail.minPembelian.replace("Rp ", "")}
+                </p>
+              </div>
+            </div>
+
+            {/* Tanggal Mulai */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tanggal Mulai
+              </label>
+              <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 flex items-center">
+                <Calendar className="w-4 h-4 text-green-600 mr-2" />
+                <p className="text-gray-800">{detail.tanggalMulai}</p>
+              </div>
+            </div>
+
+            {/* Tanggal Berakhir */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tanggal Berakhir
+              </label>
+              <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 flex items-center">
+                <Calendar className="w-4 h-4 text-red-600 mr-2" />
+                <p className="text-gray-800">{detail.tanggalBerakhir}</p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-              </svg>
-              <span className="text-sm font-medium text-blue-900">Jenis Diskon</span>
+        {/* Right Side Content */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Usage Statistics */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="p-4 border-b border-gray-200">
+              <div className="flex items-center gap-2 text-blue-600">
+                <Users className="w-5 h-5" />
+                <h2 className="text-lg font-semibold">
+                  Telah Digunakan Sebanyak: {detail.totalDigunakan}x
+                </h2>
+              </div>
             </div>
-            <p className="text-blue-800 font-semibold">{detail.nilai}</p>
+            <div className="p-4">
+              <div className="flex items-center gap-2 text-gray-600 mb-3">
+                <FileText className="w-4 h-4" />
+                <span className="font-medium">Deskripsi Diskon</span>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <p className="text-gray-700">{detail.deskripsi}</p>
+              </div>
+            </div>
           </div>
 
-          <div className="bg-green-50 p-4 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-              </svg>
-              <span className="text-sm font-medium text-green-900">Nilai Diskon</span>
+          {/* Produk Terkait */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="p-4 border-b border-gray-200">
+              <div className="flex items-center gap-2 text-blue-600">
+                <Package className="w-5 h-5" />
+                <h2 className="text-lg font-semibold">Produk Terkait</h2>
+              </div>
             </div>
-            <p className="text-green-800 font-semibold">{detail.nilai}</p>
-          </div>
-
-          <div className="bg-orange-50 p-4 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 7m0 6v4a2 2 0 002 2h2a2 2 0 002-2v-4M7 13v-3" />
-              </svg>
-              <span className="text-sm font-medium text-orange-900">Min. Pembelian</span>
-            </div>
-            <p className="text-orange-800 font-semibold">{detail.minPembelian}</p>
-          </div>
-
-          <div className="bg-purple-50 p-4 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-              <span className="text-sm font-medium text-purple-900">Total Digunakan</span>
-            </div>
-            <p className="text-purple-800 font-semibold">{detail.totalDigunakan}x</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="flex items-center gap-2 mb-3">
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <span className="text-sm font-medium text-gray-900">Tanggal Mulai</span>
-            </div>
-            <p className="text-gray-800 font-semibold">{detail.tanggalMulai}</p>
-          </div>
-
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="flex items-center gap-2 mb-3">
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <span className="text-sm font-medium text-gray-900">Tanggal Berakhir</span>
-            </div>
-            <p className="text-gray-800 font-semibold">{detail.tanggalBerakhir}</p>
-          </div>
-        </div>
-
-        <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Deskripsi Diskon
-          </h3>
-          <p className="text-gray-700 leading-relaxed">{detail.deskripsi}</p>
-        </div>
-
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-            </svg>
-            Produk Terkait
-          </h3>
-          <div className="space-y-4">
-            {detail.produkTerkait.map((produk, index) => (
-              <div key={index} className="bg-gray-50 p-4 rounded-lg">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">Nama Produk</span>
-                    <p className="text-gray-900 font-medium">{produk.nama}</p>
+            <div className="p-4">
+              {detail.produkTerkait.map((produk, index) => (
+                <div
+                  key={index}
+                  className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200"
+                >
+                  <div className="w-20 h-20 sm:w-20 sm:h-20 bg-gradient-to-br rounded-lg flex items-center justify-center flex-shrink-0">
+                    <img src={ImageHelper(produk.image)} alt={produk.nama} />
                   </div>
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">Varian</span>
-                    <p className="text-gray-900 font-medium">{produk.varian}</p>
-                  </div>
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">Kode Produk</span>
-                    <p className="block w-16 text-center px-2 py-1.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                      {produk.kode === "null" ? "-" : produk.kode}
-                    </p>
+
+                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                    <div>
+                      <div className="flex items-center gap-2 text-blue-600 mb-1">
+                        <Package className="w-4 h-4" />
+                        <span className="text-sm font-medium">Nama Produk</span>
+                      </div>
+                      <p className="text-gray-800 font-medium">{produk.nama}</p>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center gap-2 text-blue-600 mb-1">
+                        <span className="text-sm font-medium">
+                          Kategori Produk
+                        </span>
+                      </div>
+                      <p className="text-gray-800">{produk.varian}</p>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center gap-2 text-blue-600 mb-1">
+                        <Tag className="w-4 h-4" />
+                        <span className="text-sm font-medium">Nama Varian</span>
+                      </div>
+                      <p className="text-gray-800">{produk.varian}</p>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center gap-2 text-blue-600 mb-1">
+                        <span className="text-sm font-medium">Kode Varian</span>
+                      </div>
+                      <p className="text-blue-600 font-medium">{produk.kode}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>
