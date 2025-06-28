@@ -8,14 +8,15 @@ import PreviewCard from "@/views/components/Card/PreviewCard";
 import { Barcode, DollarSign, ImageIcon, Plus, Info, X } from "lucide-react";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Toaster } from "@/core/helpers/BaseAlert";
+import InputManyText from "@/views/components/Input-v2/InputManyText";
 
 export const ProductEdit = () => {
     const navigate = useNavigate();
     const apiClient = useApiClient();
     const { id } = useParams();
 
-    const [categories, setCategories] = useState<{ value: string; label: string }[]>([]);
-    const [images, setImages] = useState<(File | string)[]>([]);
+    const [categories, setCategories] = useState([]);
+    const [images, setImages] = useState([]);
     const [productName, setProductName] = useState("");
     const [productCode, setProductCode] = useState("");
     const [category, setCategory] = useState("");
@@ -24,12 +25,12 @@ export const ProductEdit = () => {
     const [globalPrice, setGlobalPrice] = useState("");
     const [globalStock, setGlobalStock] = useState("");
     const [globalCode, setGlobalCode] = useState("");
-
-    const [variations, setVariations] = useState<{ name: string }[]>([]);
-    const [variantMatrix, setVariantMatrix] = useState<any[]>([]);
-    const [variantImages, setVariantImages] = useState<(File | string)[][]>([]);
+    const [globalOption, setGlobalOption] = useState("");
+    const [variations, setVariations] = useState([]);
+    const [variantMatrix, setVariantMatrix] = useState([]);
+    const [variantImages, setVariantImages] = useState([]);
     const [singleDetailMode, setSingleDetailMode] = useState(false);
-    const [errors, setErrors] = useState<{ [key: string]: string[] }>({});
+    const [errors, setErrors] = useState({});
     const [description, setDescription] = useState("");
     const [selectedCategoryName, setSelectedCategoryName] = useState("");
 
@@ -37,69 +38,112 @@ export const ProductEdit = () => {
         const fetchCategories = async () => {
             try {
                 const res = await apiClient.get("/categories");
-                const mapped = res.data?.data?.map((cat: any) => ({
-                    value: cat.id,
+                const mapped = res.data?.data?.map((cat) => ({
+                    value: String(cat.id),
                     label: cat.name,
                 })) || [];
                 setCategories(mapped);
-            } catch (error) {
-                console.error("Failed to fetch categories:", error);
-            }
+            } catch (error) { }
         };
         fetchCategories();
     }, []);
-
-    const [productData, setProductData] = useState<any>(null);
 
     useEffect(() => {
         const fetchProduct = async () => {
             try {
                 const res = await apiClient.get(`/products/${id}`);
-                setProductData(res.data?.data || null);
-            } catch (error) {
-                console.error("Failed to fetch product:", error);
-            }
+                const data = res.data?.data;
+                if (!data) return;
+
+                setProductName(data.name || "");
+                setCategory(data.category_id ? String(data.category_id) : data.category?.id ? String(data.category.id) : "");
+                setImages(data.image ? [data.image] : []);
+                setDescription(data.description || "");
+
+                // Support both product_detail and product_details
+                const details = data.product_detail || data.product_details || [];
+                if (!details.length) {
+                    setVariations([]);
+                    setVariantMatrix([]);
+                    setVariantImages([]);
+                    setSingleDetailMode(true);
+                    return;
+                }
+
+                // Group by variant (mainName), opsi as optionName
+                const groups = {};
+                details.forEach((d) => {
+                    const mainName = d.variant || (d.variant_name ? d.variant_name.split("-")[0] : "");
+                    const optionName = d.opsi || (d.variant_name && d.variant_name.split("-")[1]) || "";
+                    if (!groups[mainName]) groups[mainName] = [];
+                    groups[mainName].push({ ...d, optionName });
+                });
+
+                const newVariations = [];
+                const newVariantMatrix = [];
+                const newVariantImages = [];
+
+                Object.entries(groups).forEach(([mainName, group], idx) => {
+                    const options = group.map((g) => g.optionName || "");
+                    newVariations.push({
+                        name: mainName,
+                        options,
+                    });
+                    const prices = group.map((g) => String(g.price));
+                    const stocks = group.map((g) => String(g.stock || ""));
+                    const codes = group.map((g) => g.product_code || "");
+                    const volumes = options;
+                    newVariantMatrix.push({
+                        aroma: mainName,
+                        prices,
+                        stocks,
+                        codes,
+                        volumes,
+                    });
+                    newVariantImages.push(group.map((g) => g.product_image || ""));
+                });
+
+                setVariations(newVariations);
+                setVariantMatrix(newVariantMatrix);
+                setVariantImages(newVariantImages);
+
+                setSingleDetailMode(newVariantMatrix.length === 1 && newVariantMatrix[0].prices.length === 1);
+                if (newVariantMatrix.length === 1 && newVariantMatrix[0].prices.length === 1) {
+                    setProductCode(newVariantMatrix[0].codes[0]);
+                    setPrice(Number(newVariantMatrix[0].prices[0]));
+                    setStock(Number(newVariantMatrix[0].stocks[0]));
+                }
+            } catch (error) { }
         };
         fetchProduct();
     }, [id]);
 
     useEffect(() => {
-        if (!productData) return;
-        setProductName(productData.name || "");
-        setCategory(productData.category_id || "");
-        setImages(productData.image ? [productData.image] : []);
-        setDescription(productData.description || "");
-
-        const details = productData.details || [];
-        if (details.length > 1 || details[0]?.variant_name !== null) {
-            setSingleDetailMode(false);
-            const newVariations = details.map((v: any, i: number) => ({
-                name: v.variant_name || `Varian ${i + 1}`,
-            }));
-            setVariations(newVariations);
-
-            const matrix = details.map((v: any) => ({
-                aroma: v.variant_name || "",
-                prices: [String(v.price)],
-                stocks: [String(v.stock)],
-                codes: [v.product_code || ""],
-            }));
-            setVariantMatrix(matrix);
-
-            const imageMatrix = details.map((v: any) => [v.product_image || ""]);
-            setVariantImages(imageMatrix);
-        } else if (details.length === 1) {
-            setSingleDetailMode(true);
-            const detail = details[0];
-            setProductCode(detail.product_code || "");
-            setPrice(detail.price || 0);
-            setStock(detail.stock || 0);
-            setCategory(detail.category_id || "");
-            setVariations([]);
+        if (variations.length === 0) {
             setVariantMatrix([]);
-            setVariantImages([]);
+        } else {
+            const newMatrix = variations.map((variation, i) => ({
+                aroma: variation.name || `Varian ${i + 1}`,
+                prices: variantMatrix[i]?.prices?.length === variation.options.length
+                    ? variantMatrix[i].prices
+                    : variation.options.map((_, j) => variantMatrix[i]?.prices?.[j] || ""),
+                stocks: variantMatrix[i]?.stocks?.length === variation.options.length
+                    ? variantMatrix[i].stocks
+                    : variation.options.map((_, j) => variantMatrix[i]?.stocks?.[j] || ""),
+                codes: variantMatrix[i]?.codes?.length === variation.options.length
+                    ? variantMatrix[i].codes
+                    : variation.options.map((_, j) => variantMatrix[i]?.codes?.[j] || ""),
+                volumes: variation.options,
+            }));
+            setVariantMatrix(newMatrix);
         }
-    }, [productData]);
+    }, [variations]);
+
+    useEffect(() => {
+        setVariantImages((prev) =>
+            variantMatrix.map((_, i) => prev?.[i] || [])
+        );
+    }, [variantMatrix]);
 
     useEffect(() => {
         if (variantMatrix.length > 0 && category) {
@@ -112,13 +156,61 @@ export const ProductEdit = () => {
         }
     }, [category]);
 
-    useEffect(() => {
-        setVariantImages((prev) =>
-            variantMatrix.map((_, i) => [prev?.[i]?.[0] ?? ""])
+    const setVariantName = (index, name) => {
+        setVariations((prev) =>
+            prev.map((v, i) => (i === index ? { ...v, name } : v))
         );
-    }, [variantMatrix]);
+        setVariantMatrix((prev) => {
+            const updated = [...prev];
+            if (updated[index]) updated[index].aroma = name;
+            return updated;
+        });
+    };
 
-    const handleVariantImageUpload = (i: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleOptionChange = (variantIndex, optionIndex, value) => {
+        setVariations((prev) => {
+            const updated = [...prev];
+            updated[variantIndex].options[optionIndex] = value;
+            return updated;
+        });
+        setVariantMatrix((prev) => {
+            const matrix = [...prev];
+            if (!matrix[variantIndex]) matrix[variantIndex] = {};
+            matrix[variantIndex].volumes = variations[variantIndex].options;
+            return matrix;
+        });
+    };
+
+    const handleAddOption = (variantIndex) => {
+        setVariations((prev) => {
+            const updated = [...prev];
+            if (!updated[variantIndex].options) updated[variantIndex].options = [];
+            updated[variantIndex].options.push("");
+            return updated;
+        });
+        setVariantMatrix((prev) => {
+            const matrix = [...prev];
+            if (!matrix[variantIndex]) matrix[variantIndex] = {};
+            matrix[variantIndex].volumes = variations[variantIndex].options;
+            return matrix;
+        });
+    };
+
+    const handleRemoveOption = (variantIndex, optionIndex) => {
+        setVariations((prev) => {
+            const updated = [...prev];
+            updated[variantIndex].options.splice(optionIndex, 1);
+            return updated;
+        });
+        setVariantMatrix((prev) => {
+            const matrix = [...prev];
+            if (!matrix[variantIndex]) matrix[variantIndex] = {};
+            matrix[variantIndex].volumes = variations[variantIndex].options;
+            return matrix;
+        });
+    };
+
+    const handleVariantImageUpload = (i) => (e) => {
         const file = e.target.files?.[0];
         if (file) {
             setVariantImages((prev) => {
@@ -130,7 +222,7 @@ export const ProductEdit = () => {
         }
     };
 
-    const handleRemoveVariantImage = (i: number) => () => {
+    const handleRemoveVariantImage = (i) => () => {
         setVariantImages((prev) => {
             const updated = prev.map((row) => [...row]);
             if (updated[i]) updated[i][0] = "";
@@ -138,34 +230,36 @@ export const ProductEdit = () => {
         });
     };
 
-    useEffect(() => {
-        if (variations.length === 0) {
-            setVariantMatrix([]);
-        } else {
-            const newMatrix = variations.map((variation, i) => ({
-                aroma: variation.name || `Varian ${i + 1}`,
-                prices: [variantMatrix[i]?.prices?.[0] || ""],
-                stocks: [variantMatrix[i]?.stocks?.[0] || ""],
-                codes: [variantMatrix[i]?.codes?.[0] || ""],
-            }));
-            setVariantMatrix(newMatrix);
-        }
-    }, [variations]);
-
     const applyToAllVariants = () => {
-        const updated = variantMatrix.map((variant) => ({
-            ...variant,
-            prices: [globalPrice || variant.prices[0]],
-            stocks: [globalStock || variant.stocks[0]],
-            codes: [globalCode || variant.codes[0]],
-        }));
+        const updated = variantMatrix.map((variant) => {
+            const optionCount = variant.volumes && variant.volumes.length > 0 ? variant.volumes.length : 1;
+            const prices = [...(variant.prices || Array(optionCount).fill(""))];
+            const stocks = [...(variant.stocks || Array(optionCount).fill(""))];
+            const codes = [...(variant.codes || Array(optionCount).fill(""))];
+            const volumes = [...(variant.volumes || Array(optionCount).fill(""))];
+
+            for (let idx = 0; idx < optionCount; idx++) {
+                if (globalPrice !== "") prices[idx] = globalPrice;
+                if (globalStock !== "") stocks[idx] = globalStock;
+                if (globalCode !== "") codes[idx] = globalCode;
+                if (globalOption !== "") volumes[idx] = globalOption;
+            }
+
+            return {
+                ...variant,
+                prices,
+                stocks,
+                codes,
+                volumes,
+            };
+        });
         setVariantMatrix(updated);
         setGlobalPrice("");
         setGlobalStock("");
         setGlobalCode("");
+        setGlobalOption("");
     };
 
-    // Sinkronisasi: jika hanya 1 varian, tampilkan data varian di input atas
     useEffect(() => {
         if (!singleDetailMode && variantMatrix.length === 1) {
             setProductCode(variantMatrix[0].codes[0] || "");
@@ -174,7 +268,6 @@ export const ProductEdit = () => {
         }
     }, [variantMatrix, singleDetailMode]);
 
-    // Sinkronisasi sebaliknya: jika user edit input atas, update matrix juga
     useEffect(() => {
         if (!singleDetailMode && variantMatrix.length === 1) {
             setVariantMatrix([{
@@ -184,10 +277,9 @@ export const ProductEdit = () => {
                 stocks: [String(stock)],
             }]);
         }
-        // eslint-disable-next-line
     }, [productCode, price, stock]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const formData = new FormData();
 
@@ -210,22 +302,31 @@ export const ProductEdit = () => {
                     ? variantMatrix[0].aroma
                     : "Default"
             );
-
+            if (variantMatrix.length === 1 && variantMatrix[0]?.volumes?.[0]) {
+                formData.append("product_details[0][opsi]", variantMatrix[0].volumes[0]);
+            }
             if (images.length > 0 && typeof images[0] !== "string") {
                 formData.append("image", images[0]);
             }
         } else {
+            let detailIdx = 0;
             variantMatrix.forEach((variant, i) => {
-                formData.append(`product_details[${i}][category_id]`, category);
-                formData.append(`product_details[${i}][variant_name]`, variant.aroma || `Varian ${i + 1}`);
-                formData.append(`product_details[${i}][stock]`, variant.stocks?.[0] || "0");
-                formData.append(`product_details[${i}][price]`, variant.prices?.[0] || "0");
-                formData.append(`product_details[${i}][product_code]`, variant.codes?.[0] || "");
-
-                const img = variantImages[i]?.[0];
-                if (img instanceof File) {
-                    formData.append(`product_details[${i}][product_image]`, img);
-                }
+                (variant.volumes && variant.volumes.length > 0
+                    ? variant.volumes
+                    : [null]
+                ).forEach((option, j) => {
+                    formData.append(`product_details[${detailIdx}][category_id]`, category);
+                    formData.append(`product_details[${detailIdx}][variant]`, variant.aroma);
+                    formData.append(`product_details[${detailIdx}][opsi]`, option || "");
+                    formData.append(`product_details[${detailIdx}][stock]`, variant.stocks?.[j] || "0");
+                    formData.append(`product_details[${detailIdx}][price]`, variant.prices?.[j] || "0");
+                    formData.append(`product_details[${detailIdx}][product_code]`, variant.codes?.[j] || "");
+                    const img = variantImages[i]?.[j];
+                    if (img instanceof File) {
+                        formData.append(`product_details[${detailIdx}][product_image]`, img);
+                    }
+                    detailIdx++;
+                });
             });
         }
 
@@ -319,7 +420,6 @@ export const ProductEdit = () => {
                                     prefix="Pcs"
                                     error={errors["product_details.0.stock"]?.[0]}
                                 />
-
                                 <div>
                                     <label className={labelClass}><Barcode size={16} /> Kode Produk</label>
                                     <input
@@ -357,19 +457,17 @@ export const ProductEdit = () => {
                             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-blue-600">
                                 <Info size={18} /> Variasi Produk
                             </h3>
-
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <h1 className="text-xl text-gray-500">Varian</h1>
                                     <button
                                         type="button"
-                                        onClick={() => setVariations((prev) => [...prev, { name: "" }])}
+                                        onClick={() => setVariations((prev) => [...prev, { name: "", options: [] }])}
                                         className="text-blue-600 text-sm flex items-center gap-1"
                                     >
                                         <Plus size={16} /> Tambah Variasi
                                     </button>
                                 </div>
-
                                 {variations.map((variation, i) => (
                                     <div key={i} className="bg-gray-200 p-4 rounded-lg shadow space-y-3">
                                         <div className="flex justify-between items-center">
@@ -378,11 +476,7 @@ export const ProductEdit = () => {
                                                 <input
                                                     placeholder="Nama Varian"
                                                     value={variation.name}
-                                                    onChange={(e) => {
-                                                        const updated = [...variations];
-                                                        updated[i].name = e.target.value;
-                                                        setVariations(updated);
-                                                    }}
+                                                    onChange={(e) => setVariantName(i, e.target.value)}
                                                     className="w-100 border bg-white border-gray-300 rounded-lg px-3 py-2"
                                                 />
                                             </div>
@@ -394,105 +488,105 @@ export const ProductEdit = () => {
                                                 <X size={32} />
                                             </button>
                                         </div>
+                                        <div className="gap-13 flex items-center">
+                                            <span className="font-medium">Opsi</span>
+                                            <InputManyText
+                                                items={variation.options}
+                                                onChange={(j, v) => handleOptionChange(i, j, v)}
+                                                onAdd={() => handleAddOption(i)}
+                                                onRemove={(j) => handleRemoveOption(i, j)}
+                                                className="min-w-105"
+                                                maxLength={50}
+                                                placeholderPrefix="Opsi "
+                                            />
+                                        </div>
                                     </div>
                                 ))}
                             </div>
-
-                            {variantMatrix.length > 1 && (
-                                <>
-                                    {variantMatrix.length > 1 && (
-                                        <div className="mt-6 flex items-center gap-4">
-                                            <div className="flex border rounded-lg overflow-hidden divide-x w-full max-w-3xl">
-                                                <div className="flex items-center px-3 bg-gray-50 text-gray-500">Rp.</div>
-                                                <input type="number" placeholder="Harga" className="w-1/3 px-3 py-2 focus:outline-none" value={globalPrice} onChange={(e) => setGlobalPrice(e.target.value)} />
-                                                <input type="number" placeholder="Stok" className="w-1/3 px-3 py-2 focus:outline-none" value={globalStock} onChange={(e) => setGlobalStock(e.target.value)} />
-                                                <input type="text" placeholder="Kode Varian" className="w-1/3 px-3 py-2 focus:outline-none" value={globalCode} onChange={(e) => setGlobalCode(e.target.value)} />
-                                            </div>
-                                            <button type="button" className="bg-blue-600 text-white px-3 rounded-lg" onClick={applyToAllVariants}>
-                                                Terapkan Ke Semua
-                                            </button>
-                                        </div>
-                                    )}
-
-                                    <div className="mt-6 grid font-semibold bg-gray-400 text-white grid-cols-4">
+                            {variantMatrix.length > 0 && (
+                                <div className="mt-6">
+                                    <div className="grid font-semibold bg-gray-400 text-white grid-cols-5">
                                         <div className="p-3">Variasi</div>
-                                        <div className="p-3">Kode Varian</div>
+                                        <div className="p-3">Opsi</div>
                                         <div className="p-3">Harga</div>
-                                        <div className="p-3">Stok</div>
+                                        <div className="p-3">Kode varian</div>
+                                        <div className="p-3">Stock</div>
                                     </div>
-
-                                    {variantMatrix.map((variant, i) => (
-                                        <div className="grid grid-cols-4 items-center bg-white" key={i}>
-                                            <div className="p-3">
-                                                <p className="font-medium mb-2">{variant.aroma}</p>
-                                                <InputOneImage
-                                                    images={variantImages[i]?.[0] ? [variantImages[i][0]] : []}
-                                                    onImageUpload={handleVariantImageUpload(i)}
-                                                    onRemoveImage={handleRemoveVariantImage(i)}
-                                                    label="Unggah"
-                                                    error={errors[`product_details.${i}.product_image`]?.[0]}
-                                                />
+                                    {variantMatrix.map((variant, i) =>
+                                        (variant.volumes && variant.volumes.filter(Boolean).length > 0
+                                            ? variant.volumes.filter(Boolean)
+                                            : [null]
+                                        ).map((option, j) => (
+                                            <div key={`${i}-${j}`} className="grid grid-cols-5 items-start bg-white border-b border-gray-100">
+                                                {j === 0 ? (
+                                                    <div className="p-3" rowSpan={variant.volumes.length}>
+                                                        <p className="font-medium mb-2">{variant.aroma}</p>
+                                                        <InputOneImage
+                                                            images={variantImages[i]?.[0] ? [variantImages[i][0]] : []}
+                                                            onImageUpload={handleVariantImageUpload(i)}
+                                                            onRemoveImage={handleRemoveVariantImage(i)}
+                                                            label="Tambah Gambar"
+                                                        />
+                                                    </div>
+                                                ) : <div />}
+                                                <div className="p-3 text-gray-800">
+                                                    <input
+                                                        type="text"
+                                                        className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
+                                                        placeholder="Opsi"
+                                                        value={option || ""}
+                                                        onChange={(e) => handleOptionChange(i, j, e.target.value)}
+                                                    />
+                                                </div>
+                                                <div className="p-3">
+                                                    <div className="flex items-center">
+                                                        <span className="text-gray-500 mr-1">Rp.</span>
+                                                        <input
+                                                            type="number"
+                                                            className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
+                                                            placeholder="Harga"
+                                                            value={variant.prices[j] || ""}
+                                                            onChange={(e) => {
+                                                                const updated = [...variantMatrix];
+                                                                if (!updated[i].prices) updated[i].prices = [];
+                                                                updated[i].prices[j] = e.target.value;
+                                                                setVariantMatrix(updated);
+                                                            }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="p-3">
+                                                    <input
+                                                        type="text"
+                                                        className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
+                                                        placeholder="Kode"
+                                                        value={variant.codes[j] || ""}
+                                                        onChange={(e) => {
+                                                            const updated = [...variantMatrix];
+                                                            if (!updated[i].codes) updated[i].codes = [];
+                                                            updated[i].codes[j] = e.target.value;
+                                                            setVariantMatrix(updated);
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div className="p-3">
+                                                    <input
+                                                        type="number"
+                                                        className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
+                                                        placeholder="Stok"
+                                                        value={variant.stocks[j] || ""}
+                                                        onChange={(e) => {
+                                                            const updated = [...variantMatrix];
+                                                            if (!updated[i].stocks) updated[i].stocks = [];
+                                                            updated[i].stocks[j] = e.target.value;
+                                                            setVariantMatrix(updated);
+                                                        }}
+                                                    />
+                                                </div>
                                             </div>
-                                            <div className="p-3">
-                                                <input
-                                                    type="text"
-                                                    className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
-                                                    value={variant.codes[0]}
-                                                    onChange={(e) => {
-                                                        const updated = [...variantMatrix];
-                                                        updated[i].codes[0] = e.target.value;
-                                                        setVariantMatrix(updated);
-                                                    }}
-                                                    disabled={variantMatrix.length === 1}
-                                                />
-                                                {variantMatrix.length === 1 && (
-                                                    <div className="text-xs text-blue-500">Gunakan input atas</div>
-                                                )}
-                                                {errors[`product_details.${i}.product_code`] && (
-                                                    <p className="text-sm text-red-500 mt-1">{errors[`product_details.${i}.product_code`][0]}</p>
-                                                )}
-                                            </div>
-                                            <div className="p-3">
-                                                <input
-                                                    type="number"
-                                                    className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
-                                                    value={variant.prices[0]}
-                                                    onChange={(e) => {
-                                                        const updated = [...variantMatrix];
-                                                        updated[i].prices[0] = e.target.value;
-                                                        setVariantMatrix(updated);
-                                                    }}
-                                                    disabled={variantMatrix.length === 1}
-                                                />
-                                                {variantMatrix.length === 1 && (
-                                                    <div className="text-xs text-blue-500">Gunakan input atas</div>
-                                                )}
-                                                {errors[`product_details.${i}.price`] && (
-                                                    <p className="text-sm text-red-500 mt-1">{errors[`product_details.${i}.price`][0]}</p>
-                                                )}
-                                            </div>
-                                            <div className="p-3">
-                                                <input
-                                                    type="number"
-                                                    className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
-                                                    value={variant.stocks[0]}
-                                                    onChange={(e) => {
-                                                        const updated = [...variantMatrix];
-                                                        updated[i].stocks[0] = e.target.value;
-                                                        setVariantMatrix(updated);
-                                                    }}
-                                                    disabled={variantMatrix.length === 1}
-                                                />
-                                                {variantMatrix.length === 1 && (
-                                                    <div className="text-xs text-blue-500">Gunakan input atas</div>
-                                                )}
-                                                {errors[`product_details.${i}.stock`] && (
-                                                    <p className="text-sm text-red-500 mt-1">{errors[`product_details.${i}.stock`][0]}</p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </>
+                                        ))
+                                    )}
+                                </div>
                             )}
                         </div>
                     )}
@@ -502,7 +596,6 @@ export const ProductEdit = () => {
                         <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg">Simpan</button>
                     </div>
                 </div>
-
                 <div className="lg:col-span-4">
                     <PreviewCard
                         images={images}

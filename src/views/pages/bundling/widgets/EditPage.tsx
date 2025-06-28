@@ -4,6 +4,34 @@ import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Toaster } from "@/core/helpers/BaseAlert";
 import { Plus, X, Info } from "lucide-react";
+import VariantSelectModal from "./modal/VariantSelectModal";
+
+const DUMMY_PRODUCTS = [
+  {
+    id: 1,
+    name: "Parfum Mawar",
+    variants: [
+      { id: 101, name: "Mawar 100ml" },
+      { id: 102, name: "Mawar 50ml" },
+    ],
+  },
+  {
+    id: 2,
+    name: "Parfum Melati",
+    variants: [
+      { id: 201, name: "Melati 100ml" },
+      { id: 202, name: "Melati 50ml" },
+    ],
+  },
+  {
+    id: 3,
+    name: "Parfum Lavender",
+    variants: [
+      { id: 301, name: "Lavender 100ml" },
+      { id: 302, name: "Lavender 50ml" },
+    ],
+  },
+];
 
 export default function BundlingEdit() {
   const navigate = useNavigate();
@@ -17,8 +45,26 @@ export default function BundlingEdit() {
   const [price, setPrice] = useState(0);
   const [stock, setStock] = useState(0);
   const [errors, setErrors] = useState({});
-  const [composition, setComposition] = useState<string[]>([""]);
+  const [composition, setComposition] = useState([]);
   const [description, setDescription] = useState("");
+
+  const [showModal, setShowModal] = useState(false);
+  const [selectedVariants, setSelectedVariants] = useState([]);
+  const [expandedProducts, setExpandedProducts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredProducts, setFilteredProducts] = useState(DUMMY_PRODUCTS);
+
+  useEffect(() => {
+    if (!searchTerm) {
+      setFilteredProducts(DUMMY_PRODUCTS);
+    } else {
+      setFilteredProducts(
+        DUMMY_PRODUCTS.filter((p) =>
+          p.name.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      );
+    }
+  }, [searchTerm]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -34,6 +80,20 @@ export default function BundlingEdit() {
       }
     };
     fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    const handler = (e) => {
+      const { productName, variantName } = e.detail;
+      setComposition((prev) =>
+        prev.filter((item) => {
+          const [pName, vName] = item.split(" - ");
+          return !(pName === productName && vName === variantName);
+        })
+      );
+    };
+    window.addEventListener("remove-composition", handler);
+    return () => window.removeEventListener("remove-composition", handler);
   }, []);
 
   const handleSubmit = async (e) => {
@@ -70,22 +130,57 @@ export default function BundlingEdit() {
     }
   };
 
+  const toggleExpand = (id) => {
+    setExpandedProducts((prev) =>
+      prev.includes(id) ? prev.filter((pid) => pid !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectVariant = (productId, productName, variantId, variantName) => {
+    const exists = selectedVariants.some(
+      (v) => v.productId === productId && v.variantId === variantId
+    );
+    if (exists) {
+      setSelectedVariants((prev) =>
+        prev.filter((v) => !(v.productId === productId && v.variantId === variantId))
+      );
+    } else {
+      setSelectedVariants((prev) => [
+        ...prev,
+        { productId, productName, variantId, variantName },
+      ]);
+    }
+  };
+
+  const handleAddSelectedVariants = () => {
+    const newComps = [
+      ...composition,
+      ...selectedVariants.map(
+        (v) => `${v.productName} - ${v.variantName}`
+      ),
+    ];
+    setComposition(newComps);
+    setSelectedVariants([]);
+    setShowModal(false);
+  };
+
+  const handleRemoveComposition = (index) => {
+    setComposition((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
 
   return (
     <div className="p-6 space-y-6">
-      <Breadcrumb
-        title="Buat Bundling Produk"
-        desc="Data Bundling Produk"
-      />
+      <Breadcrumb title="Edit Bundling Produk" desc="Data Bundling Produk" />
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-8">
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <div className="space-y-4">
               <div>
                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-blue-600">
-              <Info size={18} /> Informasi Produk
-            </h3>
+                  <Info size={18} /> Informasi Produk
+                </h3>
                 <label className={`${labelClass} flex items-center gap-1`}>
                   Nama Bundling<span className="text-red-500">*</span>
                 </label>
@@ -97,44 +192,46 @@ export default function BundlingEdit() {
                   onChange={(e) => setProductName(e.target.value)}
                 />
               </div>
+
               <div>
                 <label className={`${labelClass} flex items-center gap-1`}>
-                Produk Dibundling<span className="text-red-500">*</span>
-                <button
-                  type="button"
-                  className="text-blue-600 text-sm ml-auto flex items-center gap-1"
-                  onClick={() => setComposition(prev => [...prev, ""])}
-                >
-                  <Plus size={16} /> Tambah Bundling
-                </button>
-              </label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {composition.map((item, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      className="flex-1 px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Alkohol"
-                      value={item}
-                      onChange={(e) => {
-                        const updated = [...composition];
-                        updated[index] = e.target.value;
-                        setComposition(updated);
-                      }}
-                    />
-                    {composition.length > 1 && (
+                  Produk Dibundling<span className="text-red-500">*</span>
+                  <button
+                    type="button"
+                    className="text-blue-600 text-sm ml-auto flex items-center gap-1"
+                    onClick={() => setShowModal(true)}
+                  >
+                    <Plus size={16} /> Tambah Bundling
+                  </button>
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {composition.length === 0 && (
+                    <div className="text-gray-400 italic">Belum ada produk bundling dipilih</div>
+                  )}
+                  {composition.map((item, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        className="flex-1 px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
+                        placeholder="Produk Bundling"
+                        value={item}
+                        readOnly
+                        onClick={() => handleRemoveComposition(index)}
+                        title="Klik untuk hapus varian ini"
+                      />
                       <button
                         type="button"
-                        onClick={() => setComposition(prev => prev.filter((_, i) => i !== index))}
+                        onClick={() => handleRemoveComposition(index)}
                         className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                        title="Hapus"
                       >
                         <X size={16} />
                       </button>
-                    )}
-                  </div>
-                ))}
+                    </div>
+                  ))}
+                </div>
               </div>
-              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={`${labelClass} flex items-center gap-1`}>
@@ -167,6 +264,7 @@ export default function BundlingEdit() {
                   </div>
                 </div>
               </div>
+
               <div className="flex justify-center gap-4 pt-6">
                 <button
                   type="button"
@@ -185,15 +283,16 @@ export default function BundlingEdit() {
             </div>
           </div>
         </div>
+
         <div className="lg:col-span-4">
           <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Preview</h3>
             <div className="text-sm text-gray-600 mb-4">Rincian Produk</div>
             <div className="bg-gray-100 rounded-lg p-4 mb-4 min-h-48 flex items-center justify-center">
               {images.length > 0 ? (
-                <img 
-                  src={URL.createObjectURL(images[0])} 
-                  alt="Product preview" 
+                <img
+                  src={URL.createObjectURL(images[0])}
+                  alt="Product preview"
                   className="max-w-full max-h-full object-contain"
                 />
               ) : (
@@ -204,18 +303,37 @@ export default function BundlingEdit() {
             </div>
             <div className="space-y-2">
               <div className="text-xl font-bold text-blue-600">
-                Rp {Number(price || 0).toLocaleString('id-ID')}
+                Rp {Number(price || 0).toLocaleString("id-ID")}
               </div>
               <div className="font-medium text-gray-800">
                 {productName || "Nama Bundling"}
               </div>
-              <div className="text-sm text-gray-600">
-                Stok Produk: {stock || 0} Pcs
-              </div>
+              <div className="text-sm text-gray-600">Stok Produk: {stock || 0} Pcs</div>
             </div>
           </div>
         </div>
       </form>
+
+      <VariantSelectModal
+        showModal={showModal}
+        closeModal={() => setShowModal(false)}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        handleAddSelectedVariants={handleAddSelectedVariants}
+        selectedVariants={selectedVariants}
+        filteredProducts={filteredProducts}
+        toggleExpand={toggleExpand}
+        expandedProducts={expandedProducts}
+        toggleSelectVariant={toggleSelectVariant}
+        compositions={
+          composition.map((item) => {
+            const [productName, variantName] = item.split(" - ");
+            const product = DUMMY_PRODUCTS.find((p) => p.name === productName);
+            const variant = product?.variants.find((v) => v.name === variantName);
+            return { id: product && variant ? `${product.id}-${variant.id}` : "" };
+          })
+        }
+      />
     </div>
   );
 }

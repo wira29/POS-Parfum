@@ -1,86 +1,121 @@
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
-import { useApiClient } from "@/core/helpers/ApiClient"
 import { formatNum } from "@/core/helpers/FormatNumber"
 import { Breadcrumb } from "@/views/components/Breadcrumb"
 import { ArrowLeft } from "lucide-react"
+import { ImageHelper } from "@/core/helpers/ImageHelper"
+import { useApiClient } from "@/core/helpers/ApiClient"
 
 interface Variant {
-  transaction_details_count: number
+  transaction_details_count?: number
   id: string
   variant_name: string
   product_code: string
   stock: number
   price: number
-  product_image: string
+  product_image: string | null
+  category?: { name: string | null } | null
+  optionName?: string // tambahan untuk opsi
 }
 
 interface Product {
   id: string
   name: string
   image: string[]
-  createdAt: string
-  category: { name: string }
+  createdAt?: string
+  category: { name: string | null } | null
   price: number
-  total_stock: number
+  total_stock?: number | null
   variants: Variant[]
   description?: string | null
-  composition?: string | null
+  composition?: string[] | null
+}
+
+function groupVariants(variants: Variant[]) {
+  const groups: Record<string, Variant[]> = {}
+  variants.forEach((v) => {
+    const variantName = v.variant_name || ""
+    const [mainName, optionName] = variantName.split("-")
+    const groupKey = mainName.trim()
+    const variantWithOption = { ...v, optionName: optionName ? optionName.trim() : "" }
+    if (!groups[groupKey]) groups[groupKey] = []
+    groups[groupKey].push(variantWithOption)
+  })
+  return groups
 }
 
 export const ProductShow = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const apiClient = useApiClient()
   const [product, setProduct] = useState<Product | null>(null)
   const [mainImage, setMainImage] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
-  const [selectedVariantIndex, setSelectedVariantIndex] = useState(0)
-  const apiClient = useApiClient()
+
+  const [selectedMainVariant, setSelectedMainVariant] = useState<string>("")
+  const [selectedOptionIndex, setSelectedOptionIndex] = useState(0)
 
   useEffect(() => {
     const fetchProduct = async () => {
+      setLoading(true)
       try {
-        const response = await apiClient.get(`/products/${id}`)
-        const data = response.data.data
+        const res = await apiClient.get(`/products/${id}`)
+        const data = res.data.data
 
         const mappedProduct: Product = {
           id: data.id,
           name: data.name,
-          image: data.image ? [`/storage/${data.image}`] : [],
-          createdAt: data.created_at,
-          category: { name: data.details[0]?.category?.name || "-" },
-          price: data.details[0]?.price || 0,
-          total_stock: data.total,
-          description: data.description,
-          composition: data.composition,
-          variants: data.details.map((d: any) => ({
-            id: d.id,
-            variant_name: d.variant_name || "-",
-            product_code: d.product_code,
-            transaction_details_count: d.transaction_details_count || 0,
-            stock: d.stock,
-            price: d.price,
-            product_image: d.product_image ? `/storage/${d.product_image}` : "/images/placeholder.jpg"
-          }))
+          image: [ImageHelper(data.image)],
+          category: data.category ? { name: data.category?.name ?? null } : null,
+          price: data.product_detail?.[0]?.price ?? 0,
+          total_stock: data.details_sum_stock ?? null,
+          variants: (data.product_detail || []).map((v: any) => ({
+            id: v.id,
+            variant_name: v.variant_name,
+            product_code: v.product_code,
+            stock: v.stock,
+            price: v.price,
+            product_image: ImageHelper(v.product_image),
+            category: v.category ? { name: v.category?.name ?? null } : null,
+          })),
+          description: data.description ?? null,
+          composition: data.composition ?? null,
         }
 
         setProduct(mappedProduct)
-        setMainImage(mappedProduct.image[0] || mappedProduct.variants[0]?.product_image || null)
-      } catch (error) {
-        console.error("Gagal memuat produk:", error)
-        navigate("/products")
+        setMainImage(
+          mappedProduct.image[0] ||
+          mappedProduct.variants[0]?.product_image ||
+          "/images/placeholder.jpg"
+        )
+      } catch {
+        setProduct(null)
       } finally {
         setLoading(false)
       }
     }
+    if (id) fetchProduct()
+    // eslint-disable-next-line
+  }, [id])
 
-    fetchProduct()
-  }, [id, navigate])
+  const variantGroups = product ? groupVariants(product.variants) : {}
+  const mainVariantNames = Object.keys(variantGroups)
+
+  useEffect(() => {
+    if (mainVariantNames.length > 0) {
+      setSelectedMainVariant(mainVariantNames[0])
+      setSelectedOptionIndex(0)
+      const firstVariant = variantGroups[mainVariantNames[0]][0]
+      setMainImage(firstVariant?.product_image || product?.image[0] || null)
+    }
+    // eslint-disable-next-line
+  }, [loading])
 
   if (loading) return <p className="text-center mt-10 text-gray-500">Memuat data produk...</p>
   if (!product) return null
 
-  const selectedVariant = product.variants[selectedVariantIndex]
+  const currentVariants = variantGroups[selectedMainVariant] || []
+  const selectedVariant = currentVariants[selectedOptionIndex] || product.variants[0]
 
   return (
     <>
@@ -90,79 +125,84 @@ export const ProductShow = () => {
           desc="Detail produk yang ada pada toko anda"
         />
 
-        <div className="bg-white p-6 rounded-md shadow-md mt-4">
-          <div className="flex flex-col md:flex-row gap-8">
-            <div className="w-full md:w-1/3 flex flex-col items-center">
-              <img
-                src={mainImage ?? "/images/placeholder.jpg"}
-                alt={product.name}
-                className="w-full h-[300px] object-contain rounded-md"
-              />
-            </div>
+        <div className="bg-white p-6 rounded-md shadow-xl mt-4">
+          <div className="flex flex-col md:flex-row gap-20 w-full">
+            <img
+              src={mainImage ?? "/images/placeholder.jpg"}
+              alt={product.name}
+              className="w-full max-w-[520px] h-[450px] object-cover rounded-lg shadow-md mb-4 md:mb-0 md:mr-2"
+              onError={e => { (e.currentTarget as HTMLImageElement).src = "/images/placeholder.jpg" }}
+            />
 
-            <div className="flex-1 space-y-4">
-              <p className="text-xl text-black font-bold border-b-5 border-gray-300 w-140 p-2 uppercase">
+            <div className="flex-1 max-w-150 space-y-4">
+              <p className="text-xl text-black font-bold border-b-3 border-gray-300 w-full p-2 uppercase">
                 {product.name.toUpperCase()}
               </p>
 
-              <div className="flex flex-col w-30 flex-wrap gap-2">
-                {product.variants.map((v, index) => (
-                  <button
-                    key={v.id}
-                    className={`border px-3 py-1 text-sm flex items-center gap-1 ${selectedVariantIndex === index
-                      ? "bg-blue-100 border-blue-500"
-                      : "bg-gray-100 border-gray-300"
-                      }`}
-                    onClick={() => {
-                      setSelectedVariantIndex(index)
-                      setMainImage(v.product_image)
-                    }}
-                  >
-                    <img src={v.product_image} className="w-5 h-5" alt="variant" />
-                    <span>{v.variant_name}</span>
-                  </button>
-                ))}
+              <div className="flex flex-col gap-2">
+                {mainVariantNames.map((mainName, idx) => {
+                  const mainVariant = variantGroups[mainName][0]
+                  return (
+                    <button
+                      key={mainName}
+                      className={`border px-3 py-1 text-sm font-semibold flex items-center gap-2 w-40 ${selectedMainVariant === mainName
+                        ? "bg-blue-100 border-blue-500 text-blue-700 rounded-sm"
+                        : "bg-gray-100 border-gray-300 text-gray-700"
+                        }`}
+                      onClick={() => {
+                        setSelectedMainVariant(mainName)
+                        setSelectedOptionIndex(0)
+                        setMainImage(mainVariant?.product_image || product.image[0] || null)
+                      }}
+                    >
+                      <img src={mainVariant?.product_image || "/images/placeholder.jpg"} className="w-6 h-6 rounded" alt="variant" />
+                      <span>{mainName}</span>
+                    </button>
+                  )
+                })}
               </div>
 
-              <div>
-                <p className="text-gray-500">Varian: {selectedVariant.variant_name}</p>
+              <div className="border-b-3 border-gray-300 pb-4">
+                <p className="text-gray-500 mb-5">{selectedVariant.product_code}</p>
                 <p className="text-2xl font-bold text-gray-800">Rp {formatNum(selectedVariant.price, true)}</p>
               </div>
 
-              <div className="text-sm text-gray-700 space-y-1">
-                <div className="flex justify-between border-t pt-2">
+              <div className="pb-4 border-b-2 border-gray-300">
+                <h2 className="text-gray-500 mb-2">Tersedia {currentVariants.length} Opsi</h2>
+                <div className="flex gap-4">
+                  {currentVariants.map((v, idx) => (
+                    <button
+                      key={v.id}
+                      className={`border-2 text-xs flex items-center p-3 rounded-sm w-30 justify-center gap-1 ${selectedOptionIndex === idx
+                        ? "text-blue-700 border-blue-500"
+                        : "text-gray-700 border-gray-400"
+                        }`}
+                      onClick={() => {
+                        setSelectedOptionIndex(idx)
+                        setMainImage(v.product_image || "/images/placeholder.jpg")
+                      }}
+                    >
+                      <span className="font-semibold text-sm">{v.optionName || v.variant_name || "Opsi"}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="text-sm text-gray-700">
+                <div className="flex justify-between">
                   <span className="font-semibold">Stok Produk</span>
                   <span>{selectedVariant.stock} Pcs</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-semibold">Kode Produk</span>
-                  <span>{selectedVariant.product_code}</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <h2 className="font-bold text-xl p-3 text-gray-800 border-b-3 border-gray-300 mt-3">Komposisi & Deskripsi</h2>
-          <div className="mt-10 grid md:grid-cols-3 gap-6">
+          <h2 className="font-bold text-xl p-3 text-gray-800 border-b-3 border-gray-300 mt-3">Deskripsi</h2>
+          <div className="mt-10 gap-6">
             <div className="md:col-span-2">
               <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
                 {product.description || <span className="text-gray-400 italic">Belum ada deskripsi</span>}
               </p>
-            </div>
-
-            <div className="bg-gray-200 rounded-md p-4">
-              <h3 className="font-semibold mb-3">Komposisi</h3>
-              {product.composition ? (
-                <ul className="text-sm space-y-1 whitespace-pre-line">
-                  {product.composition.map((line, idx) => (
-                    <li key={idx} className="flex justify-between border-b p-2 border-gray-600">
-                      <span>{line}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-sm text-gray-500 italic">Belum ada komposisi</p>
-              )}
             </div>
           </div>
           <button className="mt-6 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors" onClick={() => navigate("/products")}>

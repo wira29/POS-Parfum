@@ -41,7 +41,7 @@ export const RetailIndex = () => {
         image: ImageHelper(item.image),
         telp: item.telp,
         address: item.address,
-        owner: item.users?.[0]?.name || "-",
+        owner: item.pemilik_outlet || "-", // ambil dari field pemilik_outlet
         location: item.store?.name || "-",
       }));
 
@@ -63,6 +63,7 @@ export const RetailIndex = () => {
 
   useEffect(() => {
     fetchRetails();
+    // eslint-disable-next-line
   }, [page]);
 
   const handleDropdownToggle = (id: string) => {
@@ -149,14 +150,13 @@ export const RetailIndex = () => {
             {filteredRetails.map((retail) => (
               <div
                 key={retail.id}
-                onClick={() => handleView(retail)}
-                className="bg-white rounded-xl shadow-sm border flex-col border-gray-100 overflow-hidden"
+                className="bg-white rounded-xl shadow-sm border flex-col border-gray-100"
               >
                 <div className="h-32 overflow-hidden">
                   <img
                     src={retail.image}
                     alt={retail.name}
-                    className="w-full h-full object-cover cursor-pointer"
+                    className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="p-4">
@@ -168,28 +168,28 @@ export const RetailIndex = () => {
                   <p className="text-[13px] font-medium text-gray-600 mt-3">
                     Pemilik Retail
                   </p>
-                  <p className="text-[15px] font-semibold text-black mb-4">
+                  <p className="text-[15px] font-bold text-black mb-4">
                     {retail.owner}
                   </p>
                   <div className="flex gap-2 mt-4">
                     <button
-                      className="bg-blue-600 cursor-pointer hover:bg-blue-700 text-white py-2 rounded-xl text-sm font-medium flex-1"
+                      className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl text-sm font-medium flex-1"
                       onClick={() => handleView(retail)}
                     >
                       Detail
                     </button>
                     <div className="relative">
                       <button
-                        className="w-10 h-10 flex items-center justify-center rounded-lg bg-slate-400 cursor-pointer hover:bg-gray-300"
+                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-400 hover:bg-gray-300"
                         onClick={() => handleDropdownToggle(retail.id)}
                         type="button"
                       >
                         <FiMoreHorizontal size={30} color="white" />
                       </button>
                       {dropdownOpenId === retail.id && (
-                        <div className="absolute right-0 top-12 w-36 bg-white border border-slate-300 rounded shadow-lg z-20">
+                        <div className="absolute right-0 top-12 w-36 bg-white border rounded shadow-lg z-20">
                           <button
-                            className="block w-full text-left cursor-pointer px-4 py-2 hover:bg-gray-100 text-sm"
+                            className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
                             onClick={() => {
                               setDropdownOpenId(null);
                               handleEdit(retail);
@@ -198,7 +198,7 @@ export const RetailIndex = () => {
                             Edit
                           </button>
                           <button
-                            className="block w-full text-left cursor-pointer px-4 py-2 hover:bg-gray-100 text-sm text-red-600"
+                            className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-red-600"
                             onClick={() => {
                               setDropdownOpenId(null);
                               confirmDelete(retail.id);
@@ -216,7 +216,7 @@ export const RetailIndex = () => {
           </div>
         )}
 
-        {pagination && (
+        {pagination && pagination.links && (
           <div className="flex justify-between items-center mt-6">
             <div className="text-sm text-gray-500">
               Menampilkan {pagination.from} - {pagination.to} dari{" "}
@@ -229,11 +229,10 @@ export const RetailIndex = () => {
                   dangerouslySetInnerHTML={{ __html: link.label }}
                   onClick={() => handlePageChange(link.url)}
                   disabled={!link.url}
-                  className={`px-3 py-1 border rounded text-sm ${
-                    link.active
+                  className={`px-3 py-1 border rounded text-sm ${link.active
                       ? "bg-blue-600 text-white"
                       : "text-gray-600 hover:bg-gray-100"
-                  } ${!link.url && "opacity-50 cursor-not-allowed"}`}
+                    } ${!link.url && "opacity-50 cursor-not-allowed"}`}
                 />
               ))}
             </div>

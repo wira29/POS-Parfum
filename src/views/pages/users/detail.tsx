@@ -26,7 +26,11 @@ export default function UserDetail() {
       setLoading(true);
       try {
         const res = await apiClient.get(`/users/${id}`);
-        setUser(res.data.data);
+        const data = res.data.data;
+        setUser({
+          ...data,
+          roles: (data.roles || []).map((r: string) => ({ name: r })),
+        });
       } catch (err) {
         console.error("Gagal mengambil detail user:", err);
       } finally {
@@ -141,7 +145,7 @@ export default function UserDetail() {
             </h3>
 
             <div className="flex">
-              {(user.warehouse || user.outlet) ? (
+              {(user.warehouse || user.related_store) ? (
                 <div className="space-y-2 flex gap-3">
                   {user.warehouse && (
                     <div className="flex items-center gap-2 bg-[#E0ECFF] text-[#2F4FFF] px-4 py-2 rounded-md text-sm w-fit border border-[#2F4FFF]">
@@ -152,12 +156,12 @@ export default function UserDetail() {
                       </div>
                     </div>
                   )}
-                  {user.outlet && (
+                  {user.related_store && (
                     <div className="flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-md text-sm w-fit border border-green-200">
                       <Warehouse className="w-4 h-4" />
                       <div className="flex flex-col">
-                        <span className="font-semibold">{user.outlet.name}</span>
-                        <span className="text-xs text-green-600">{user.outlet.address}</span>
+                        <span className="font-semibold">{user.related_store.name}</span>
+                        <span className="text-xs text-green-600">{user.related_store.address}</span>
                       </div>
                     </div>
                   )}

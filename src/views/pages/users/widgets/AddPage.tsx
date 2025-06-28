@@ -1,7 +1,8 @@
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Toaster } from "@/core/helpers/BaseAlert";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
-import { useEffect, useRef, useState } from "react";
+import InputOneImage from "@/views/components/Input-v2/InputOneImage";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const roleOptionsMap: Record<string, { value: string; label: string }[]> = {
@@ -30,7 +31,7 @@ const roleOptionsMap: Record<string, { value: string; label: string }[]> = {
     manager: [
         { value: "staff_outlet", label: "Karyawan Outlet" },
     ],
-    auditor: [], // misalnya auditor tidak boleh menambahkan user
+    auditor: [],
 };
 
 export default function UserCreateSelect() {
@@ -40,10 +41,7 @@ export default function UserCreateSelect() {
     const [userRoles, setUserRoles] = useState<string[]>([]);
     const [availableRoles, setAvailableRoles] = useState<{ value: string; label: string }[]>([]);
 
-    const [selectedImage, setSelectedImage] = useState<File | null>(null);
-    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
+    const [images, setImages] = useState<(File | string)[]>([]);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [showPassword, setShowPassword] = useState(false);
 
@@ -64,7 +62,6 @@ export default function UserCreateSelect() {
             const roles = res.data.data.roles.map((r: any) => r.name);
             setUserRoles(roles);
 
-            // Combine all allowed roles from user's roles
             const mergedRoles: Record<string, boolean> = {};
             roles.forEach((r: string) => {
                 (roleOptionsMap[r] || []).forEach((opt) => {
@@ -83,14 +80,12 @@ export default function UserCreateSelect() {
         }
     };
 
-    const handleUploadClick = () => fileInputRef.current?.click();
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            setSelectedImage(file);
-            setPreviewUrl(URL.createObjectURL(file));
-        }
+        if (file) setImages([file]);
+    };
+    const handleRemoveImage = (index: number) => {
+        setImages([]);
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -134,11 +129,16 @@ export default function UserCreateSelect() {
         }
 
         try {
-            await api.post("/users", {
-                name: userData.username,
-                email: userData.email,
-                role: rolesFiltered,
-                password: userData.password,
+            const formData = new FormData();
+            formData.append("name", userData.username);
+            formData.append("email", userData.email);
+            formData.append("role", JSON.stringify(rolesFiltered));
+            formData.append("password", userData.password);
+            if (images.length > 0 && images[0] instanceof File) {
+                formData.append("image", images[0]);
+            }
+            await api.post("/users", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
             });
             navigate("/users");
             Toaster("success", "User berhasil dibuat");
@@ -169,33 +169,25 @@ export default function UserCreateSelect() {
             <Breadcrumb title="Tambah Pengguna" desc="Isi informasi dasar untuk menambahkan pengguna baru." />
             <div className="bg-white rounded-xl p-6 shadow space-y-6">
                 <div className="flex items-center gap-4">
-                    <div className="w-32 h-32 border rounded flex items-center justify-center bg-gray-50 overflow-hidden">
-                        {previewUrl ? (
-                            <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
-                        ) : (
-                            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="none" stroke="#ccc" strokeWidth="1" viewBox="0 0 24 24">
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                                <circle cx="8.5" cy="8.5" r="1.5" />
-                                <polyline points="21 15 16 10 5 21" />
-                            </svg>
-                        )}
-                        <input type="file" accept="image/png, image/jpeg" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
-                    </div>
-                    <button onClick={handleUploadClick} className="px-4 py-2 bg-blue-600 text-white rounded">
-                        Unggah Gambar
-                    </button>
+                    <InputOneImage
+                        images={images}
+                        onImageUpload={handleImageUpload}
+                        onRemoveImage={handleRemoveImage}
+                        label="Foto User"
+                        className="w-32 h-32"
+                    />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label className={labelClass}>Username <span className="text-red-500">*</span></label>
-                        <input type="text" name="username" value={userData.username} onChange={handleInputChange} placeholder="Masukkan username" className="w-full border border-gray-300 rounded px-3 py-2" />
+                        <input type="text" name="username" value={userData.username} onChange={handleInputChange} placeholder="Masukkan username" className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
                         {errors.username && <p className="text-red-500 text-sm mt-1">{errors.username}</p>}
                     </div>
 
                     <div>
                         <label className={labelClass}>Email <span className="text-red-500">*</span></label>
-                        <input type="email" name="email" value={userData.email} onChange={handleInputChange} placeholder="johndoe@example.com" className="w-full border border-gray-300 rounded px-3 py-2" />
+                        <input type="email" name="email" value={userData.email} onChange={handleInputChange} placeholder="johndoe@example.com" className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
                         {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
                     </div>
 
@@ -206,7 +198,7 @@ export default function UserCreateSelect() {
                             return (
                                 <div key={i} className="flex items-center gap-2">
                                     <select
-                                        className="flex-grow border border-gray-300 rounded px-3 py-2"
+                                        className="flex-grow border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         value={role}
                                         onChange={(e) => handleChangeRole(i, e.target.value)}
                                     >
@@ -240,7 +232,7 @@ export default function UserCreateSelect() {
                                 value={userData.password}
                                 onChange={handleInputChange}
                                 placeholder="Masukkan password"
-                                className="w-full border border-gray-300 rounded px-3 py-2"
+                                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                             <button type="button" className="absolute right-3 top-2.5 text-gray-500" onClick={() => setShowPassword(!showPassword)}>
                                 {showPassword ? (

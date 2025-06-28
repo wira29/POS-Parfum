@@ -55,7 +55,6 @@ const menuItems = [
       { label: "Role", icon: <FaUserTag />, path: "/roles", roles: ["owner", "warehouse","retail"] },
       { label: "Laporan", icon: <TbCoinTakaFilled />, path: "/laporan", roles: ["owner", "outlet"] },
       { label: "Pengeluaran", icon: <Wallet2Icon />, path: "/pengeluaran", roles: ["owner", "outlet"] },
-      { label: "Role", icon: <FaUserTag />, path: "/roles", roles: ["owner", "warehouse"] },
     ],
   },
 ];

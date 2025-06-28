@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import React from "react";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
-
 import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { SearchInput } from "@/views/components/SearchInput";
 import { Filter } from "@/views/components/Filter";
@@ -14,6 +13,7 @@ import { useApiClient } from "@/core/helpers/ApiClient";
 import { Toaster } from "@/core/helpers/BaseAlert";
 import Swal from "sweetalert2";
 import { FilterModal } from "@/views/components/filter/ProductFilter";
+import { ImageHelper } from "@/core/helpers/ImageHelper";
 
 export const ProductIndex = () => {
   const api = useApiClient();
@@ -52,13 +52,13 @@ export const ProductIndex = () => {
       const res = await api.get(`/products?${query.toString()}`);
       const pagination = res.data.pagination;
 
-      setProducts(pagination.data);
+      setProducts(res.data.data);
       setPage(pagination.current_page);
       setLastPage(pagination.last_page);
 
       const categories = Array.from(
         new Set(
-          pagination.data
+          res.data.data
             .map((p: any) => p.category?.name)
             .filter(Boolean)
         )
@@ -88,23 +88,19 @@ export const ProductIndex = () => {
   };
 
   const getVariants = (product: any) => {
-    return (product.details || []).map((detail: any) => ({
+    return (product.product_detail || []).map((detail: any) => ({
       id: detail.id,
       name: detail.variant_name || detail.material || "Varian",
       code: detail.product_code || detail.product_varian_id?.slice(0, 8),
-      stock: detail.product_stock_warehouse?.stock ?? detail.stock ?? 0,
+      stock: detail.stock ?? 0,
       price: detail.price ?? 0,
       category: detail.category || product.category || { name: "Umum" },
       penjualan: detail.transaction_details_count || 0,
-      image: detail.product_image
-        ? detail.product_image.startsWith("http")
-          ? detail.product_image
-          : `${import.meta.env.VITE_API_URL}/${detail.product_image}`
-        : "/no-image.png",
+      image: detail.product_image,
     }));
   };
 
-  const confirmDelete = (id: number) => () => {
+  const confirmDelete = (id: string) => () => {
     Swal.fire({
       title: "Apakah anda yakin?",
       text: "Data Product akan dihapus!",
@@ -117,7 +113,7 @@ export const ProductIndex = () => {
     });
   };
 
-  const deleteProduct = async (id: number) => {
+  const deleteProduct = async (id: string) => {
     try {
       await api.delete(`/products/${id}`);
       Swal.fire("Terhapus!", "Product berhasil dihapus.", "success");
@@ -164,15 +160,16 @@ export const ProductIndex = () => {
               ) : (
                 products.map((product) => {
                   const variants = getVariants(product);
-                  const singleVariant = product.details?.length === 1 ? variants[0] : null;
+                  const singleVariant = product.product_detail?.length === 1 ? variants[0] : null;
                   return (
                     <React.Fragment key={product.id}>
                       <tr className="hover:bg-gray-50">
                         <td className="p-4 align-top flex gap-4">
                           <img
-                            src={product.image ? `${import.meta.env.VITE_API_URL}/${product.image}` : "/no-image.png"}
+                            src={ImageHelper(product.image)}
                             alt={product.name}
                             className="w-14 h-14 rounded-md object-cover"
+                            onError={e => { (e.target as HTMLImageElement).src = "/images/placeholder.jpg"; }}
                           />
                           <div>
                             <div className="font-semibold">{product.name}</div>
@@ -182,7 +179,11 @@ export const ProductIndex = () => {
                         <td className="p-4 align-top">{product.category?.name ?? "-"}</td>
                         <td className="p-4 align-top">{singleVariant ? singleVariant.penjualan : (product.sales ?? "-")}</td>
                         <td className="p-4 align-top">Rp {singleVariant ? singleVariant.price.toLocaleString("id-ID") : (product.price?.toLocaleString("id-ID") ?? "-")}</td>
-                        <td className="p-4 align-top">{singleVariant ? `${singleVariant.stock} G` : `${variants.reduce((acc, d) => acc + d.stock, 0)} G`}</td>
+                        <td className="p-4 align-top">
+                          {singleVariant
+                            ? `${singleVariant.stock} G`
+                            : `${product.details_sum_stock || variants.reduce((acc, d) => acc + d.stock, 0)} G`}
+                        </td>
                         <td className="p-4 align-top">
                           <div className="flex gap-2">
                             <ViewIcon to={`/products/${product.id}`} />
@@ -211,7 +212,14 @@ export const ProductIndex = () => {
                                     <div className="ml-[72px] md:ml-[70px]">
                                       {shownVariants.map((variant) => (
                                         <div key={variant.id} className="flex flex-wrap md:flex-nowrap items-center p-4 bg-gray-50 border-b border-gray-200">
-                                          <div className="w-1/2 md:w-1/18"><img src={variant.image} alt={variant.name} className="w-12 h-12 rounded object-cover" /></div>
+                                          <div className="w-1/2 md:w-1/18">
+                                            <img
+                                              src={ImageHelper(variant.image)}
+                                              alt={variant.name}
+                                              className="w-12 h-12 rounded object-cover"
+                                              onError={e => { (e.target as HTMLImageElement).src = "/images/placeholder.jpg"; }}
+                                            />
+                                          </div>
                                           <div className="w-full md:w-3/12">
                                             <div className="font-medium">{variant.name}</div>
                                             <div className="text-xs text-gray-500">Kode Varian: {variant.code}</div>

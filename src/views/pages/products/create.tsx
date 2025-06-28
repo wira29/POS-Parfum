@@ -33,11 +33,17 @@ export const ProductCreate = () => {
 
   const hasVariant = variantMatrix.length > 0;
 
-  // --- Variasi utils ---
   const handleOptionChange = (variations, setVariations, variantIndex, optionIndex, value) => {
     const updated = [...variations];
     updated[variantIndex].options[optionIndex] = value;
     setVariations(updated);
+
+    setVariantMatrix((prev) => {
+      const matrix = [...prev];
+      if (!matrix[variantIndex]) matrix[variantIndex] = {};
+      matrix[variantIndex].volumes = updated[variantIndex].options && updated[variantIndex].options.length > 0 ? updated[variantIndex].options : [null];
+      return matrix;
+    });
   };
 
   const handleAddOption = (variations, setVariations, variantIndex) => {
@@ -45,15 +51,28 @@ export const ProductCreate = () => {
     if (!updated[variantIndex].options) updated[variantIndex].options = [];
     updated[variantIndex].options.push("");
     setVariations(updated);
+
+    setVariantMatrix((prev) => {
+      const matrix = [...prev];
+      if (!matrix[variantIndex]) matrix[variantIndex] = {};
+      matrix[variantIndex].volumes = updated[variantIndex].options;
+      return matrix;
+    });
   };
 
   const handleRemoveOption = (variations, setVariations, variantIndex, optionIndex) => {
     const updated = [...variations];
     updated[variantIndex].options.splice(optionIndex, 1);
     setVariations(updated);
+
+    setVariantMatrix((prev) => {
+      const matrix = [...prev];
+      if (!matrix[variantIndex]) matrix[variantIndex] = {};
+      matrix[variantIndex].volumes = updated[variantIndex].options;
+      return matrix;
+    });
   };
 
-  // --- Fetch Categories ---
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -70,7 +89,6 @@ export const ProductCreate = () => {
     fetchCategories();
   }, []);
 
-  // --- Update variantMatrix when category changes ---
   useEffect(() => {
     if (hasVariant && category) {
       setVariantMatrix((prev) =>
@@ -79,14 +97,12 @@ export const ProductCreate = () => {
     }
   }, [category]);
 
-  // --- Sync variantImages length with matrix ---
   useEffect(() => {
     setVariantImages((prev) =>
       variantMatrix.map((_, i) => [prev?.[i]?.[0] ?? ""])
     );
   }, [variantMatrix]);
 
-  // --- Create variantMatrix based on variations ---
   useEffect(() => {
     if (variations.length === 0) return setVariantMatrix([]);
     const matrix = variations.map((variation, i) => ({
@@ -131,12 +147,25 @@ export const ProductCreate = () => {
   };
 
   const applyToAllVariants = () => {
-    const updated = variantMatrix.map((variant) => ({
-      ...variant,
-      prices: [globalPrice || variant.prices[0]],
-      stocks: [globalStock || variant.stocks[0]],
-      codes: [globalCode || variant.codes[0]],
-    }));
+    const updated = variantMatrix.map((variant) => {
+      const optionCount = variant.volumes && variant.volumes.length > 0 ? variant.volumes.length : 1;
+      const prices = [...(variant.prices || Array(optionCount).fill(""))];
+      const stocks = [...(variant.stocks || Array(optionCount).fill(""))];
+      const codes = [...(variant.codes || Array(optionCount).fill(""))];
+
+      for (let idx = 0; idx < optionCount; idx++) {
+        if (globalPrice !== "") prices[idx] = globalPrice;
+        if (globalStock !== "") stocks[idx] = globalStock;
+        if (globalCode !== "") codes[idx] = globalCode;
+      }
+
+      return {
+        ...variant,
+        prices,
+        stocks,
+        codes,
+      };
+    });
     setVariantMatrix(updated);
     setGlobalPrice("");
     setGlobalStock("");
@@ -152,44 +181,45 @@ export const ProductCreate = () => {
       return;
     }
 
-    const formData = new FormData();
-    formData.append("name", productName || "");
-    formData.append("unit_type", "weight");
-    formData.append("category_id", category || "");
-    formData.append("description", description || "");
+    const payload = {
+      name: productName,
+      category_id: category,
+      description,
+      product_details: [],
+    };
 
     if (!hasVariant) {
-      formData.append("product_details[0][category_id]", category || "");
-      formData.append("product_details[0][stock]", String(stock || 0));
-      formData.append("product_details[0][price]", String(price || 0));
-      formData.append("product_details[0][product_code]", productCode || "");
-      formData.append("product_details[0][variant_name]", "Default");
-      if (images.length > 0) {
-        formData.append("product_details[0][product_image]", images[0]);
-      }
+      payload.product_details.push({
+        product_code: productCode,
+        category_id: category,
+        price: price,
+        stock: stock,
+        variant: "Default",
+        opsi: "",
+      });
     } else {
-      if (images.length > 0) formData.append("image", images[0]);
       variantMatrix.forEach((variant, i) => {
-        formData.append(`product_details[${i}][category_id]`, category || "");
-        formData.append(`product_details[${i}][variant_name]`, variations[i]?.name || `Varian ${i + 1}`);
-        formData.append(`product_details[${i}][stock]`, variant.stocks?.[0] || "0");
-        formData.append(`product_details[${i}][price]`, variant.prices?.[0] || "0");
-        formData.append(`product_details[${i}][product_code]`, variant.codes?.[0] || "");
-        const img = variantImages[i]?.[0];
-        if (img && typeof img !== "string") {
-          formData.append(`product_details[${i}][product_image]`, img);
-        }
+        (variant.volumes && variant.volumes.length > 0
+          ? variant.volumes
+          : [null]
+        ).forEach((option, j) => {
+          payload.product_details.push({
+            product_code: variant.codes?.[j] || "",
+            category_id: category,
+            price: Number(variant.prices?.[j] || 0),
+            stock: Number(variant.stocks?.[j] || 0),
+            variant: variant.aroma || `Varian ${i + 1}`,
+            opsi: option || "",
+          });
+        });
       });
     }
 
     try {
-      const res = await apiClient.post("/products", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      await apiClient.post("/products", payload);
       navigate("/products");
       Toaster("success", "Produk berhasil dibuat");
     } catch (error) {
-      console.error("Gagal membuat produk:", error);
       if (error?.response?.data?.data) {
         setErrors(error.response.data.data);
         Toaster("error", "Validasi gagal. Cek inputan Anda.");
@@ -345,8 +375,43 @@ export const ProductCreate = () => {
             </div>
 
             {variantMatrix.length > 0 && (
+              <div className="mt-6 flex items-center gap-4">
+                <div className="flex border rounded-lg overflow-hidden divide-x w-full max-w-3xl">
+                  <div className="flex items-center px-3 bg-gray-50 text-gray-500">Rp.</div>
+                  <input
+                    type="number"
+                    placeholder="Harga"
+                    className="w-1/3 px-3 py-2 focus:outline-none"
+                    value={globalPrice}
+                    onChange={(e) => setGlobalPrice(e.target.value)}
+                  />
+                  <input
+                    type="number"
+                    placeholder="Stok"
+                    className="w-1/3 px-3 py-2 focus:outline-none"
+                    value={globalStock}
+                    onChange={(e) => setGlobalStock(e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Kode Varian"
+                    className="w-1/3 px-3 py-2 focus:outline-none"
+                    value={globalCode}
+                    onChange={(e) => setGlobalCode(e.target.value)}
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="bg-blue-600 text-white px-3 rounded-lg"
+                  onClick={applyToAllVariants}
+                >
+                  Terapkan Ke Semua
+                </button>
+              </div>
+            )}
+
+            {variantMatrix.length > 0 && (
               <div className="mt-6">
-                {/* Header */}
                 <div className="grid font-semibold bg-gray-400 text-white grid-cols-5">
                   <div className="p-3">Variasi</div>
                   <div className="p-3">Opsi</div>

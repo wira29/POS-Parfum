@@ -11,7 +11,7 @@ import { Filter } from "@/views/components/Filter";
 
 type User = {
   [x: string]: ReactNode;
-  id: number;
+  id: string;
   name: string;
   email: string;
   role: string;
@@ -20,15 +20,27 @@ type User = {
   roles?: { name: string }[];
 };
 
+type Pagination = {
+  total: number;
+  per_page: number;
+  current_page: number;
+  last_page: number;
+  from: number;
+  to: number;
+};
+
 export default function UserPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [dropdownOpenId, setDropdownOpenId] = useState<number | null>(null);
+  const [dropdownOpenId, setDropdownOpenId] = useState<string | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
-  const [pagination, setPagination] = useState({
+  const [pagination, setPagination] = useState<Pagination>({
+    total: 0,
+    per_page: 8,
     current_page: 1,
     last_page: 1,
-    links: [],
+    from: 0,
+    to: 0,
   });
 
   const [showFilter, setShowFilter] = useState(false);
@@ -40,16 +52,32 @@ export default function UserPage() {
   const navigate = useNavigate();
   const apiClient = useApiClient();
 
-  const fetchUsers = async (page = 1, customUrl?: string) => {
+  const fetchUsers = async (page = 1) => {
     setLoading(true);
     try {
-      const response = customUrl
-        ? await apiClient.get(customUrl)
-        : await apiClient.get(`/users?page=${page}&per_page=8`);
-      setUsers(response.data.data);
-      setPagination(response.data.pagination);
+      const response = await apiClient.get(`/users?page=${page}&per_page=8`);
+      const usersData = response.data.data;
+      const mappedUsers: User[] = usersData.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        email: item.email,
+        role: item.roles?.[0] || "-",
+        image: "/images/profile/user-1.jpg",
+        created_at: item.created_at,
+        roles: item.roles?.map((r: string) => ({ name: r })) || [],
+      }));
+      setUsers(mappedUsers);
+
+      setPagination({
+        total: response.data.pagination.total,
+        per_page: response.data.pagination.per_page,
+        current_page: response.data.pagination.current_page,
+        last_page: response.data.pagination.last_page,
+        from: response.data.pagination.from,
+        to: response.data.pagination.to,
+      });
     } catch (error) {
-      console.error("Gagal mengambil data pengguna:", error);
+      console.error("Gagal mengambil data user:", error);
     } finally {
       setLoading(false);
     }
@@ -68,7 +96,7 @@ export default function UserPage() {
     return matchSearch && matchRole && matchStartDate && matchEndDate;
   });
 
-  const handleDropdownToggle = (id: number) => {
+  const handleDropdownToggle = (id: string) => {
     setDropdownOpenId(dropdownOpenId === id ? null : id);
   };
 
@@ -90,7 +118,7 @@ export default function UserPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const deleteUser = async (id: number) => {
+  const deleteUser = async (id: string) => {
     try {
       await apiClient.delete(`/users/${id}`);
       Swal.fire("Terhapus!", "User berhasil dihapus.", "success");
@@ -100,7 +128,7 @@ export default function UserPage() {
     }
   };
 
-  const confirmDelete = (id: number) => {
+  const confirmDelete = (id: string) => {
     Swal.fire({
       title: "Apakah anda yakin?",
       text: "Data User akan dihapus!",
@@ -120,11 +148,6 @@ export default function UserPage() {
       month: "long",
       year: "numeric",
     });
-  };
-
-  const goToPage = (url: string | null) => {
-    if (!url) return;
-    fetchUsers(1, url);
   };
 
   return (
@@ -164,7 +187,7 @@ export default function UserPage() {
                 <div className="flex items-center gap-4">
                   <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
                     <img
-                      src={"/public/images/profile/user-1.jpg"}
+                      src={user.image}
                       alt={user.name}
                       className="w-full h-full object-cover"
                     />
@@ -193,18 +216,18 @@ export default function UserPage() {
                 </div>
                 <div className="text-center mt-4">
                   <h3 className="font-medium">{user.name}</h3>
-                  <p className="text-sm text-gray-500">{user.email}</p>
+                  <p className="text-xs text-gray-500">{user.email}</p>
                   <span className="px-3 py-1 text-xs bg-blue-100 text-blue-600 rounded-full">
                     {user.roles?.[0]?.name || "Tidak ada role"}
                   </span>
                 </div>
-                <div className="flex justify-between w-full mt-4 ml-5 mr-5">
+                <div className="flex justify-between w-full mt-10 ml-5 mr-5">
                   <div className="flex flex-col">
-                    <p className="text-sm font-semibold text-gray-800">Bergabung pada</p>
-                    <p className="text-sm text-gray-500">{formatDate(user.created_at)}</p>
+                    <p className="text-xs font-semibold text-gray-800">Bergabung pada</p>
+                    <p className="text-xs text-gray-500">{formatDate(user.created_at)}</p>
                   </div>
                   <div className="flex flex-col">
-                    <p className="text-sm font-semibold text-gray-800">Status</p>
+                    <p className="text-xs font-semibold text-gray-800">Status</p>
                     <p className="px-3 py-1 text-xs bg-green-100 text-green-600 rounded-full">Aktif</p>
                   </div>
                 </div>
@@ -213,16 +236,45 @@ export default function UserPage() {
           </div>
 
           <div className="flex justify-end mt-6 gap-2 flex-wrap">
-            {pagination.links.map((link: any, index: number) => (
-              <button
-                key={`${link.label}-${index}`}
-                disabled={!link.url}
-                onClick={() => goToPage(link.url)}
-                className={`px-3 py-1 border rounded text-sm ${link.active ? "bg-blue-600 text-white" : "hover:bg-gray-100 text-gray-700"
-                  } ${!link.url ? "cursor-not-allowed opacity-50" : ""}`}
-                dangerouslySetInnerHTML={{ __html: link.label }}
-              />
-            ))}
+            {pagination.last_page > 1 && (
+              <>
+                <button
+                  disabled={pagination.current_page === 1}
+                  onClick={() => fetchUsers(pagination.current_page - 1)}
+                  className={`px-3 py-1 border rounded text-sm ${
+                    pagination.current_page === 1
+                      ? "cursor-not-allowed opacity-50"
+                      : "hover:bg-gray-100 text-gray-700"
+                  }`}
+                >
+                  &laquo;
+                </button>
+                {Array.from({ length: pagination.last_page }, (_, idx) => (
+                  <button
+                    key={idx + 1}
+                    onClick={() => fetchUsers(idx + 1)}
+                    className={`px-3 py-1 border rounded text-sm ${
+                      pagination.current_page === idx + 1
+                        ? "bg-blue-600 text-white"
+                        : "hover:bg-gray-100 text-gray-700"
+                    }`}
+                  >
+                    {idx + 1}
+                  </button>
+                ))}
+                <button
+                  disabled={pagination.current_page === pagination.last_page}
+                  onClick={() => fetchUsers(pagination.current_page + 1)}
+                  className={`px-3 py-1 border rounded text-sm ${
+                    pagination.current_page === pagination.last_page
+                      ? "cursor-not-allowed opacity-50"
+                      : "hover:bg-gray-100 text-gray-700"
+                  }`}
+                >
+                  &raquo;
+                </button>
+              </>
+            )}
           </div>
         </>
       )}
