@@ -1,139 +1,513 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import InputSelect from "@/views/components/Input-v2/InputSelect";
+import InputText from "@/views/components/Input-v2/InputText";
+import InputNumber from "@/views/components/Input-v2/InputNumber";
+import InputOneImage from "@/views/components/Input-v2/InputOneImage";
+import PreviewCard from "@/views/components/Card/PreviewCard";
+import { Barcode, DollarSign, ImageIcon, Plus, Info, X } from "lucide-react";
 import { useApiClient } from "@/core/helpers/ApiClient";
-import { TMultiSelect } from "@/core/interface/input-interface";
-import { useProductStore } from "@/core/stores/ProductStore";
-import { Breadcrumb } from "@/views/components/Breadcrumb";
-import { ButtonWithLoading } from "@/views/components/Button/ButtonWithLoading";
-import { Dropdown } from "@/views/components/Input";
-import InputImage from "@/views/components/Input/InputImage";
-import { NormalCreateableDropdown } from "@/views/components/Input/NormalCreatableDropdown";
-import Textfield from "@/views/components/Input/Textfield";
-import { FormEvent, useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { ZodFormattedError } from "zod";
-import { addProductSchema, type addProductType } from "./schema";
-import { CreateRepeater } from "./widgets/create-repeater";
+import { Toaster } from "@/core/helpers/BaseAlert";
+import InputManyText from "@/views/components/Input-v2/InputManyText";
 
 export const ProductCreate = () => {
-    const navigate = useNavigate()
-    const { isLoading, setLoading, createProduct, isFailure } = useProductStore()
-    const formRef = useRef<any>({
-        image: null,
-        product_details: [],
+  const navigate = useNavigate();
+  const apiClient = useApiClient();
+
+  const [categories, setCategories] = useState([]);
+  const [images, setImages] = useState([]);
+  const [productName, setProductName] = useState("");
+  const [productCode, setProductCode] = useState("");
+  const [category, setCategory] = useState("");
+  const [price, setPrice] = useState(0);
+  const [stock, setStock] = useState(0);
+  const [globalPrice, setGlobalPrice] = useState("");
+  const [globalStock, setGlobalStock] = useState("");
+  const [globalCode, setGlobalCode] = useState("");
+  const [variations, setVariations] = useState([]);
+  const [variantMatrix, setVariantMatrix] = useState([]);
+  const [variantImages, setVariantImages] = useState([]);
+  const [errors, setErrors] = useState({});
+  const [description, setDescription] = useState("");
+  const [selectedCategoryName, setSelectedCategoryName] = useState("");
+
+  const hasVariant = variantMatrix.length > 0;
+
+  const handleOptionChange = (variations, setVariations, variantIndex, optionIndex, value) => {
+    const updated = [...variations];
+    updated[variantIndex].options[optionIndex] = value;
+    setVariations(updated);
+
+    setVariantMatrix((prev) => {
+      const matrix = [...prev];
+      if (!matrix[variantIndex]) matrix[variantIndex] = {};
+      matrix[variantIndex].volumes = updated[variantIndex].options && updated[variantIndex].options.length > 0 ? updated[variantIndex].options : [null];
+      return matrix;
     });
-    const base_detail_data = {
-        product_varian_id: "",
-        material: "",
-        unit: "",
-        capacity: "0",
-        weight: "0",
-        density: "0",
-        price: "0",
-        // price_discount: 0
+  };
+
+  const handleAddOption = (variations, setVariations, variantIndex) => {
+    const updated = [...variations];
+    if (!updated[variantIndex].options) updated[variantIndex].options = [];
+    updated[variantIndex].options.push("");
+    setVariations(updated);
+
+    setVariantMatrix((prev) => {
+      const matrix = [...prev];
+      if (!matrix[variantIndex]) matrix[variantIndex] = {};
+      matrix[variantIndex].volumes = updated[variantIndex].options;
+      return matrix;
+    });
+  };
+
+  const handleRemoveOption = (variations, setVariations, variantIndex, optionIndex) => {
+    const updated = [...variations];
+    updated[variantIndex].options.splice(optionIndex, 1);
+    setVariations(updated);
+
+    setVariantMatrix((prev) => {
+      const matrix = [...prev];
+      if (!matrix[variantIndex]) matrix[variantIndex] = {};
+      matrix[variantIndex].volumes = updated[variantIndex].options;
+      return matrix;
+    });
+  };
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await apiClient.get("/categories");
+        const mapped = res.data?.data?.map((cat) => ({
+          value: String(cat.id),
+          label: cat.name,
+        })) || [];
+        setCategories(mapped);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    if (hasVariant && category) {
+      setVariantMatrix((prev) =>
+        prev.map((variant) => ({ ...variant, category_id: category }))
+      );
     }
-    
-    const [details, setDetails] = useState<{[key:string]:string|number}[]>([base_detail_data])
-    const [errors, setErrors] = useState<ZodFormattedError<addProductType, string>>();
+  }, [category]);
 
-    const unitOptions: TMultiSelect = [
-        {
-            value: 'weight',
-            label: 'Berat'
-        }, {
-            value: 'volume',
-            label: 'Volume'
-        },
-    ]
-    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        setLoading(true)
+  useEffect(() => {
+    setVariantImages((prev) =>
+      variantMatrix.map((_, i) => [prev?.[i]?.[0] ?? ""])
+    );
+  }, [variantMatrix]);
 
-        formRef.current['product_details'] = details
+  useEffect(() => {
+    if (variations.length === 0) return setVariantMatrix([]);
+    const matrix = variations.map((variation, i) => ({
+      aroma: variation.name || `Varian ${i + 1}`,
+      prices: [variantMatrix?.[i]?.prices?.[0] || ""],
+      stocks: [variantMatrix?.[i]?.stocks?.[0] || ""],
+      codes: [variantMatrix?.[i]?.codes?.[0] || ""],
+      volumes: variation.options && variation.options.length > 0 ? variation.options : [null],
+    }));
+    setVariantMatrix(matrix);
+  }, [variations]);
 
-        const formdata = addProductSchema.safeParse(formRef.current)
-        if (!formdata.success) {
-            setErrors(formdata.error.format())
-            setLoading(false)
-            return
-        }
+  const setVariantName = (index, name) => {
+    setVariations((prev) =>
+      prev.map((v, i) => (i === index ? { ...v, name } : v))
+    );
+    setVariantMatrix((prev) => {
+      const updated = [...prev];
+      if (updated[index]) updated[index].aroma = name;
+      return updated;
+    });
+  };
 
-        setLoading(false)
+  const handleVariantImageUpload = (i) => (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setVariantImages((prev) => {
+        const updated = prev.map((row) => [...row]);
+        if (!updated[i]) updated[i] = [];
+        updated[i][0] = file;
+        return updated;
+      });
+    }
+  };
 
-        await createProduct(formRef)
-        if(!isFailure) navigate('/products')
+  const handleRemoveVariantImage = (i) => () => {
+    setVariantImages((prev) => {
+      const updated = prev.map((row) => [...row]);
+      if (updated[i]) updated[i][0] = "";
+      return updated;
+    });
+  };
+
+  const applyToAllVariants = () => {
+    const updated = variantMatrix.map((variant) => {
+      const optionCount = variant.volumes && variant.volumes.length > 0 ? variant.volumes.length : 1;
+      const prices = [...(variant.prices || Array(optionCount).fill(""))];
+      const stocks = [...(variant.stocks || Array(optionCount).fill(""))];
+      const codes = [...(variant.codes || Array(optionCount).fill(""))];
+
+      for (let idx = 0; idx < optionCount; idx++) {
+        if (globalPrice !== "") prices[idx] = globalPrice;
+        if (globalStock !== "") stocks[idx] = globalStock;
+        if (globalCode !== "") codes[idx] = globalCode;
+      }
+
+      return {
+        ...variant,
+        prices,
+        stocks,
+        codes,
+      };
+    });
+    setVariantMatrix(updated);
+    setGlobalPrice("");
+    setGlobalStock("");
+    setGlobalCode("");
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!productName) {
+      setErrors({ message: ["Nama produk wajib diisi"] });
+      Toaster("error", "Nama produk wajib diisi");
+      return;
     }
 
-    const apiClient = useApiClient();
-    const [categories, setCategories] = useState<TMultiSelect>([])
-    const [variants, setVariants] = useState<TMultiSelect>([])
+    const payload = {
+      name: productName,
+      category_id: category,
+      description,
+      product_details: [],
+    };
 
-    const getCategories = () => {
-        apiClient.get('/categories/no-paginate').then(res => {
-            const formatted_categories = res.data.data.map((category: { [key: string]: any }) => ({
-                label: category.name,
-                value: category.id,
-            }))
-            setCategories(formatted_categories)
-        }).catch(() => {
-            setCategories([])
-        })
+    if (!hasVariant) {
+      payload.product_details.push({
+        product_code: productCode,
+        category_id: category,
+        price: price,
+        stock: stock,
+        variant: "Default",
+        opsi: "",
+      });
+    } else {
+      variantMatrix.forEach((variant, i) => {
+        (variant.volumes && variant.volumes.length > 0
+          ? variant.volumes
+          : [null]
+        ).forEach((option, j) => {
+          payload.product_details.push({
+            product_code: variant.codes?.[j] || "",
+            category_id: category,
+            price: Number(variant.prices?.[j] || 0),
+            stock: Number(variant.stocks?.[j] || 0),
+            variant: variant.aroma || `Varian ${i + 1}`,
+            opsi: option || "",
+          });
+        });
+      });
     }
-    const getVariants = () => {
-        apiClient.get('/variants/no-paginate').then(res => {
-            const formatted_variants = res.data.data.map((variant: { [key: string]: any }) => ({
-                label: variant.name,
-                value: variant.id,
-            }))
-            setVariants(formatted_variants)
-        }).catch(() => {
-            setVariants([])
-        })
+
+    try {
+      await apiClient.post("/products", payload);
+      navigate("/products");
+      Toaster("success", "Produk berhasil dibuat");
+    } catch (error) {
+      if (error?.response?.data?.data) {
+        setErrors(error.response.data.data);
+        Toaster("error", "Validasi gagal. Cek inputan Anda.");
+      } else {
+        Toaster("error", "Terjadi kesalahan saat menyimpan produk.");
+      }
     }
+  };
 
-    useEffect(() => {
-        getCategories()
-        getVariants()
-    }, [])
+  const labelClass = "block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2";
 
-    return (
-        <>
-            <Breadcrumb title="Tambah Produk" desc="Tambah produk di toko anda" />
-            <form onSubmit={handleSubmit}>
-                <div className="card">
-                    <div className="card-header">
-                        <ul className="nav nav-underline nav-fill" role="tablist">
-                            <li className="nav-item" role="presentation">
-                                <a href="#form-product" className="nav-link active" data-bs-toggle="tab" role="tab" aria-selected={true}>
-                                    Produk
-                                </a>
-                            </li>
-                            <li className="nav-item" role="presentation">
-                                <a href="#form-details" className="nav-link" data-bs-toggle="tab" role="tab" aria-selected={false}>
-                                    Detail
-                                </a>
-                            </li>
-                        </ul>
+  return (
+    <div className="p-4 md:p-6">
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-8 space-y-6">
+          <div className="bg-white shadow rounded-2xl p-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-blue-600">
+              <Info size={18} /> Informasi Produk
+            </h3>
+            <InputText label="Nama Barang" labelClass={labelClass} value={productName} onChange={(e) => setProductName(e.target.value)} />
+            <InputSelect
+              label="Kategori Barang"
+              labelClass={labelClass}
+              value={category}
+              onChange={(e) => {
+                const val = e.target.value;
+                setCategory(val);
+                const found = categories.find((cat) => cat.value === val);
+                setSelectedCategoryName(found?.label || "");
+              }}
+              options={categories}
+            />
+            <div className="space-y-2">
+              <label className={labelClass}>Deskripsi</label>
+              <textarea
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                placeholder="Masukkan Deskripsi Produk"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {!hasVariant && (
+            <div className="bg-white shadow rounded-2xl p-6">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-blue-600">
+                <DollarSign size={18} /> Harga & Stok Produk
+              </h3>
+              <div className="grid md:grid-cols-2 gap-4">
+                <InputNumber
+                  label="Atur Harga Produk"
+                  labelClass={labelClass}
+                  value={price}
+                  onChange={(e) => setPrice(+e.target.value)}
+                  placeholder="500.000"
+                  prefix="Rp"
+                />
+                <InputNumber
+                  label="Jumlah Stok"
+                  labelClass={labelClass}
+                  value={stock}
+                  onChange={(e) => setStock(+e.target.value)}
+                  placeholder="500"
+                  prefix="Pcs"
+                />
+                <div>
+                  <label className={labelClass}>
+                    <Barcode size={16} /> Kode Produk
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    value={productCode}
+                    onChange={(e) => setProductCode(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="bg-white shadow rounded-2xl p-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-blue-600">
+              <ImageIcon size={18} /> Gambar Produk
+            </h3>
+            <InputOneImage
+              images={images.length ? [images[0]] : []}
+              onImageUpload={(e) => {
+                const file = e.target.files?.[0];
+                if (file) setImages([file]);
+              }}
+              onRemoveImage={() => setImages([])}
+              label="Unggah"
+            />
+          </div>
+
+          <div className="bg-white shadow rounded-2xl p-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-blue-600">
+              <Info size={18} /> Variasi Produk
+            </h3>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h1 className="text-xl text-gray-500">Varian</h1>
+                <button
+                  type="button"
+                  onClick={() => setVariations((prev) => [...prev, { name: "", options: [] }])}
+                  className="text-blue-600 text-sm flex items-center gap-1"
+                >
+                  <Plus size={16} /> Tambah Variasi
+                </button>
+              </div>
+
+              {variations.map((variation, i) => (
+                <div key={i} className="bg-gray-200 p-4 rounded-lg shadow space-y-3">
+                  <div className="flex justify-between items-center">
+                    <div className="flex gap-4 items-center">
+                      <span className="font-medium">Variasi {i + 1}</span>
+                      <input
+                        placeholder="Nama Varian"
+                        value={variation.name}
+                        onChange={(e) => setVariantName(i, e.target.value)}
+                        className="w-100 border bg-white border-gray-300 rounded-lg px-3 py-2"
+                      />
                     </div>
-                    <div className="card-body">
-                        <div className="tab-content">
-                            <div className="tab-pane active" id="form-product" role="tabpanel">
-                                <InputImage setErrors={setErrors} schema={addProductSchema} formRef={formRef} name="image" errors={errors} col="" title="Gambar Produk" isRequired={false} />
-                                <Textfield setErrors={setErrors} schema={addProductSchema} formRef={formRef} name="name" errors={errors} col="" title="Nama Produk" isRequired={true} placeholder="Nama Produk" />
-                                <NormalCreateableDropdown pa options={categories} setOptions={setCategories} label={{ title: "Kategori" }} handleChangeValue={(value) => {formRef.current.category_id = value}} idValue={formRef.current.category_id} parent={{ className:"w-100 form-group mb-2" }} errors={errors?.category_id} />
-                                <Dropdown isMulti={false} isRequired={true} title="Tipe Satuan" formRef={formRef} name="unit_type" errors={errors} col="" options={unitOptions} setErrors={setErrors} schema={addProductSchema} />
-                            </div>
-                            <div className="tab-pane" id="form-details" role="tabpanel">
-                                <CreateRepeater categories={categories} variants={variants} setCategories={setCategories} setVariants={setVariants} baseData={base_detail_data} datas={details} setDatas={setDetails} errors={errors} />
-                            </div>
+                    <button
+                      type="button"
+                      onClick={() => setVariations((prev) => prev.filter((_, idx) => idx !== i))}
+                      className="text-black"
+                    >
+                      <X size={32} />
+                    </button>
+                  </div>
+
+                  <div className="gap-13 flex items-center">
+                    <span className="font-medium">Opsi</span>
+                    <InputManyText
+                      items={variation.options}
+                      onChange={(j, v) =>
+                        handleOptionChange(variations, setVariations, i, j, v)
+                      }
+                      onAdd={() => handleAddOption(variations, setVariations, i)}
+                      onRemove={(j) =>
+                        handleRemoveOption(variations, setVariations, i, j)
+                      }
+                      className="min-w-105"
+                      maxLength={50}
+                      placeholderPrefix="Opsi "
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {variantMatrix.length > 0 && (
+              <div className="mt-6 flex items-center gap-4">
+                <div className="flex border rounded-lg overflow-hidden divide-x w-full max-w-3xl">
+                  <div className="flex items-center px-3 bg-gray-50 text-gray-500">Rp.</div>
+                  <input
+                    type="number"
+                    placeholder="Harga"
+                    className="w-1/3 px-3 py-2 focus:outline-none"
+                    value={globalPrice}
+                    onChange={(e) => setGlobalPrice(e.target.value)}
+                  />
+                  <input
+                    type="number"
+                    placeholder="Stok"
+                    className="w-1/3 px-3 py-2 focus:outline-none"
+                    value={globalStock}
+                    onChange={(e) => setGlobalStock(e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Kode Varian"
+                    className="w-1/3 px-3 py-2 focus:outline-none"
+                    value={globalCode}
+                    onChange={(e) => setGlobalCode(e.target.value)}
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="bg-blue-600 text-white px-3 rounded-lg"
+                  onClick={applyToAllVariants}
+                >
+                  Terapkan Ke Semua
+                </button>
+              </div>
+            )}
+
+            {variantMatrix.length > 0 && (
+              <div className="mt-6">
+                <div className="grid font-semibold bg-gray-400 text-white grid-cols-5">
+                  <div className="p-3">Variasi</div>
+                  <div className="p-3">Opsi</div>
+                  <div className="p-3">Harga</div>
+                  <div className="p-3">Kode varian</div>
+                  <div className="p-3">Stock</div>
+                </div>
+
+                {variantMatrix.map((variant, i) =>
+                  (variant.volumes && variant.volumes.filter(Boolean).length > 0
+                    ? variant.volumes.filter(Boolean)
+                    : [null]
+                  ).map((option, j) => (
+                    <div key={`${i}-${j}`} className="grid grid-cols-5 items-start bg-white border-b border-gray-100">
+                      {j === 0 ? (
+                        <div className="p-3" rowSpan={variant.volumes.length}>
+                          <p className="font-medium mb-2">{variant.aroma}</p>
+                          <InputOneImage
+                            images={variantImages[i]?.[0] ? [variantImages[i][0]] : []}
+                            onImageUpload={handleVariantImageUpload(i)}
+                            onRemoveImage={handleRemoveVariantImage(i)}
+                            label="Tambah Gambar"
+                          />
                         </div>
+                      ) : <div />}
+                      <div className="p-3 text-gray-800">{option || "-"}</div>
+                      <div className="p-3">
+                        <div className="flex items-center">
+                          <span className="text-gray-500 mr-1">Rp.</span>
+                          <input
+                            type="number"
+                            className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
+                            placeholder="Harga"
+                            value={variant.prices[j] || ""}
+                            onChange={(e) => {
+                              const updated = [...variantMatrix];
+                              if (!updated[i].prices) updated[i].prices = [];
+                              updated[i].prices[j] = e.target.value;
+                              setVariantMatrix(updated);
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <div className="p-3">
+                        <input
+                          type="text"
+                          className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
+                          placeholder="Kode"
+                          value={variant.codes[j] || ""}
+                          onChange={(e) => {
+                            const updated = [...variantMatrix];
+                            if (!updated[i].codes) updated[i].codes = [];
+                            updated[i].codes[j] = e.target.value;
+                            setVariantMatrix(updated);
+                          }}
+                        />
+                      </div>
+                      <div className="p-3">
+                        <input
+                          type="number"
+                          className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
+                          placeholder="Stok"
+                          value={variant.stocks[j] || ""}
+                          onChange={(e) => {
+                            const updated = [...variantMatrix];
+                            if (!updated[i].stocks) updated[i].stocks = [];
+                            updated[i].stocks[j] = e.target.value;
+                            setVariantMatrix(updated);
+                          }}
+                        />
+                      </div>
                     </div>
-                </div>
-                <div className="card">
-                    <div className="card-footer d-flex gap-2 justify-content-end">
-                        <Link to="/products" className="btn btn-muted">Kembali</Link>
-                        <ButtonWithLoading type={'submit'} loading={isLoading} disabled={isLoading} className="btn btn-primary">Tambah</ButtonWithLoading>
-                    </div>
-                </div>
-            </form>
-        </>
-    )
-}
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-4">
+            <button type="button" onClick={() => navigate("/products")} className="border border-gray-300 rounded-lg px-4 py-2">Kembali</button>
+            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg">Tambah</button>
+          </div>
+        </div>
+
+        <div className="lg:col-span-4">
+          <PreviewCard
+            images={images}
+            price={variantMatrix.length ? variantMatrix[0].prices[0] : price}
+            category={selectedCategoryName}
+            productName={productName}
+            productCode={productCode}
+            stock={variantMatrix.length ? variantMatrix[0].stocks[0] : stock}
+            variantImages={variantImages}
+          />
+        </div>
+      </form>
+    </div>
+  );
+};

@@ -4,7 +4,7 @@
       <path d="M25-60h400v300H25z"/>
     </clipPath>
   </defs>
-  <g transform="matrix(.8 0 0 .8 -20 48)" clip-path="url(#a)">
+  <g transform="matrix(.8 0 0 .8 -20 48)" clipPath="url(#a)">
     <path fill="#fff" d="M0-60h450v300H0z"/>
     <path fill="#009543" d="M0 150h450v90H0z"/>
     <path fill="#00209f" d="M0-60h450v90H0z"/>

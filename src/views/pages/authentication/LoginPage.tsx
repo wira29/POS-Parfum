@@ -1,171 +1,205 @@
-import { useApiClient } from "@/core/helpers/ApiClient"
-import { Toaster } from '@/core/helpers/BaseAlert'
-import { setToken } from "@/core/helpers/TokenHandle"
-import { useAuthStore } from '@/core/stores/AuthStore'
-import { ComponentPropType, InputWithIcon } from "@/views/components/InputWithIcon"
-import { ZodForm } from "@/views/components/ZodForm"
-import { gsap } from 'gsap'
-import { Bounce } from 'gsap/all'
-import { SyntheticEvent, useEffect, useRef, useState } from "react"
-import { FaEnvelope, FaEye, FaEyeSlash, FaKey } from "react-icons/fa"
-import { useNavigate } from "react-router-dom"
-import { z } from "zod"
+import { useState, FormEvent } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { z } from "zod";
+import { useApiClient } from "@/core/helpers/ApiClient";
+import { useAuthStore } from "@/core/stores/AuthStore";
+import { Toaster } from "@/core/helpers/BaseAlert";
+import { setToken } from "@/core/helpers/TokenHandle";
+import { Eye, EyeOff } from "lucide-react";
+
+const LoginFormSchema = z.object({
+  email: z
+    .string({ message: "harus berupa string" })
+    .email({ message: "harus berupa email valid" })
+    .min(1, { message: "tidak boleh kosong" }),
+  password: z
+    .string({ message: "harus berupa string" })
+    .min(8, { message: "tidak boleh kurang dari 8 karakter" }),
+});
+
+type LoginFormType = z.infer<typeof LoginFormSchema>;
 
 export const LoginPage = () => {
-    const navigate = useNavigate()
+  const navigate = useNavigate();
+  const apiClient = useApiClient();
+  const { setUser, setRole, setAuth, isLoading, setLoading } = useAuthStore();
 
-    const apiClient = useApiClient()
+  const [formData, setFormData] = useState<LoginFormType>({
+    email: "",
+    password: "",
+  });
 
-    const LoginFormSchema = z.object({
-        email: z.string({message: "harus berupa string"}).email({message: "harus berupa email valid"}).min(1, {message: 'tidak boleh kosong'}),
-        password: z.string({message: "harus berupa string"}).min(8 ,{message: "tidak boleh kurang dari 8 karakter"})
-    })
-    
-    type LoginFormType = z.infer<typeof LoginFormSchema>
+  const [formErrorMsg, setFormErrorMsg] = useState<{ [key: string]: string[] }>(
+    {}
+  );
+  const [showPassword, setShowPassword] = useState(false);
+  const togglePassword = () => setShowPassword((prev) => !prev);
 
-    const { setUser, setRole, setAuth, isLoading, setLoading } = useAuthStore()
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    setFormErrorMsg((prev) => ({
+      ...prev,
+      [name]: [],
+    }));
+  };
 
-    const illustrationRef = useRef(null)
-    const cardRef = useRef(null)
-
-    const [formData, setFormData] = useState<LoginFormType>({
-        email: "",
-        password: ""
-    })
-
-    const [formErrorMsg, setFormErrorMsg] = useState<{[key: string]: string[]}>({})
-
-    const handleInputChange = (e: SyntheticEvent<HTMLInputElement>) => {
-        const { name, value } = e.target as HTMLInputElement;
-        setFormData(prevFormData => ({
-            ...prevFormData,
-            [name]: value
-        }));
-    }
-
-    const handleFormSubmit = () => {
-        setLoading(true)
-        apiClient.post("login", formData).then((res) => {
-            setLoading(false)
-            const role_lists = res.data.data.role.map((role:{[key:string]:any}) => role.name)
-            setRole(role_lists)
-            setAuth(true)
-            setUser(res.data.data)
-            Toaster('success', res.data.message)
-            setToken(res.data.data.token)
-            return navigate('/dashboard')
-        }).catch((err) => {
-            setLoading(false)
-            console.log(err)
-            Toaster('error', err.response.data.message)
-        })
-    }
-
-    const [emailConfig] = useState<ComponentPropType>({
-        settings: {
-            id: "email",
-            type: "text",
-            name: "email",
-            label: "Email",
-            placeholder: "Masukkan Email",
-            icon: FaEnvelope,
-            onInputFn: handleInputChange,
-            autofocus: true
+  const handleFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      LoginFormSchema.parse(formData);
+      setFormErrorMsg({});
+      const res = await apiClient.post("login", formData);
+      setLoading(false);
+      const role_lists = res.data.data.role.map(
+        (role: { [key: string]: any }) => role.name
+      );
+      setRole(role_lists);
+      setAuth(true);
+      setUser(res.data.data);
+      Toaster("success", res.data.message || "Login berhasil");
+      setToken(res.data.data.token);
+      navigate("/dashboard");
+    } catch (err: any) {
+      setLoading(false);
+      if (err.name === "ZodError") {
+        const formattedErrors: { [key: string]: string[] } = {};
+        err.errors.forEach(
+          (e: { path: string[]; message: string }) =>
+            (formattedErrors[e.path[0]] = [
+              ...(formattedErrors[e.path[0]] || []),
+              e.message,
+            ])
+        );
+        setFormErrorMsg(formattedErrors);
+        if (err.errors && err.errors.length > 0) {
+          Toaster("error", err.errors[0].message);
         }
-    })
-
-    const [passwordConfig, setPasswordConfig] = useState<ComponentPropType>({
-        settings: {
-            id: "password",
-            type: "password",
-            name: "password",
-            label: "Kata Sandi",
-            placeholder: "Masukkan Kata Sandi",
-            autofocus: false,
-            icon: FaKey,
-            onInputFn: handleInputChange
-        }, rightButton: {
-            show: true,
-            icon: FaEye,
-            onclickFn: () => {
-                changeInputPasswordType()
-            }
-        }
-    })
-
-    const changeInputPasswordType = () => {
-        setPasswordConfig(prevState => ({
-            ...prevState,
-            settings: {
-                ...prevState.settings, 
-                type: prevState.settings.type === "password" ? "text" : "password"
-            },
-            rightButton: {
-                ...prevState.rightButton!,
-                icon: prevState.settings.type === "password" ? FaEyeSlash : FaEye,
-            }
-        }))
+      } else {
+        Toaster("error", err.response?.data?.message || "Login gagal");
+      }
     }
+  };
 
-    useEffect(() => {
-        gsap.registerPlugin(Bounce)
-    
-        gsap.fromTo(illustrationRef.current,
-            {y: -50}, 
-            {
-                y: 0, 
-                duration: 1, 
-                ease: "bounce.out", 
-                yoyo: true, 
-                repeat: -1,
-            }
-        )
+  return (
+    <div className="flex h-screen">
+      <div className="hidden lg:flex w-[60%] bg-[#EBF0FF] flex-col justify-center items-center">
+        <img
+          src="images/backgrounds/login-bg.jpg"
+          alt="Ilustrasi POS"
+          className="w-[600px] h-auto"
+        />
+      </div>
 
-        gsap.fromTo(cardRef.current,
-            {x: -1000},
-            {x: 0, duration: 1}
-        )
-    }, [])
+      <div className="w-full lg:w-[40%] flex justify-center items-start pt-32">
+        <div className="w-[350px]">
+          <div className="flex flex-col items-center mb-16">
+            <img
+              src="images/logos/logo-new.png"
+              alt="Logo"
+              className="w-[150px] h-auto mb-4"
+            />
+          </div>
 
-    return (
-        <>
-            <div style={{display: "grid", minHeight: "100dvh", overflow: "hidden", placeContent: 'center'}} >
-                <div
-                    className="bg-primary d-flex rounded-5 shadow-xl m-6"
-                    ref={cardRef}
-                    style={{
-                        height: "min(95dvh, 500px)",
-                        minHeight: "500px",
-                        width: "min(90vw, 800px)"
-                    }}
-                >
-                    <div className=" flex-1 d-md-flex flex-column justify-content-between align-items-center p-3 d-none">
-                        <img src="/images/logos/logo-full.png" alt="Logo image" width={120} className="bg-white py-1 px-3 rounded-pill"/>
-                        <div className="text-center">
-                            <h4 className="fs-7 text-white fw-bolder mt-3">Selamat Datang</h4>
-                            <p className="text-white lead">Web Admin Gudang dan Owner</p>
-                        </div>
-                        <img src="/images/illustrations/warehouse-02.svg" className="mt-3" width={300} alt="" ref={illustrationRef} />
-                    </div>
-                    <ZodForm formdata={formData} setFormdataFn={setFormData} setErrorMsg={setFormErrorMsg} onSuccessValidation={handleFormSubmit} schema={LoginFormSchema} className="flex-1 bg-white rounded-5 d-flex flex-column align-items-stretch justify-content-between gap-3 p-4">
-                        <img src="/images/logos/logo-full.png" alt="Logo image" width={100} className="d-md-none" style={{alignSelf: "center"}}/>
-                        <div className="flex flex-col gap-3">
-                            <h3 className="font-bold text-xl text-center mb-5">Masuk</h3>
-                            <InputWithIcon settings={emailConfig.settings} errors={formErrorMsg.email}/>
-                            <InputWithIcon settings={passwordConfig.settings} rightButton={passwordConfig.rightButton} errors={formErrorMsg.password}/>
-                            <button disabled={isLoading} className="btn btn-primary w-100" type="submit">
-                                {
-                                    isLoading && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                }
-                                {
-                                    isLoading ? "Loading..." : "Masuk"
-                                }
-                            </button>
-                        </div>
-                        <div className="text-center">Developed By <a href="https://www.hummatech.com" target="_blank" className="text-blue-600 dark:text-blue-500 hover:underline">Hummatech</a></div>
-                    </ZodForm>
-                </div>
+          <h3 className="text-xl font-semibold mb-1">Login</h3>
+          <p className="text-gray-500 text-sm mb-4">
+            Silahkan masukkan email anda untuk melanjutkan.
+          </p>
+
+          <form className="space-y-4" onSubmit={handleFormSubmit} noValidate>
+            <div>
+              <label className="text-sm font-medium" htmlFor="email">
+                Email
+              </label>
+              <div className="relative">
+                <input
+                  id="email"
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    formErrorMsg.email ? "border-gray-300" : "border-gray-300"
+                  }`}
+                  autoFocus
+                />
+              </div>
+              {formErrorMsg.email &&
+                formErrorMsg.email.map((msg, idx) => (
+                  <p key={idx} className="text-red-500 text-xs mt-1">
+                    {msg}
+                  </p>
+                ))}
             </div>
-        </>
-    )
-}
+
+            <div className="relative">
+              <label className="text-sm font-medium" htmlFor="password">
+                Kata Sandi
+              </label>
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Kata Sandi (min. 8 karakter)"
+                value={formData.password}
+                onChange={handleInputChange}
+                 className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    formErrorMsg.password ? "border-gray-300" : "border-gray-300"
+                  }`}
+              />
+              <button
+                type="button"
+                onClick={togglePassword}
+                className="absolute right-3 top-[38px] text-gray-500 hover:text-gray-700"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff size={18} className="cursor-pointer"/> : <Eye className="cursor-pointer" size={18} />}
+              </button>
+
+              {formErrorMsg.password &&
+                formErrorMsg.password.map((msg: string, idx: number) => (
+                  <p key={idx} className="text-red-500 text-xs mt-1">
+                    {msg}
+                  </p>
+                ))}
+            </div>
+
+            <div className="flex justify-between items-center text-sm">
+              <label className="flex items-center space-x-2">
+                <input type="checkbox" />
+                <span>Ingat Login Saya</span>
+              </label>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="bg-blue-500 hover:bg-blue-700 cursor-pointer disabled:opacity-50 text-white w-full py-2 rounded-md font-medium"
+            >
+              {isLoading ? (
+                <span
+                  className="spinner-border spinner-border-sm me-2"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
+              ) : null}
+              {isLoading ? "Masuk" : "Masuk"}
+            </button>
+          </form>
+
+          <p className="text-center text-sm mt-8">
+            Belum punya akun?{" "}
+            <Link to="/register" className="text-[#2d50ff] hover:underline">
+              Daftar
+            </Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};

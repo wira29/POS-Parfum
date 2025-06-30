@@ -1,124 +1,280 @@
-import { formatNum } from "@/core/helpers/FormatNumber"
-import { useAuthStore } from "@/core/stores/AuthStore"
-import { useProductStore } from "@/core/stores/ProductStore"
-import { Breadcrumb } from "@/views/components/Breadcrumb"
-import { Pagination } from "@/views/components/Pagination"
-import { Fragment, useEffect, useState } from "react"
-import { Link } from "react-router-dom"
+import { useEffect, useRef, useState } from "react";
+import React from "react";
+import { FiChevronDown, FiChevronUp } from "react-icons/fi";
+import { Breadcrumb } from "@/views/components/Breadcrumb";
+import { SearchInput } from "@/views/components/SearchInput";
+import { Filter } from "@/views/components/Filter";
+import DeleteIcon from "@/views/components/DeleteIcon";
+import { EditIcon } from "@/views/components/EditIcon";
+import AddButton from "@/views/components/AddButton";
+import ViewIcon from "@/views/components/ViewIcon";
+import { Pagination } from "@/views/components/Pagination";
+import { useApiClient } from "@/core/helpers/ApiClient";
+import { Toaster } from "@/core/helpers/BaseAlert";
+import Swal from "sweetalert2";
+import { FilterModal } from "@/views/components/filter/ProductFilter";
+import { ImageHelper } from "@/core/helpers/ImageHelper";
 
 export const ProductIndex = () => {
-
-  const { pagination, setPage, products, firstGet, deleteProduct, setCustomQuery } = useProductStore()
-  const {isRoleCanAccess} = useAuthStore()
-  const [openProduct, setOpenProduct] = useState<string>()
+  const api = useApiClient();
+  const [products, setProducts] = useState<any[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [expandedProducts, setExpandedProducts] = useState<string[]>([]);
+  const expandRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [showFilter, setShowFilter] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [stockMin, setStockMin] = useState("");
+  const [stockMax, setStockMax] = useState("");
+  const [page, setPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [variantPage, setVariantPage] = useState<Record<string, number>>({});
+  const pageSize = 5;
+  const variantPageSize = 5;
 
   useEffect(() => {
-    if(isRoleCanAccess('outlet')) setCustomQuery('orderby_total_stock=asc')
-    setTimeout(() => {
-      firstGet()
-    }, 300)
-  }, [])
+    fetchData(page);
+  }, [page, search, categoryFilter, stockMin, stockMax]);
+
+  const fetchData = async (page: number = 1) => {
+    setLoading(true);
+    try {
+      const query = new URLSearchParams({
+        page: page.toString(),
+        per_page: pageSize.toString(),
+        search,
+        category: categoryFilter,
+        stock_min: stockMin,
+        stock_max: stockMax,
+      });
+
+      const res = await api.get(`/products?${query.toString()}`);
+      const pagination = res.data.pagination;
+
+      setProducts(res.data.data);
+      setPage(pagination.current_page);
+      setLastPage(pagination.last_page);
+
+      const categories = Array.from(
+        new Set(
+          res.data.data
+            .map((p: any) => p.category?.name)
+            .filter(Boolean)
+        )
+      );
+      setCategoryOptions(categories);
+    } catch (error) {
+      Toaster("error", "Gagal memuat data produk");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleExpand = (productId: string) => {
+    setExpandedProducts((prev) => {
+      const isExpanded = prev.includes(productId);
+      if (!isExpanded) {
+        setVariantPage((vp) => ({ ...vp, [productId]: 1 }));
+        setTimeout(() => {
+          expandRefs.current[productId]?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }, 200);
+      }
+      return isExpanded ? prev.filter((id) => id !== productId) : [...prev, productId];
+    });
+  };
+
+  const getVariants = (product: any) => {
+    return (product.product_detail || []).map((detail: any) => ({
+      id: detail.id,
+      name: detail.variant_name || detail.material || "Varian",
+      code: detail.product_code || detail.product_varian_id?.slice(0, 8),
+      stock: detail.stock ?? 0,
+      price: detail.price ?? 0,
+      category: detail.category || product.category || { name: "Umum" },
+      penjualan: detail.transaction_details_count || 0,
+      image: detail.product_image,
+    }));
+  };
+
+  const confirmDelete = (id: string) => () => {
+    Swal.fire({
+      title: "Apakah anda yakin?",
+      text: "Data Product akan dihapus!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, hapus!",
+      cancelButtonText: "Batal",
+    }).then((result) => {
+      if (result.isConfirmed) deleteProduct(id);
+    });
+  };
+
+  const deleteProduct = async (id: string) => {
+    try {
+      await api.delete(`/products/${id}`);
+      Swal.fire("Terhapus!", "Product berhasil dihapus.", "success");
+      fetchData(page);
+    } catch (error) {
+      Swal.fire("Gagal!", "Gagal menghapus Product.", "error");
+    }
+  };
 
   return (
-    <div>
-      <Breadcrumb title="Produk" desc="List produk yang ada pada toko anda" button={ isRoleCanAccess('owner') ? <Link to={'/products/create'} className="mt-2 btn btn-primary">Tambah Produk</Link> : (isRoleCanAccess('outlet') ? <Link to={'/products/request'} className="btn btn-primary mt-2">Restock</Link> : '')} />
-      <div className='card rounded-lg'>
-        <div className="card-body">
-          <div className="mb-4 border rounded-1">
-            <table className="table text-nowrap mb-0 align-middle">
-              <thead className="text-dark fs-4">
-                <tr>
-                  <th></th>
-                  <th>No</th>
-                  <th>Produk</th>
-                  <th>Kategori</th>
-                  <th>Varian</th>
-                  {
-                    isRoleCanAccess('owner') && <th>Aksi</th>
-                  }
-                </tr>
-              </thead>
-              <tbody>
-                {
-                  products.length
-                    ? products.map((product, index) => (
-                      <Fragment key={product.id}>
-                        <tr>
-                          <th onClick={() => setOpenProduct((old) => (old == product.id ? undefined : product.id))}>
-                            <div style={{ rotate: openProduct == product.id ? '180deg' : '0deg', width: "15px", height: "15px", transitionProperty: 'all', transitionDuration: "500ms" }}>
-                              <i className="ti ti-chevron-up"></i>
-                            </div>
-                          </th>
-                          <th>{index + 1}</th>
-                          <td>{product.name}</td>
-                          <td><span className="badge bg-light-warning text-warning">{product?.category?.name ?? '-'}</span> </td>
-                          <td><span className="badge bg-light-primary text-primary">{product.details.length} varian</span></td>
-                          {
-                            isRoleCanAccess('owner') &&
-                            <td>
-                              <div className="dropdown dropstart">
-                                <a href="" className="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                                  <i className="ti ti-dots-vertical fs-6"></i>
-                                </a>
-                                <ul className="dropdown-menu" aria-labelledby="dropdownMenuButton" style={{ "zIndex": 100, "position": "absolute", "top": "100%", "left": "0", "transform": "translateY(-100%)" }}>
-                                  <li>
-                                    <Link to={"/products/"+product.id} className="dropdown-item d-flex align-items-center gap-3"><i className="fs-4 ti ti-eye"></i> Detail</Link>
-                                  </li>
-                                  <li>
-                                    <Link to={"/products/"+product.id+"/edit"} className="dropdown-item d-flex align-items-center gap-3"><i className="fs-4 ti ti-edit"></i> Ubah</Link>
-                                  </li>
-                                  <li>
-                                    <button type="button" className="dropdown-item d-flex align-items-center gap-3" onClick={() => deleteProduct(product.id)}>
-                                      <i className="fs-4 ti ti-trash"></i>Hapus
-                                    </button>
-                                  </li>
-                                </ul>
+    <div className="p-6 space-y-6">
+      <Breadcrumb title="Produk" desc="Daftar produk dalam sistem" />
+
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <SearchInput
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+        />
+        <Filter onClick={() => setShowFilter(true)} />
+        <AddButton to="/products/create">Tambah Produk</AddButton>
+      </div>
+
+      <div className="bg-white rounded-xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[800px]">
+            <thead className="bg-blue-50 text-left text-gray-700 font-semibold">
+              <tr className="border border-gray-200">
+                <th className="p-4">Produk</th>
+                <th className="p-4">Kategori</th>
+                <th className="p-4">Penjualan</th>
+                <th className="p-4">Harga</th>
+                <th className="p-4">Stok</th>
+                <th className="p-4">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={6} className="text-center p-4">Loading...</td></tr>
+              ) : products.length === 0 ? (
+                <tr><td colSpan={6} className="text-center p-4">Tidak ada data produk</td></tr>
+              ) : (
+                products.map((product) => {
+                  const variants = getVariants(product);
+                  const singleVariant = product.product_detail?.length === 1 ? variants[0] : null;
+                  return (
+                    <React.Fragment key={product.id}>
+                      <tr className="hover:bg-gray-50">
+                        <td className="p-4 align-top flex gap-4">
+                          <img
+                            src={ImageHelper(product.image)}
+                            alt={product.name}
+                            className="w-14 h-14 rounded-md object-cover"
+                            onError={e => { (e.target as HTMLImageElement).src = "/images/placeholder.jpg"; }}
+                          />
+                          <div>
+                            <div className="font-semibold">{product.name}</div>
+                            <div className="text-gray-500 text-xs">ID Produk: {product.code || "-"}</div>
+                          </div>
+                        </td>
+                        <td className="p-4 align-top">{product.category?.name ?? "-"}</td>
+                        <td className="p-4 align-top">{singleVariant ? singleVariant.penjualan : (product.sales ?? "-")}</td>
+                        <td className="p-4 align-top">Rp {singleVariant ? singleVariant.price.toLocaleString("id-ID") : (product.price?.toLocaleString("id-ID") ?? "-")}</td>
+                        <td className="p-4 align-top">
+                          {singleVariant
+                            ? `${singleVariant.stock} G`
+                            : `${product.details_sum_stock || variants.reduce((acc, d) => acc + d.stock, 0)} G`}
+                        </td>
+                        <td className="p-4 align-top">
+                          <div className="flex gap-2">
+                            <ViewIcon to={`/products/${product.id}`} />
+                            <EditIcon to={`/products/${product.id}/edit`} />
+                            <DeleteIcon onClick={confirmDelete(product.id)} />
+                          </div>
+                        </td>
+                      </tr>
+
+                      {variants.length > 1 && (
+                        <>
+                          <tr>
+                            <td colSpan={6} className="text-center text-gray-500 py-2 cursor-pointer select-none" onClick={() => toggleExpand(product.id)}>
+                              {expandedProducts.includes(product.id) ? <><FiChevronUp className="inline" /> Close <FiChevronUp className="inline" /></> : <><FiChevronDown className="inline" /> Expand <FiChevronDown className="inline" /></>}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td colSpan={6} className="p-0">
+                              <div ref={(el) => (expandRefs.current[product.id] = el)} className={`variant-slide ${expandedProducts.includes(product.id) ? "variant-enter" : "variant-leave"}`}>
+                                {expandedProducts.includes(product.id) && (() => {
+                                  const vPage = variantPage[product.id] || 1;
+                                  const totalVariantPages = Math.ceil(variants.length / variantPageSize);
+                                  const startIdx = (vPage - 1) * variantPageSize;
+                                  const shownVariants = variants.slice(startIdx, startIdx + variantPageSize);
+                                  return (
+                                    <div className="ml-[72px] md:ml-[70px]">
+                                      {shownVariants.map((variant) => (
+                                        <div key={variant.id} className="flex flex-wrap md:flex-nowrap items-center p-4 bg-gray-50 border-b border-gray-200">
+                                          <div className="w-1/2 md:w-1/18">
+                                            <img
+                                              src={ImageHelper(variant.image)}
+                                              alt={variant.name}
+                                              className="w-12 h-12 rounded object-cover"
+                                              onError={e => { (e.target as HTMLImageElement).src = "/images/placeholder.jpg"; }}
+                                            />
+                                          </div>
+                                          <div className="w-full md:w-3/12">
+                                            <div className="font-medium">{variant.name}</div>
+                                            <div className="text-xs text-gray-500">Kode Varian: {variant.code}</div>
+                                          </div>
+                                          <div className="w-1/2 md:w-2/12">{variant.category.name}</div>
+                                          <div className="w-1/2 md:w-2/16">{variant.penjualan}</div>
+                                          <div className="w-1/2 md:w-2/13">Rp {variant.price.toLocaleString("id-ID")}</div>
+                                          <div className="w-1/2 md:w-2/12">{variant.stock} G</div>
+                                        </div>
+                                      ))}
+                                      {totalVariantPages > 1 && (
+                                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 text-sm text-gray-700 py-2">
+                                          <span>{variants.length} Varian</span>
+                                          <Pagination
+                                            currentPage={vPage}
+                                            totalPages={totalVariantPages}
+                                            onPageChange={(pg) => setVariantPage((vp) => ({ ...vp, [product.id]: pg }))}
+                                          />
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })()}
                               </div>
                             </td>
-                          }
-                        </tr>
-                        <tr>
-                          <td colSpan={isRoleCanAccess('owner') ? 6 : 5} style={{ padding: openProduct == product.id ? '1rem' : "0px" }}>
-                            {
-                              openProduct == product.id && <>
-                                <table className="table border">
-                                  <thead>
-                                    <tr>
-                                      <th>Material</th>
-                                      <th>Stok</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    {
-                                      product.details.length ?
-                                      product.details.map((detail:{[key:string]:any}, index:number) => (
-                                        <tr key={index}>
-                                          <td>{detail.material}</td>
-                                          <td>{formatNum(detail.product_stock_outlet_sum_stock ?? 0, true)} {detail.unit}</td>
-                                        </tr>
-                                      ))
-                                      : <tr><th colSpan={isRoleCanAccess('outlet') ? 3 : 2} className="text-center text-muted">-- tidak ada varian --</th></tr>
-                                    }
-                                  </tbody>
-                                </table>
-                              </>
-                            }
-                          </td>
-                        </tr>
-                      </Fragment>
-                    ))
-                    : <tr>
-                      <th colSpan={5} className="text-center text-muted">-- belum ada produk --</th>
-                    </tr>
-                }
-              </tbody>
-            </table>
-
-          </div>
-          <Pagination paginationData={pagination} updatePage={setPage} />
+                          </tr>
+                        </>
+                      )}
+                    </React.Fragment>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
-    </div>
 
-  )
-}
+      {lastPage > 1 && (
+        <Pagination currentPage={page} totalPages={lastPage} onPageChange={setPage} />
+      )}
+
+      <FilterModal
+        open={showFilter}
+        onClose={() => {
+          setShowFilter(false);
+          setPage(1);
+        }}
+        categoryFilter={categoryFilter}
+        setCategoryFilter={setCategoryFilter}
+        categoryOptions={categoryOptions}
+        stockMin={stockMin}
+        setStockMin={setStockMin}
+        stockMax={stockMax}
+        setStockMax={setStockMax}
+      />
+    </div>
+  );
+};
