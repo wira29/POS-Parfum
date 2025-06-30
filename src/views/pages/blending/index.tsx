@@ -57,6 +57,8 @@ export default function BlendingIndex() {
     try {
       const response = await ApiClient.get("/product-blend?per_page=100");
       const apiData = response.data.data ?? [];
+      console.log(apiData);
+      
 
       const transformed: BlendingProduct[] = apiData.map((item: any) => ({
         id: item.id,

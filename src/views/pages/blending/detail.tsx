@@ -1,33 +1,27 @@
 import { useState, useEffect } from "react";
-import { Calendar } from "lucide-react";
+import { ArrowLeft, Calendar } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useApiClient } from "@/core/helpers/ApiClient";
 
-interface ProductDetail {
-  variant_name: string | null;
-  product: {
-    name: string;
-  };
-}
-
 interface BlendDetail {
-  id: string;
-  product_blend_id: string;
-  product_detail_id: string;
+  variant_name: string;
   quantity: number;
-  product_detail: ProductDetail;
+  product_name: string;
 }
 
 interface BlendData {
   id: string;
+  product_detail_id: string;
   Quantity: number;
-  description:string;
+  description: string;
   tanggal_pembuatan: string;
-  product: {
-    nama_blending: string;
-  };
-  product_blend_details: {
+  jumlah_bhn_baku: number;
+  details: {
     data: BlendDetail[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
   };
 }
 
@@ -60,36 +54,16 @@ export const BlendingDetail = () => {
   if (error) return <div>Error: {error}</div>;
   if (!blendData) return <div>Tidak ada data ditemukan.</div>;
 
-  const {
-    Quantity,
-    description,
-    tanggal_pembuatan,
-    product,
-    product_blend_details
-  } = blendData;
-
-  const blendDetails = product_blend_details?.data || [];
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
 
   return (
     <div className="p-4 space-y-4">
-      <div className="flex items-center justify-between bg-white px-4 py-3 rounded-md mb-6">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center text-sm text-black font-medium hover:underline cursor-pointer"
-        >
-          <svg
-            className="w-4 h-4 mr-2"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-          Kembali ke tabel
-        </button>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="bg-white rounded-lg p-4 space-y-4">
           <h2 className="font-semibold text-lg text-gray-800 border-b border-gray-300 pb-2">
@@ -97,20 +71,13 @@ export const BlendingDetail = () => {
           </h2>
 
           <div>
-            <p className="text-sm text-gray-500 mb-1">Nama Blending</p>
-            <div className="bg-gray-50 border border-gray-300 rounded px-3 py-2 text-sm text-gray-800">
-              {product?.nama_blending || "N/A"}
-            </div>
-          </div>
-
-          <div>
             <p className="text-sm text-gray-500 mb-1">Quantity</p>
             <div className="flex">
               <div className="flex-1 bg-gray-50 border border-gray-300 border-r-0 rounded-l px-3 py-2 text-sm text-gray-800">
-                {Quantity ?? "N/A"}
+                {blendData.Quantity}
               </div>
               <div className="bg-gray-100 border border-gray-300 border-l-0 rounded-r px-3 py-2 text-sm text-gray-800">
-                Unit
+                G
               </div>
             </div>
           </div>
@@ -118,25 +85,25 @@ export const BlendingDetail = () => {
           <div>
             <p className="text-sm text-gray-500 mb-1">Tanggal Pembuatan</p>
             <div className="flex items-center bg-gray-50 border border-gray-300 rounded px-3 py-2 text-sm text-gray-800 space-x-2">
-              <Calendar className="text-gray-600" />
-              <span>
-                {tanggal_pembuatan
-                  ? new Date(tanggal_pembuatan).toLocaleDateString("id-ID", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric"
-                    })
-                  : "N/A"}
-              </span>
+              <Calendar className="text-gray-600 w-4 h-4" />
+              <span>{formatDate(blendData.tanggal_pembuatan)}</span>
             </div>
           </div>
 
           <div>
             <p className="text-sm text-gray-500 mb-1">Total Bahan Baku</p>
             <div className="bg-gray-50 border border-gray-300 rounded px-3 py-2 text-sm text-gray-800">
-              {blendDetails.length} Macam
+              {blendData.jumlah_bhn_baku} Macam
             </div>
           </div>
+
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center text-sm rounded-lg p-3 w-full justify-center bg-blue-700 text-white font-medium hover:bg-blue-500 cursor-pointer"
+            >
+            <ArrowLeft/>
+              Kembali ke tabel
+            </button>
         </div>
 
         <div className="lg:col-span-2 bg-white rounded-lg p-4 space-y-6">
@@ -144,15 +111,18 @@ export const BlendingDetail = () => {
             <h2 className="text-lg font-semibold text-gray-800 mb-4 p-2 border-b border-gray-300">
               Cara Blending
             </h2>
-            <h3 className="font-medium text-gray-700 mb-1">Deskripsi Blending Produk</h3>
+            <h3 className="font-medium text-gray-700 mb-1">
+              Deskripsi Blending Produk
+            </h3>
             <div className="text-sm text-gray-600 leading-relaxed">
-              <span className="font-semibold">Langkah-Langkah Blending:</span>{" "}
-              <p className="mt-1">{description}</p>
+              <span className="font-semibold">Langkah-Langkah Blending:</span>
+              <p className="mt-1">{blendData.description}</p>
             </div>
           </div>
-
           <div>
-            <h3 className="font-medium text-gray-700 mb-1">Komposisi Blending Produk</h3>
+            <h3 className="font-medium text-gray-700 mb-1">
+              Komposisi Blending Produk
+            </h3>
             <p className="text-sm text-gray-600 mb-2">Bahan Baku:</p>
 
             <div className="overflow-x-auto">
@@ -165,25 +135,24 @@ export const BlendingDetail = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {blendDetails.length > 0 ? (
-                    blendDetails.map((detail) => (
-                      <tr key={detail.id} className="bg-white border-b">
+                  {blendData.details.data.length > 0 ? (
+                    blendData.details.data.map((detail, index) => (
+                      <tr key={index} className="bg-white border-b">
                         <td className="px-4 py-2">
                           <div className="font-medium">
-                            {detail.product_detail?.product?.name ?? "N/A"}
+                            {detail.product_name}
                           </div>
                         </td>
-                        <td className="px-4 py-2">
-                          {detail.product_detail?.variant_name || "N/A"}
-                        </td>
-                        <td className="px-4 py-2">
-                          {detail.quantity ?? "N/A"}
-                        </td>
+                        <td className="px-4 py-2">{detail.variant_name}</td>
+                        <td className="px-4 py-2">{detail.quantity}</td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={3} className="px-4 py-2 text-center text-gray-500">
+                      <td
+                        colSpan={3}
+                        className="px-4 py-2 text-center text-gray-500"
+                      >
                         Tidak ada detail blending tersedia.
                       </td>
                     </tr>
@@ -191,6 +160,13 @@ export const BlendingDetail = () => {
                 </tbody>
               </table>
             </div>
+
+            {blendData.details.total > blendData.details.per_page && (
+              <div className="mt-2 text-xs text-gray-500">
+                Menampilkan {blendData.details.data.length} dari{" "}
+                {blendData.details.total} item
+              </div>
+            )}
           </div>
         </div>
       </div>
