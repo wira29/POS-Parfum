@@ -14,7 +14,7 @@ function App() {
 
   useEffect(() => {
     if(getToken() && !isAuth) updateUser()
-  }, [])
+  }, []) 
 
   return (
     <RouterProvider router={router} />
