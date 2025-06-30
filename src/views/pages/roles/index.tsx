@@ -78,7 +78,7 @@ export default function RolePage() {
     <div className="p-6 space-y-6">
       <Breadcrumb 
         title="Daftar Role" 
-        desc="Lorem ipsum dolor sit amet, consectetur adipiscing"
+        desc="Kelola role yang ada di sistem Anda."
       />
 
       <div>

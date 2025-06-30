@@ -12,6 +12,7 @@ import { AiOutlineFileSearch } from "react-icons/ai";
 import { Wallet2Icon } from "lucide-react";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Toaster } from "@/core/helpers/BaseAlert";
+import { ShoppingCart } from "react-feather";
 
 const menuItems = [
   { label: "Beranda", icon: <FiHome />, path: "/dashboard", roles: ["admin", "warehouse", "owner", "outlet"] },
@@ -39,7 +40,7 @@ const menuItems = [
     children: [
       { label: "Kategori", icon: <FiLayers />, path: "/categories", roles: ["warehouse", "outlet"] },
       { label: "Produk", icon: <FiBox />, path: "/products", roles: ["owner", "warehouse", "outlet"] },
-      { label: "Bundling", icon: <FiBox />, path: "/bundlings", roles: ["owner", "warehouse", "outlet"] },
+      { label: "Bundling", icon: <ShoppingCart size={16} />, path: "/bundlings", roles: ["owner", "warehouse", "outlet"] },
       { label: "Blending Produk", icon: <FiCoffee />, path: "/blendings", roles: ["warehouse"] },
       { label: "Unit", icon: <LayoutGrid />, path: "/units", roles: ["admin", "warehouse", "retail"] },
       { label: "Audit", icon: <AiOutlineFileSearch />, path: "/audit", roles: ["admin", "outlet"] },

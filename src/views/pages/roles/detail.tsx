@@ -190,7 +190,7 @@ export default function RoleDetail() {
     <div className="p-6 space-y-6">
       <Breadcrumb
         title="Detail Role"
-        desc="Lorem ipsum dolor sit amet, consectetur adipiscing"
+        desc="Kelola detail role yang ada di sistem Anda."
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

@@ -60,7 +60,6 @@ export const ProductEdit = () => {
                 setImages(data.image ? [data.image] : []);
                 setDescription(data.description || "");
 
-                // Support both product_detail and product_details
                 const details = data.product_detail || data.product_details || [];
                 if (!details.length) {
                     setVariations([]);

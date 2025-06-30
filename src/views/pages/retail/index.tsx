@@ -41,7 +41,7 @@ export const RetailIndex = () => {
         image: ImageHelper(item.image),
         telp: item.telp,
         address: item.address,
-        owner: item.pemilik_outlet || "-", // ambil dari field pemilik_outlet
+        owner: item.pemilik_outlet || "-", 
         location: item.store?.name || "-",
       }));
 
@@ -63,7 +63,6 @@ export const RetailIndex = () => {
 
   useEffect(() => {
     fetchRetails();
-    // eslint-disable-next-line
   }, [page]);
 
   const handleDropdownToggle = (id: string) => {
