@@ -9,11 +9,13 @@ import { Barcode, DollarSign, ImageIcon, Plus, Info, X } from "lucide-react";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Toaster } from "@/core/helpers/BaseAlert";
 import InputManyText from "@/views/components/Input-v2/InputManyText";
+import { LoadingCards } from "@/views/components/Loading";
 
 export const ProductEdit = () => {
     const navigate = useNavigate();
     const apiClient = useApiClient();
     const { id } = useParams();
+    const [loading,setLoading] =useState(false);
 
     const [categories, setCategories] = useState([]);
     const [images, setImages] = useState([]);
@@ -37,13 +39,16 @@ export const ProductEdit = () => {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
+                setLoading(true)
                 const res = await apiClient.get("/categories");
                 const mapped = res.data?.data?.map((cat) => ({
                     value: String(cat.id),
                     label: cat.name,
                 })) || [];
                 setCategories(mapped);
-            } catch (error) { }
+            } catch (error) { }finally{
+                setLoading(false)
+            }
         };
         fetchCategories();
     }, []);
@@ -51,6 +56,7 @@ export const ProductEdit = () => {
     useEffect(() => {
         const fetchProduct = async () => {
             try {
+                setLoading(true)
                 const res = await apiClient.get(`/products/${id}`);
                 const data = res.data?.data;
                 if (!data) return;
@@ -113,7 +119,9 @@ export const ProductEdit = () => {
                     setPrice(Number(newVariantMatrix[0].prices[0]));
                     setStock(Number(newVariantMatrix[0].stocks[0]));
                 }
-            } catch (error) { }
+            } catch (error) { }finally{
+                setLoading(false)
+            }
         };
         fetchProduct();
     }, [id]);
@@ -351,6 +359,8 @@ export const ProductEdit = () => {
     };
 
     const labelClass = "block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2";
+
+    if (loading) return <LoadingCards/> 
 
     return (
         <div className="p-4 md:p-6">

@@ -7,6 +7,7 @@ import { Filter } from "@/views/components/Filter";
 import ViewIcon from "@/views/components/ViewIcon";
 import { X } from "lucide-react";
 import { useApiClient } from "@/core/helpers/ApiClient";
+import { LoadingColumn } from "@/views/components/Loading";
 
 interface BlendingProduct {
   id: number;
@@ -39,92 +40,71 @@ export default function BlendingIndex() {
   const ApiClient = useApiClient();
   const [blendingData, setBlendingData] = useState<BlendingProduct[]>([]);
   const [showFilter, setShowFilter] = useState(false);
-  const [activeTab, setActiveTab] = useState<'date' | 'quantity'>('date');
+  const [totalData, setTotalData] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<"date" | "quantity">("date");
   const [filters, setFilters] = useState<FilterState>({
-    dateFrom: '',
-    dateTo: '',
-    quantityFrom: '',
-    quantityTo: ''
+    dateFrom: "",
+    dateTo: "",
+    quantityFrom: "",
+    quantityTo: "",
   });
   const [tempFilters, setTempFilters] = useState<FilterState>({
-    dateFrom: '',
-    dateTo: '',
-    quantityFrom: '',
-    quantityTo: ''
+    dateFrom: "",
+    dateTo: "",
+    quantityFrom: "",
+    quantityTo: "",
   });
 
   const getData = async () => {
-    try {
-      const response = await ApiClient.get("/product-blend?per_page=100");
-      const apiData = response.data.data ?? [];
-      console.log(apiData);
-      
+  try {
+    setLoading(true);
+    const response = await ApiClient.get(
+      `/product-blend?page=${currentPage}&per_page=${itemsPerPage}`
+    );
 
-      const transformed: BlendingProduct[] = apiData.map((item: any) => ({
-        id: item.id,
-        nama: item.product?.blend_name || "Tanpa Nama",
-        tanggalPembuatan: item.date || "",
-        kategori: "-",
-        stok: item.quantity ? `${item.quantity}G` : "-",
-        hargaNormal: "-",
-        hargaDiskon: "-",
-        status: "-",
-        products:
-          item.product_blend_details?.map((detail: any) => ({
-            nama: detail.product_detail?.product?.name ?? "Produk Tanpa Nama",
-            harga: "-",
-            gambar: "/img/default.png",
-            variants: [],
-          })) ?? [],
-      }));
+    const apiData = response.data.data ?? [];
+    // console.log(apiData);
+    
+    const meta = response.data.pagination;
 
-      setBlendingData(transformed);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      setBlendingData([]);
-    }
-  };
+    const transformed: BlendingProduct[] = apiData.map((item: any) => ({
+      id: item.id,
+      nama: item.product?.blend_name || "Tanpa Nama",
+      tanggalPembuatan: item.date || "",
+      kategori: "-",
+      stok: item.quantity ? `${item.quantity}G` : "-",
+      hargaNormal: "-",
+      hargaDiskon: "-",
+      status: "-",
+      products:
+        item.product_blend_details?.map((detail: any) => ({
+          nama: detail.product_detail?.product?.name ?? "Produk Tanpa Nama",
+          harga: "-",
+          gambar: "/img/default.png",
+          variants: [],
+        })) ?? [],
+    }));
+    setBlendingData(transformed);
+    setTotalData(meta.total);
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    setBlendingData([]);
+    setTotalData(0);
+  } finally {
+    setLoading(false);
+  }
+};
 
-  useEffect(() => {
-    getData();
-  }, []);
 
-  const filteredData = blendingData.filter((item) => {
-    const matchSearch =
-      item.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.kategori.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.status.toLowerCase().includes(searchQuery.toLowerCase());
+useEffect(() => {
+  getData();
+}, [currentPage]);
 
-    let matchDate = true;
-    if (filters.dateFrom || filters.dateTo) {
-      const itemDate = new Date(item.tanggalPembuatan);
-      if (filters.dateFrom) {
-        matchDate = matchDate && itemDate >= new Date(filters.dateFrom);
-      }
-      if (filters.dateTo) {
-        matchDate = matchDate && itemDate <= new Date(filters.dateTo);
-      }
-    }
 
-    let matchQuantity = true;
-    if (filters.quantityFrom || filters.quantityTo) {
-      const itemQuantity = parseInt(item.stok.replace('G', '')) || 0;
-      if (filters.quantityFrom) {
-        matchQuantity = matchQuantity && itemQuantity >= parseInt(filters.quantityFrom);
-      }
-      if (filters.quantityTo) {
-        matchQuantity = matchQuantity && itemQuantity <= parseInt(filters.quantityTo);
-      }
-    }
+const paginatedData = blendingData;
+const totalPages = Math.ceil(totalData / itemsPerPage);
 
-    return matchSearch && matchDate && matchQuantity;
-  });
-
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const paginatedData = filteredData.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
 
   const handleFilterOpen = () => {
     setTempFilters({ ...filters });
@@ -139,10 +119,10 @@ export default function BlendingIndex() {
 
   const handleFilterReset = () => {
     const resetFilters = {
-      dateFrom: '',
-      dateTo: '',
-      quantityFrom: '',
-      quantityTo: ''
+      dateFrom: "",
+      dateTo: "",
+      quantityFrom: "",
+      quantityTo: "",
     };
     setTempFilters(resetFilters);
     setFilters(resetFilters);
@@ -153,8 +133,8 @@ export default function BlendingIndex() {
   return (
     <div className="p-6 space-y-6">
       <Breadcrumb
-        title="Blending Produk"
-        desc="Menampilkan blending yang aktif"
+        title="Pembuatan Blending Produk"
+        desc="Tampilan daftar blending produk yang sedang aktif"
       />
       <div className="bg-white shadow-md p-4 rounded-md flex flex-col gap-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -184,7 +164,13 @@ export default function BlendingIndex() {
               </tr>
             </thead>
             <tbody>
-              {paginatedData.length === 0 ? (
+              {loading ? (
+                <tr>
+                  <td className="px-6 py-4" colSpan={4}>
+                      <LoadingColumn column={4}/>
+                  </td>
+                </tr>
+              ) : paginatedData.length === 0 ? (
                 <tr>
                   <td
                     colSpan={4}
@@ -231,7 +217,7 @@ export default function BlendingIndex() {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 text-sm text-muted-foreground">
-          <span className="text-gray-700">{filteredData.length} Data</span>
+          <span className="text-gray-700">{totalData} Data</span>
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -240,7 +226,6 @@ export default function BlendingIndex() {
         </div>
       </div>
 
-      {/* Enhanced Filter Modal */}
       {showFilter && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
@@ -250,9 +235,7 @@ export default function BlendingIndex() {
         >
           <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-xl font-semibold text-gray-900">
-                Filter
-              </h3>
+              <h3 className="text-xl font-semibold text-gray-900">Filter</h3>
               <button
                 onClick={() => setShowFilter(false)}
                 className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
@@ -264,28 +247,28 @@ export default function BlendingIndex() {
             <div className="p-6">
               <div className="flex border-b border-gray-200 mb-6">
                 <button
-                  onClick={() => setActiveTab('date')}
+                  onClick={() => setActiveTab("date")}
                   className={`px-4 py-2 text-sm font-medium border-b-2 cursor-pointer transition-colors ${
-                    activeTab === 'date'
-                      ? 'text-blue-600 border-blue-600'
-                      : 'text-gray-500 border-transparent hover:text-gray-700'
+                    activeTab === "date"
+                      ? "text-blue-600 border-blue-600"
+                      : "text-gray-500 border-transparent hover:text-gray-700"
                   }`}
                 >
                   Tanggal Pembuatan
                 </button>
                 <button
-                  onClick={() => setActiveTab('quantity')}
+                  onClick={() => setActiveTab("quantity")}
                   className={`px-4 py-2 text-sm font-medium border-b-2 cursor-pointer transition-colors ml-8 ${
-                    activeTab === 'quantity'
-                      ? 'text-blue-600 border-blue-600'
-                      : 'text-gray-500 border-transparent hover:text-gray-700'
+                    activeTab === "quantity"
+                      ? "text-blue-600 border-blue-600"
+                      : "text-gray-500 border-transparent hover:text-gray-700"
                   }`}
                 >
                   Quantity
                 </button>
               </div>
 
-              {activeTab === 'date' && (
+              {activeTab === "date" && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -296,10 +279,12 @@ export default function BlendingIndex() {
                         <input
                           type="date"
                           value={tempFilters.dateFrom}
-                          onChange={(e) => setTempFilters({
-                            ...tempFilters,
-                            dateFrom: e.target.value
-                          })}
+                          onChange={(e) =>
+                            setTempFilters({
+                              ...tempFilters,
+                              dateFrom: e.target.value,
+                            })
+                          }
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
                       </div>
@@ -312,10 +297,12 @@ export default function BlendingIndex() {
                         <input
                           type="date"
                           value={tempFilters.dateTo}
-                          onChange={(e) => setTempFilters({
-                            ...tempFilters,
-                            dateTo: e.target.value
-                          })}
+                          onChange={(e) =>
+                            setTempFilters({
+                              ...tempFilters,
+                              dateTo: e.target.value,
+                            })
+                          }
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
                       </div>
@@ -324,7 +311,7 @@ export default function BlendingIndex() {
                 </div>
               )}
 
-              {activeTab === 'quantity' && (
+              {activeTab === "quantity" && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -335,10 +322,12 @@ export default function BlendingIndex() {
                         type="number"
                         placeholder="From"
                         value={tempFilters.quantityFrom}
-                        onChange={(e) => setTempFilters({
-                          ...tempFilters,
-                          quantityFrom: e.target.value
-                        })}
+                        onChange={(e) =>
+                          setTempFilters({
+                            ...tempFilters,
+                            quantityFrom: e.target.value,
+                          })
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
                     </div>
@@ -350,10 +339,12 @@ export default function BlendingIndex() {
                         type="number"
                         placeholder="To"
                         value={tempFilters.quantityTo}
-                        onChange={(e) => setTempFilters({
-                          ...tempFilters,
-                          quantityTo: e.target.value
-                        })}
+                        onChange={(e) =>
+                          setTempFilters({
+                            ...tempFilters,
+                            quantityTo: e.target.value,
+                          })
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
                     </div>

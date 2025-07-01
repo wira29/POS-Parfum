@@ -7,6 +7,7 @@ import { NoData } from "@/views/components/NoData";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import Swal from "sweetalert2";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
+import { LoadingCards } from "@/views/components/Loading";
 
 interface Retail {
   id: string;
@@ -41,7 +42,7 @@ export const RetailIndex = () => {
         image: ImageHelper(item.image),
         telp: item.telp,
         address: item.address,
-        owner: item.pemilik_outlet || "-", // ambil dari field pemilik_outlet
+        owner: item.pemilik_outlet || "-",
         location: item.store?.name || "-",
       }));
 
@@ -63,7 +64,6 @@ export const RetailIndex = () => {
 
   useEffect(() => {
     fetchRetails();
-    // eslint-disable-next-line
   }, [page]);
 
   const handleDropdownToggle = (id: string) => {
@@ -140,7 +140,9 @@ export const RetailIndex = () => {
         </div>
 
         {loading ? (
-          <p>Loading...</p>
+          <>
+          <LoadingCards/>
+          </>
         ) : filteredRetails.length === 0 ? (
           <div className="bg-white rounded-xl p-6">
             <NoData img_size={300} />

@@ -8,6 +8,7 @@ import Swal from "sweetalert2";
 import { ReactNode } from "react";
 import { UserFilterModal } from "@/views/components/filter/UserFilter";
 import { Filter } from "@/views/components/Filter";
+import { LoadingCards } from "@/views/components/Loading";
 
 type User = {
   [x: string]: ReactNode;
@@ -173,7 +174,9 @@ export default function UserPage() {
       </div>
 
       {loading ? (
-        <div className="text-gray-600">Memuat data pengguna...</div>
+        <>
+        <LoadingCards/>
+        </>
       ) : filteredUsers.length === 0 ? (
         <div className="text-gray-500">Tidak ada pengguna ditemukan.</div>
       ) : (

@@ -11,6 +11,7 @@ import { Toaster } from "@/core/helpers/BaseAlert";
 import ViewIcon from "@/views/components/ViewIcon";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { FormatTime } from "@/core/helpers/FormatTime";
+import { LoadingColumn } from "@/views/components/Loading";
 
 const FilterModal = ({
   open,
@@ -31,6 +32,10 @@ const FilterModal = ({
   setTanggalMulaiFilter,
   tanggalBerakhirFilter,
   setTanggalBerakhirFilter,
+  sortByFilter,
+  setSortByFilter,
+  sortDirectionFilter,
+  setSortDirectionFilter,
   onApplyFilter,
   onResetFilter,
   statusOptions,
@@ -40,53 +45,80 @@ const FilterModal = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="font-semibold text-xl mb-6 text-gray-800">Filter Data</div>
-        
+        <div className="font-semibold text-xl mb-6 text-gray-800">
+          Filter Data
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-6">
             <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700">Jenis</label>
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                Jenis
+              </label>
               <div className="relative">
                 <select
                   className="w-full border border-gray-300 rounded-md px-3 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
                   value={jenisFilter}
                   onChange={(e) => setJenisFilter(e.target.value)}
                 >
+                  <option value="">Semua</option>
                   <option value="persentage">Persen (%)</option>
                   <option value="nominal">Nominal (Rp)</option>
                 </select>
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <svg
+                    className="w-5 h-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </div>
               </div>
             </div>
 
             <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700">Status</label>
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                Status
+              </label>
               <div className="relative">
                 <select
                   className="w-full border border-gray-300 rounded-md px-3 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                 >
-                  {statusOptions.map((status: any, index: number) => (
-                    <option key={index} value={status.value}>
-                      {status.label}
-                    </option>
-                  ))}
+                  <option value="">Semua</option>
+                  <option value="1">Aktif</option>
+                  <option value="0">Tidak Aktif</option>
                 </select>
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <svg
+                    className="w-5 h-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </div>
               </div>
             </div>
 
             <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700">Minimum Nilai Diskon</label>
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                Minimum Nilai Diskon
+              </label>
               <input
                 type="number"
                 className="w-full border border-gray-300 rounded-md px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -97,7 +129,9 @@ const FilterModal = ({
             </div>
 
             <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700">Tanggal Mulai</label>
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                Tanggal Mulai
+              </label>
               <div className="relative">
                 <input
                   type="date"
@@ -111,7 +145,9 @@ const FilterModal = ({
 
           <div className="space-y-6">
             <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700">Nilai</label>
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                Nilai
+              </label>
               <div className="relative">
                 <input
                   type="number"
@@ -124,27 +160,43 @@ const FilterModal = ({
             </div>
 
             <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700">Diskon Untuk</label>
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                Diskon Untuk
+              </label>
               <div className="relative">
                 <select
                   className="w-full border border-gray-300 rounded-md px-3 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
                   value={memberFilter}
-                  onChange={(e) => {setMemberFilter(e.target.value)}}
+                  onChange={(e) => {
+                    setMemberFilter(e.target.value);
+                  }}
                 >
+                  <option value="">Semua</option>
                   <option value="1">Member</option>
                   <option value="0">Non Member</option>
-                  <option value="all">Semua</option>
                 </select>
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <svg
+                    className="w-5 h-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </div>
               </div>
             </div>
 
             <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700">Maksimum Nilai Diskon</label>
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                Maksimum Nilai Diskon
+              </label>
               <input
                 type="number"
                 className="w-full border border-gray-300 rounded-md px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -155,7 +207,9 @@ const FilterModal = ({
             </div>
 
             <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700">Tanggal Berakhir</label>
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                Tanggal Berakhir
+              </label>
               <div className="relative">
                 <input
                   type="date"
@@ -170,19 +224,19 @@ const FilterModal = ({
 
         <div className="flex justify-end gap-3 mt-8">
           <button
-            className="px-8 py-3 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+            className="px-8 py-3 rounded-md cursor-pointer border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors font-medium"
             onClick={onResetFilter}
           >
             Reset
           </button>
           <button
-            className="px-8 py-3 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+            className="px-8 py-3 rounded-md cursor-pointer border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors font-medium"
             onClick={onClose}
           >
             Batal
           </button>
           <button
-            className="px-8 py-3 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors font-medium"
+            className="px-8 py-3 rounded-md cursor-pointer bg-blue-600 text-white hover:bg-blue-700 transition-colors font-medium"
             onClick={() => {
               onApplyFilter();
               onClose();
@@ -202,8 +256,8 @@ interface Voucher {
   end_date: string | null;
   start_date: string | null;
   min: number;
-  percentage:string;
-  nominal:string;
+  percentage: string;
+  nominal: string;
   max_used: number;
   discount: number;
   variant_name: string;
@@ -229,8 +283,6 @@ export default function DiscountIndex() {
   const perPage = 8;
 
   const [showFilter, setShowFilter] = useState(false);
-  const [namaDiskonFilter, setNamaDiskonFilter] = useState("");
-  const [namaVariantFilter, setNamaVariantFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [memberFilter, setMemberFilter] = useState("");
   const [jenisFilter, setJenisFilter] = useState("");
@@ -239,6 +291,8 @@ export default function DiscountIndex() {
   const [maxNilaiFilter, setMaxNilaiFilter] = useState("");
   const [tanggalMulaiFilter, setTanggalMulaiFilter] = useState("");
   const [tanggalBerakhirFilter, setTanggalBerakhirFilter] = useState("");
+  const [sortByFilter, setSortByFilter] = useState("");
+  const [sortDirectionFilter, setSortDirectionFilter] = useState("");
 
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -249,7 +303,7 @@ export default function DiscountIndex() {
 
   async function fetchAllVouchers() {
     try {
-      const response = await ApiClient.get('/discount-vouchers?per_page=1000');
+      const response = await ApiClient.get("/discount-vouchers?per_page=1000");
       if (response.data.success) {
         const apiData = response.data.data.map((item: any) => ({
           id: item.id,
@@ -257,26 +311,38 @@ export default function DiscountIndex() {
           expired: item.expired,
           min: item.min,
           max_used: item.max_used,
-          variant_name: item.details?.variant_name || '',
+          variant_name: item.details?.variant_name || "",
           code_product: item.code_product,
           discount: item.discount,
           category: item.type,
           used: item.used,
           active: item.active,
           store: {
-            id: item.store?.id || '',
-            name: item.store?.name || '',
+            id: item.store?.id || "",
+            name: item.store?.name || "",
           },
         }));
 
         setAllVouchers(apiData);
-        
-        const uniqueNames = [...new Set(apiData.map((v: Voucher) => v.name).filter(Boolean))];
-        const uniqueVariants = [...new Set(apiData.map((v: Voucher) => v.variant_name).filter(Boolean))];
-        const uniqueStatuses = [...new Set(apiData.map((v: Voucher) => ({
-          value: v.active.toString(),
-          label: v.active === 1 ? 'Aktif' : 'Tidak Aktif'
-        })).map(s => JSON.stringify(s)))].map(s => JSON.parse(s));
+
+        const uniqueNames = [
+          ...new Set(apiData.map((v: Voucher) => v.name).filter(Boolean)),
+        ];
+        const uniqueVariants = [
+          ...new Set(
+            apiData.map((v: Voucher) => v.variant_name).filter(Boolean)
+          ),
+        ];
+        const uniqueStatuses = [
+          ...new Set(
+            apiData
+              .map((v: Voucher) => ({
+                value: v.active.toString(),
+                label: v.active === 1 ? "Aktif" : "Tidak Aktif",
+              }))
+              .map((s) => JSON.stringify(s))
+          ),
+        ].map((s) => JSON.parse(s));
 
         setNamaDiskonOptions(uniqueNames);
         setNamaVariantOptions(uniqueVariants);
@@ -288,28 +354,25 @@ export default function DiscountIndex() {
   }
 
   async function fetchVouchers(page = 1) {
-    setLoading(true);
     setError(null);
     try {
+      setLoading(true);
       let url = `/discount-vouchers?per_page=${perPage}&page=${page}`;
 
       if (searchQuery) {
         url += `&search=${encodeURIComponent(searchQuery)}`;
       }
-      if (namaDiskonFilter) {
-        url += `&name=${encodeURIComponent(namaDiskonFilter)}`;
-      }
-      if (namaVariantFilter) {
-        url += `&variant=${encodeURIComponent(namaVariantFilter)}`;
-      }
-      if (statusFilter !== "") {
+      if (statusFilter) {
         url += `&active=${statusFilter}`;
+      }
+      if (memberFilter) {
+        url += `&is_member=${memberFilter}`;
       }
       if (jenisFilter) {
         url += `&type=${jenisFilter}`;
       }
       if (nilaiFilter) {
-        url += `&discount=${nilaiFilter}`;
+        url += `&amount=${nilaiFilter}`;
       }
       if (minNilaiFilter) {
         url += `&min_discount=${minNilaiFilter}`;
@@ -323,26 +386,31 @@ export default function DiscountIndex() {
       if (tanggalBerakhirFilter) {
         url += `&end_date=${tanggalBerakhirFilter}`;
       }
+      if (sortByFilter) {
+        url += `&sort_by=${sortByFilter}`;
+      }
+      if (sortDirectionFilter) {
+        url += `&sort_direction=${sortDirectionFilter}`;
+      }
 
-      const response = await ApiClient.get(url);           
-       
+      const response = await ApiClient.get(url);
+
       if (response.data.success) {
         const apiData = response.data.data.map((item: any) => ({
-          id:item.id,
+          id: item.id,
           name: item.name,
           start_date: FormatTime(item.start_date),
           end_date: FormatTime(item.end_date),
-          nominal:item.nominal,
-          type:item.type,
-          percentage:item.percentage,
+          nominal: item.nominal,
+          type: item.type,
+          percentage: item.percentage,
           min: item.minimum_purchase,
           active: item.active,
           store: {
-            id: item.store?.id || '',
-            name: item.store?.name || '',
+            id: item.store?.id || "",
+            name: item.store?.name || "",
           },
         }));
-
         setVouchers(apiData);
         setTotalPages(response.data.pagination.last_page);
         setTotalItems(response.data.pagination.total);
@@ -398,15 +466,16 @@ export default function DiscountIndex() {
   }
 
   function resetFilter() {
-    setNamaDiskonFilter("");
-    setNamaVariantFilter("");
     setStatusFilter("");
+    setMemberFilter("");
     setJenisFilter("");
     setNilaiFilter("");
     setMinNilaiFilter("");
     setMaxNilaiFilter("");
     setTanggalMulaiFilter("");
     setTanggalBerakhirFilter("");
+    setSortByFilter("");
+    setSortDirectionFilter("");
     setCurrentPage(1);
     setShowFilter(false);
     fetchVouchers(1);
@@ -419,13 +488,25 @@ export default function DiscountIndex() {
     return `${value}%`;
   };
 
-
-  const hasActiveFilters = namaDiskonFilter || namaVariantFilter || statusFilter || jenisFilter || 
-                          nilaiFilter || minNilaiFilter || maxNilaiFilter || tanggalMulaiFilter || tanggalBerakhirFilter;
+  const hasActiveFilters =
+    statusFilter ||
+    memberFilter ||
+    jenisFilter ||
+    nilaiFilter ||
+    minNilaiFilter ||
+    maxNilaiFilter ||
+    tanggalMulaiFilter ||
+    tanggalBerakhirFilter ||
+    sortByFilter ||
+    sortDirectionFilter;
 
   return (
     <div className="p-6 space-y-6">
-      <Breadcrumb title="Diskon Produk" desc="Menampilkan diskon yang aktif" />
+      <Breadcrumb
+        title="Pengelolaan Diskon Produk"
+        desc="Tampilan daftar diskon produk yang sedang aktif"
+      />
+      
       <div className="bg-white shadow-md p-4 rounded-md flex flex-col gap-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2 mb-4 w-full sm:w-auto max-w-lg">
@@ -477,7 +558,11 @@ export default function DiscountIndex() {
                   className="border-b border-gray-200 text-gray-600 hover:bg-gray-50"
                 >
                   <td className="px-6 py-4">{item.name || "-"}</td>
-                  <td className="px-6 py-4">{formatDiscount(item.percentage ? item.percentage : item.nominal)}</td>
+                  <td className="px-6 py-4">
+                    {formatDiscount(
+                      item.percentage ? item.percentage : item.nominal
+                    )}
+                  </td>
                   <td className="px-6 py-4 text-center">
                     {`${item.start_date} - ${item.end_date}`}
                   </td>
@@ -504,9 +589,13 @@ export default function DiscountIndex() {
                   </td>
                 </tr>
               ))}
-              {loading && <tr>
-                <td  className="px-6 py-4 text-center text-gray-500" colSpan={7}>Loading...</td>
-                </tr>}
+              {loading && (
+                <tr>
+                  <td colSpan={5}>
+                   <LoadingColumn column={3}/>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -524,16 +613,12 @@ export default function DiscountIndex() {
       <FilterModal
         open={showFilter}
         onClose={() => setShowFilter(false)}
-        namaDiskonFilter={namaDiskonFilter}
-        setNamaDiskonFilter={setNamaDiskonFilter}
-        namaVariantFilter={namaVariantFilter}
-        setNamaVariantFilter={setNamaVariantFilter}
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
         jenisFilter={jenisFilter}
-        setMemberFilter={setMemberFilter}
-        memberFilter={memberFilter}
         setJenisFilter={setJenisFilter}
+        memberFilter={memberFilter}
+        setMemberFilter={setMemberFilter}
         nilaiFilter={nilaiFilter}
         setNilaiFilter={setNilaiFilter}
         minNilaiFilter={minNilaiFilter}
@@ -544,10 +629,12 @@ export default function DiscountIndex() {
         setTanggalMulaiFilter={setTanggalMulaiFilter}
         tanggalBerakhirFilter={tanggalBerakhirFilter}
         setTanggalBerakhirFilter={setTanggalBerakhirFilter}
+        sortByFilter={sortByFilter}
+        setSortByFilter={setSortByFilter}
+        sortDirectionFilter={sortDirectionFilter}
+        setSortDirectionFilter={setSortDirectionFilter}
         onApplyFilter={applyFilter}
         onResetFilter={resetFilter}
-        namaDiskonOptions={namaDiskonOptions}
-        namaVariantOptions={namaVariantOptions}
         statusOptions={statusOptions}
       />
     </div>

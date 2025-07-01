@@ -1,4 +1,4 @@
-import React from "react";
+import { ImageHelper } from "@/core/helpers/ImageHelper";
 
 interface PreviewCardProps {
   images: (File | string)[];
@@ -10,11 +10,11 @@ interface PreviewCardProps {
   variantImages?: (File | string)[][];
 }
 
-const getImageUrl = (img: File | string) => {
-  if (typeof img === "string") return img;
-  if (img instanceof File) return URL.createObjectURL(img);
-  return "";
-};
+// const getImageUrl = (img: File | string) => {
+//   if (typeof img === "string") return img;
+//   if (img instanceof File) return URL.createObjectURL(img);
+//   return "";
+// };
 
 const PreviewCard = ({
   images,
@@ -32,7 +32,7 @@ const PreviewCard = ({
     <div className="rounded-lg overflow-hidden aspect-square shadow mb-2">
       {images[0] ? (
         <img
-          src={getImageUrl(images[0])}
+          src={ImageHelper(images[0])}
           alt="Preview Utama"
           className="w-full h-full object-cover"
         />
@@ -47,7 +47,7 @@ const PreviewCard = ({
       {images.map((img, i) => (
         <img
           key={i}
-          src={getImageUrl(img)}
+          src={ImageHelper(img)}
           alt={`thumb-${i}`}
           className="w-12 h-12 object-cover rounded shadow"
         />
@@ -57,7 +57,7 @@ const PreviewCard = ({
           img ? (
             <img
               key={`variant-${i}-${j}`}
-              src={getImageUrl(img)}
+              src={ImageHelper(img)}
               alt={`variant-${i}-${j}`}
               className="w-12 h-12 object-cover rounded shadow border border-blue-400"
             />

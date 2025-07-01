@@ -10,6 +10,7 @@ import { Filter } from "@/views/components/Filter";
 import { Toaster } from "@/core/helpers/BaseAlert";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { CategoryFilterModal } from "@/views/components/filter/CategoryFilterModal";
+import { LoadingColumn } from "@/views/components/Loading";
 
 interface Category {
   id: number;
@@ -28,6 +29,7 @@ export const CategoryIndex = () => {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [showFilter, setShowFilter] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [loading,setLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [totalData, setTotalData] = useState(0);
   const [perPage, setPerPage] = useState(8);
@@ -46,7 +48,7 @@ export const CategoryIndex = () => {
 
       if (startDate) queryParams.append("start_date", startDate);
       if (endDate) queryParams.append("end_date", endDate);
-
+      setLoading(true)
       const response = await ApiClient.get(
         `/categories?${queryParams.toString()}`
       );
@@ -70,6 +72,8 @@ export const CategoryIndex = () => {
       console.error("Error fetching categories:", error);
       setCategories([]);
       setTotalData(0);
+    }finally{
+      setLoading(false)
     }
   };
 
@@ -308,42 +312,49 @@ export const CategoryIndex = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredData.length === 0 ? (
+              {loading ? (
                 <tr>
-                  <td
-                    colSpan={5}
-                    className="px-6 py-4 text-center text-gray-500"
-                  >
-                    Tidak ada data ditemukan.
+                  <td colSpan={5}>
+                  <LoadingColumn column={3}/>
                   </td>
                 </tr>
-              ) : (
-                filteredData.map((item, index) => (
-                  <tr
-                    key={index}
-                    className="border-b border-gray-200 text-gray-600 hover:bg-gray-50"
-                  >
-                    <td className="px-6 py-4">{item.name}</td>
-                    <td className="px-6 py-4">{item.products_count} item</td>
-                    <td className="px-6 py-4">
-                      {new Date(item.created_at).toLocaleDateString("id-ID", {
-                        day: "2-digit",
-                        month: "long",
-                        year: "numeric",
-                      })}
-                    </td>
-                    <td className="px-6 py-4">{item.status}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex justify-center gap-2">
-                        <button onClick={() => openEditModal(item)}>
-                          <EditIcon className="text-blue-500 hover:text-blue-700" />
-                        </button>
-                        <DeleteIcon onClick={() => confirmDelete(item.id)} />
-                      </div>
+              ): (
+                filteredData.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="px-6 py-4 text-center text-gray-500"
+                    >
+                      Tidak ada data ditemukan.
                     </td>
                   </tr>
-                ))
-              )}
+                ) : (
+                  filteredData.map((item, index) => (
+                    <tr
+                      key={index}
+                      className="border-b border-gray-200 text-gray-600 hover:bg-gray-50"
+                    >
+                      <td className="px-6 py-4">{item.name}</td>
+                      <td className="px-6 py-4">{item.products_count} item</td>
+                      <td className="px-6 py-4">
+                        {new Date(item.created_at).toLocaleDateString("id-ID", {
+                          day: "2-digit",
+                          month: "long",
+                          year: "numeric",
+                        })}
+                      </td>
+                      <td className="px-6 py-4">{item.status}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex justify-center gap-2">
+                          <button onClick={() => openEditModal(item)}>
+                            <EditIcon className="text-blue-500 hover:text-blue-700" />
+                          </button>
+                          <DeleteIcon onClick={() => confirmDelete(item.id)} />
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ))}
             </tbody>
           </table>
         </div>

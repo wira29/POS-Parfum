@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
 import { FormatTime } from "@/core/helpers/FormatTime";
+import { LoadingCards } from "@/views/components/Loading";
 
 interface ProductDetail {
   nama: string;
@@ -130,12 +131,9 @@ export const DiscountDetail = () => {
                 nama:
                   data.product_detail?.product_name ||
                   "Produk Tidak Ditentukan",
-                varian:
-                  data.product_detail?.variant_name ||
-                  "Tidak Ada Varian",
+                varian: data.product_detail?.variant_name || "Tidak Ada Varian",
                 category:
-                  data.product_detail?.product_category ||
-                  "Tidak Ada Kategori",
+                  data.product_detail?.product_category || "Tidak Ada Kategori",
                 kode: data.product_detail?.variant_code || "N/A",
                 image: ImageHelper(data.product_detail?.product_image) || null,
               },
@@ -165,11 +163,7 @@ export const DiscountDetail = () => {
   }, [id]);
 
   if (loading) {
-    return (
-      <div className="p-4 lg:p-6 text-center text-gray-500">
-        Memuat detail diskon...
-      </div>
-    );
+    return <LoadingCards />;
   }
 
   if (error) {
@@ -347,7 +341,9 @@ export const DiscountDetail = () => {
                       <div className="flex items-center gap-2 text-blue-600 mb-1">
                         <span className="text-sm font-medium">Kode Varian</span>
                       </div>
-                      <span className="bg-blue-50 rounded-full px-2 py-1.5 text-xs font-medium text-blue-500">{produk.kode}</span>
+                      <span className="bg-blue-50 rounded-full px-2 py-1.5 text-xs font-medium text-blue-500">
+                        {produk.kode}
+                      </span>
                     </div>
                   </div>
                 </div>

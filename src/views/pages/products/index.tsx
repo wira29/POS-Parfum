@@ -14,6 +14,7 @@ import { Toaster } from "@/core/helpers/BaseAlert";
 import Swal from "sweetalert2";
 import { FilterModal } from "@/views/components/filter/ProductFilter";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
+import { LoadingColumn } from "@/views/components/Loading";
 
 export const ProductIndex = () => {
   const api = useApiClient();
@@ -128,6 +129,7 @@ export const ProductIndex = () => {
       <Breadcrumb title="Produk" desc="Daftar produk dalam sistem" />
 
       <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex gap-5">
         <SearchInput
           value={search}
           onChange={(e) => {
@@ -136,6 +138,7 @@ export const ProductIndex = () => {
           }}
         />
         <Filter onClick={() => setShowFilter(true)} />
+        </div>
         <AddButton to="/products/create">Tambah Produk</AddButton>
       </div>
 
@@ -154,7 +157,7 @@ export const ProductIndex = () => {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} className="text-center p-4">Loading...</td></tr>
+                <tr><td colSpan={6} className="text-center p-4"><LoadingColumn column={3}/></td></tr>
               ) : products.length === 0 ? (
                 <tr><td colSpan={6} className="text-center p-4">Tidak ada data produk</td></tr>
               ) : (
@@ -169,7 +172,6 @@ export const ProductIndex = () => {
                             src={ImageHelper(product.image)}
                             alt={product.name}
                             className="w-14 h-14 rounded-md object-cover"
-                            onError={e => { (e.target as HTMLImageElement).src = "/images/placeholder.jpg"; }}
                           />
                           <div>
                             <div className="font-semibold">{product.name}</div>

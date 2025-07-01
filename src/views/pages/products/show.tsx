@@ -5,6 +5,7 @@ import { Breadcrumb } from "@/views/components/Breadcrumb"
 import { ArrowLeft } from "lucide-react"
 import { ImageHelper } from "@/core/helpers/ImageHelper"
 import { useApiClient } from "@/core/helpers/ApiClient"
+import { LoadingCards } from "@/views/components/Loading"
 
 interface Variant {
   transaction_details_count?: number
@@ -111,7 +112,7 @@ export const ProductShow = () => {
     // eslint-disable-next-line
   }, [loading])
 
-  if (loading) return <p className="text-center mt-10 text-gray-500">Memuat data produk...</p>
+  if (loading) return <LoadingCards/>
   if (!product) return null
 
   const currentVariants = variantGroups[selectedMainVariant] || []
@@ -131,7 +132,6 @@ export const ProductShow = () => {
               src={mainImage ?? "/images/placeholder.jpg"}
               alt={product.name}
               className="w-full max-w-[520px] h-[450px] object-cover rounded-lg shadow-md mb-4 md:mb-0 md:mr-2"
-              onError={e => { (e.currentTarget as HTMLImageElement).src = "/images/placeholder.jpg" }}
             />
 
             <div className="flex-1 max-w-150 space-y-4">

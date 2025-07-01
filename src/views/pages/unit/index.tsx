@@ -8,6 +8,7 @@ import { useApiClient } from "@/core/helpers/ApiClient";
 import Swal from "sweetalert2";
 import { format } from "date-fns";
 import { Filter } from "@/views/components/Filter";
+import { LoadingColumn } from "@/views/components/Loading";
 
 function UnitFilter({ open, onClose, onFilter, initialFilter }) {
   const [dateFrom, setDateFrom] = useState(initialFilter.dateFrom || "");
@@ -158,7 +159,7 @@ export default function UnitPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <Breadcrumb title="Unit" desc="Unit" />
+    <Breadcrumb title="Data Unit" desc="Halaman ini menampilkan daftar unit yang terdaftar." />
 
       <div className="bg-white shadow-md rounded-2xl overflow-hidden">
         <div className="p-6 border-b border-gray-200">
@@ -173,7 +174,7 @@ export default function UnitPage() {
               <Filter onClick={() => setFilterOpen(true)} />
             </div>
             <button
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-600"
+              className="bg-blue-500 text-white px-4 py-2 cursor-pointer rounded-lg flex items-center gap-2 hover:bg-blue-600"
               onClick={() => setModalOpen(true)}
             >
               <Plus className="w-4 h-4" />
@@ -197,7 +198,7 @@ export default function UnitPage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-6 text-gray-500">Memuat data...</td>
+                  <td colSpan={6} className="text-center py-6 text-gray-500"><LoadingColumn column={3}/></td>
                 </tr>
               ) : units.length === 0 ? (
                 <tr>
@@ -218,13 +219,13 @@ export default function UnitPage() {
                             setEditUnit(unit);
                             setEditModalOpen(true);
                           }}
-                          className="p-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+                          className="p-2 bg-orange-500 cursor-pointer text-white rounded-lg hover:bg-orange-600"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(unit.id)}
-                          className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                          className="p-2 bg-red-500 text-white cursor-pointer rounded-lg hover:bg-red-600"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
