@@ -16,7 +16,7 @@ interface Variant {
   price: number
   product_image: string | null
   category?: { name: string | null } | null
-  optionName?: string // tambahan untuk opsi
+  optionName?: string
 }
 
 interface Product {
@@ -96,7 +96,6 @@ export const ProductShow = () => {
       }
     }
     if (id) fetchProduct()
-    // eslint-disable-next-line
   }, [id])
 
   const variantGroups = product ? groupVariants(product.variants) : {}
@@ -109,7 +108,6 @@ export const ProductShow = () => {
       const firstVariant = variantGroups[mainVariantNames[0]][0]
       setMainImage(firstVariant?.product_image || product?.image[0] || null)
     }
-    // eslint-disable-next-line
   }, [loading])
 
   if (loading) return <LoadingCards/>

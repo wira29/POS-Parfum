@@ -1,43 +1,19 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Toaster } from "@/core/helpers/BaseAlert";
-import { Plus, X, Info } from "lucide-react";
+import { Plus, X, Info, Image as ImageIcon } from "lucide-react";
 import VariantSelectModal from "./modal/VariantSelectModal";
-
-const DUMMY_PRODUCTS = [
-  {
-    id: 1,
-    name: "Parfum Mawar",
-    variants: [
-      { id: 101, name: "Mawar 100ml" },
-      { id: 102, name: "Mawar 50ml" },
-    ],
-  },
-  {
-    id: 2,
-    name: "Parfum Melati",
-    variants: [
-      { id: 201, name: "Melati 100ml" },
-      { id: 202, name: "Melati 50ml" },
-    ],
-  },
-  {
-    id: 3,
-    name: "Parfum Lavender",
-    variants: [
-      { id: 301, name: "Lavender 100ml" },
-      { id: 302, name: "Lavender 50ml" },
-    ],
-  },
-];
+import InputOneImage from "@/views/components/Input-v2/InputOneImage";
 
 export default function BundlingEdit() {
   const navigate = useNavigate();
   const apiClient = useApiClient();
+  const { id } = useParams();
 
   const [categories, setCategories] = useState([]);
+  const [products, setProducts] = useState([]);
   const [images, setImages] = useState([]);
   const [productName, setProductName] = useState("");
   const [productCode, setProductCode] = useState("");
@@ -47,24 +23,17 @@ export default function BundlingEdit() {
   const [errors, setErrors] = useState({});
   const [composition, setComposition] = useState([]);
   const [description, setDescription] = useState("");
+  const [materials, setMaterials] = useState([]);
 
   const [showModal, setShowModal] = useState(false);
   const [selectedVariants, setSelectedVariants] = useState([]);
   const [expandedProducts, setExpandedProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredProducts, setFilteredProducts] = useState(DUMMY_PRODUCTS);
+  const [filteredProducts, setFilteredProducts] = useState([]);
 
-  useEffect(() => {
-    if (!searchTerm) {
-      setFilteredProducts(DUMMY_PRODUCTS);
-    } else {
-      setFilteredProducts(
-        DUMMY_PRODUCTS.filter((p) =>
-          p.name.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      );
-    }
-  }, [searchTerm]);
+  const [categorySearch, setCategorySearch] = useState("");
+  const [categoryDropdown, setCategoryDropdown] = useState(false);
+  const categoryRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -76,11 +45,101 @@ export default function BundlingEdit() {
         })) || [];
         setCategories(mapped);
       } catch (error) {
-        console.error("Failed to fetch categories:", error);
+        setCategories([]);
       }
     };
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await apiClient.get("/products/no-paginate");
+        const mapped = res.data?.data?.map((p) => ({
+          id: p.id,
+          name: p.name,
+          variants: (p.product_detail || []).map((v) => ({
+            id: v.id,
+            name: v.variant_name || "Default",
+            stock: v.stock,
+            price: v.price,
+            product_code: v.product_code,
+            product_image: v.product_image,
+          })),
+        }));
+        setProducts(mapped);
+        setFilteredProducts(mapped);
+      } catch (error) {
+        setProducts([]);
+        setFilteredProducts([]);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    if (!searchTerm) {
+      setFilteredProducts(products);
+    } else {
+      setFilteredProducts(
+        products.filter((p) =>
+          p.name.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      );
+    }
+  }, [searchTerm, products]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (categoryRef.current && !categoryRef.current.contains(event.target as Node)) {
+        setCategoryDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const fetchBundling = async () => {
+      if (!id) return;
+      try {
+        const res = await apiClient.get(`/product-bundling/${id}`);
+        const data = res.data?.data;
+        setProductName(data.name || "");
+        setProductCode(data.kode_Bundling || "");
+        setPrice(data.harga || 0);
+        setStock(data.stock || 0);
+        setDescription(data.description || "");
+        setCategory(
+          categories.find((cat) => cat.label === data.category)?.value || ""
+        );
+        setComposition(
+          (data.bundling_material || []).map(
+            (mat) => {
+              // Find product and variant for display
+              const prod = products.find(p =>
+                p.variants.some(v => v.id === mat.product_detail_id)
+              );
+              const variant = prod?.variants.find(v => v.id === mat.product_detail_id);
+              if (prod && variant) {
+                return `${prod.name} - ${variant.name}`;
+              }
+              return mat.variant_name || "";
+            }
+          )
+        );
+        setMaterials(
+          (data.bundling_material || []).map((mat) => ({
+            product_detail_id: mat.product_detail_id,
+          }))
+        );
+      } catch (error) {
+        Toaster("error", "Gagal mengambil data bundling");
+      }
+    };
+    fetchBundling();
+    // eslint-disable-next-line
+  }, [id, categories, products]);
 
   useEffect(() => {
     const handler = (e) => {
@@ -91,41 +150,45 @@ export default function BundlingEdit() {
           return !(pName === productName && vName === variantName);
         })
       );
+      setMaterials((prev) =>
+        prev.filter((mat) => {
+          const prod = products.find((p) => p.name === productName);
+          const variant = prod?.variants.find((v) => v.name === variantName);
+          return !(mat.product_detail_id === variant?.id);
+        })
+      );
     };
     window.addEventListener("remove-composition", handler);
     return () => window.removeEventListener("remove-composition", handler);
-  }, []);
+  }, [products]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const formData = new FormData();
-    formData.append("name", productName);
-    formData.append("unit_type", "weight");
-    formData.append("category_id", category);
-    formData.append("description", description);
-    composition.forEach((item, idx) => {
-      formData.append(`composition[${idx}]`, item);
-    });
-    formData.append("product_details[0][category_id]", category);
-    formData.append("product_details[0][stock]", String(stock));
-    formData.append("product_details[0][price]", String(price));
-    formData.append("product_details[0][product_code]", productCode);
-    formData.append("product_details[0][variant_name]", "Default");
-    if (images.length > 0) {
-      formData.append("product_details[0][product_image]", images[0]);
-    }
+    const body = {
+      name: productName,
+      quantity: stock,
+      harga: price,
+      kode_Blend: productCode,
+      deskripsi: description,
+      category_id: category,
+      details: [
+        {
+          product_bundling_material: materials.map((mat) => ({
+            product_detail_id: mat.product_detail_id,
+          })),
+        },
+      ],
+    };
     try {
-      await apiClient.post("/products", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      navigate("/products");
-      Toaster("success", "Product berhasil dibuat");
+      await apiClient.put(`/product-bundling/${id}`, body);
+      navigate("/bundlings");
+      Toaster("success", "Bundling berhasil diupdate");
     } catch (error) {
       if (error?.response?.data?.data) {
         setErrors(error.response.data.data);
         Toaster("error", "Validasi gagal. Cek inputan Anda.");
       } else {
-        Toaster("error", "Terjadi kesalahan saat menyimpan produk.");
+        Toaster("error", "Terjadi kesalahan saat update bundling.");
       }
     }
   };
@@ -137,14 +200,24 @@ export default function BundlingEdit() {
   };
 
   const toggleSelectVariant = (productId, productName, variantId, variantName) => {
-    const exists = selectedVariants.some(
-      (v) => v.productId === productId && v.variantId === variantId
-    );
+    const exists = materials.some((mat) => mat.product_detail_id === variantId);
     if (exists) {
+      setMaterials((prev) => prev.filter((mat) => mat.product_detail_id !== variantId));
+      setComposition((prev) =>
+        prev.filter((item) => item !== `${productName} - ${variantName}`)
+      );
       setSelectedVariants((prev) =>
         prev.filter((v) => !(v.productId === productId && v.variantId === variantId))
       );
     } else {
+      setMaterials((prev) => [
+        ...prev,
+        { product_detail_id: variantId },
+      ]);
+      setComposition((prev) => [
+        ...prev,
+        `${productName} - ${variantName}`,
+      ]);
       setSelectedVariants((prev) => [
         ...prev,
         { productId, productName, variantId, variantName },
@@ -153,22 +226,26 @@ export default function BundlingEdit() {
   };
 
   const handleAddSelectedVariants = () => {
-    const newComps = [
-      ...composition,
-      ...selectedVariants.map(
-        (v) => `${v.productName} - ${v.variantName}`
-      ),
-    ];
-    setComposition(newComps);
     setSelectedVariants([]);
     setShowModal(false);
   };
 
   const handleRemoveComposition = (index) => {
+    const item = composition[index];
+    const [productName, variantName] = item.split(" - ");
+    const prod = products.find((p) => p.name === productName);
+    const variant = prod?.variants.find((v) => v.name === variantName);
     setComposition((prev) => prev.filter((_, i) => i !== index));
+    setMaterials((prev) =>
+      prev.filter((mat) => mat.product_detail_id !== variant?.id)
+    );
   };
 
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
+
+  const filteredCategories = categories.filter((cat) =>
+    cat.label.toLowerCase().includes(categorySearch.toLowerCase())
+  );
 
   return (
     <div className="p-6 space-y-6">
@@ -191,6 +268,59 @@ export default function BundlingEdit() {
                   value={productName}
                   onChange={(e) => setProductName(e.target.value)}
                 />
+              </div>
+
+              <div ref={categoryRef} className="relative">
+                <label className="block mb-1 text-sm text-gray-700">Kategori</label>
+                <div
+                  className={`w-full border ${errors.category_id ? "border-red-500" : "border-gray-300"
+                    } rounded-md px-3 py-2 text-sm text-gray-700 bg-white cursor-pointer`}
+                  onClick={() => setCategoryDropdown((v) => !v)}
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      setCategoryDropdown((v) => !v);
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  {categories.find((cat) => cat.value === category)?.label || "Pilih kategori"}
+                </div>
+                {categoryDropdown && (
+                  <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg">
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 text-sm border-b border-gray-200 focus:outline-none"
+                      placeholder="Cari kategori..."
+                      value={categorySearch}
+                      onChange={(e) => setCategorySearch(e.target.value)}
+                      autoFocus
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <div className="max-h-40 overflow-y-auto">
+                      {filteredCategories.length === 0 && (
+                        <div className="px-3 py-2 text-gray-400 text-sm">
+                          Tidak ditemukan
+                        </div>
+                      )}
+                      {filteredCategories.map((cat, index) => (
+                        <div
+                          key={`${cat.value}-${index}`}
+                          className={`px-3 py-2 text-sm hover:bg-blue-50 cursor-pointer ${cat.value === category ? "bg-blue-100" : ""
+                            }`}
+                          onClick={() => {
+                            setCategory(cat.value);
+                            setCategoryDropdown(false);
+                            setCategorySearch("");
+                          }}
+                        >
+                          {cat.label}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {errors.category_id && <div className="text-red-500 text-sm mt-1">{errors.category_id}</div>}
               </div>
 
               <div>
@@ -248,6 +378,7 @@ export default function BundlingEdit() {
                     />
                   </div>
                 </div>
+
                 <div>
                   <label className={`${labelClass} flex items-center gap-1`}>
                     Stok<span className="text-red-500">*</span>
@@ -264,23 +395,48 @@ export default function BundlingEdit() {
                   </div>
                 </div>
               </div>
-
-              <div className="flex justify-center gap-4 pt-6">
-                <button
-                  type="button"
-                  onClick={() => navigate("/bundlings")}
-                  className="px-8 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Simpan
-                </button>
+              <div className="space-y-2">
+                <label className={labelClass}>Deskripsi<span className="text-red-500">*</span></label>
+                <textarea
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Masukkan Deskripsi Produk"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
               </div>
             </div>
+          </div>
+
+          <div className="bg-white shadow rounded-2xl p-6 mt-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-blue-600">
+              <ImageIcon size={18} /> Gambar Produk
+            </h3>
+            <InputOneImage
+              images={images.length ? [images[0]] : []}
+              onImageUpload={(e) => {
+                const file = e.target.files?.[0];
+                if (file) setImages([file]);
+              }}
+              onRemoveImage={() => setImages([])}
+              label="Unggah"
+            />
+          </div>
+
+          <div className="flex justify-center gap-4 pt-6">
+            <button
+              type="button"
+              onClick={() => navigate("/bundlings")}
+              className="px-8 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Simpan
+            </button>
           </div>
         </div>
 
@@ -328,7 +484,7 @@ export default function BundlingEdit() {
         compositions={
           composition.map((item) => {
             const [productName, variantName] = item.split(" - ");
-            const product = DUMMY_PRODUCTS.find((p) => p.name === productName);
+            const product = products.find((p) => p.name === productName);
             const variant = product?.variants.find((v) => v.name === variantName);
             return { id: product && variant ? `${product.id}-${variant.id}` : "" };
           })
