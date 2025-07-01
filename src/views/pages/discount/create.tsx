@@ -26,6 +26,7 @@ export function DiscountCreate() {
     minimum_purchase: "0",
   });
   const [discountType, setDiscountType] = useState<"%" | "Rp">("Rp");
+  const [status, setStatus] = useState<number>(1);
   const [barangOptions, setBarangOptions] = useState<Option[]>([]);
   const [loading, setLoading] = useState(false);
   const [formErrors, setFormErrors] = useState<
@@ -99,6 +100,7 @@ export function DiscountCreate() {
       };
 
       setFormData(updatedFormData);
+      setStatus(data.active ?? 1);
       setDiscountType(isPercentage ? "%" : "Rp");
       setDataLoaded(true);
     } catch (err) {
@@ -211,6 +213,7 @@ export function DiscountCreate() {
       }
 
       if (id) {
+        payload.active = status;
         await apiClient.put(`/discount-vouchers/${id}`, payload);
         Toaster("success", "Berhasil mengubah diskon");
       } else {
@@ -349,6 +352,40 @@ export function DiscountCreate() {
             />
           </div>
         </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {id && (
+          <div>
+            <label className={labelClass}>Status*</label>
+            <select 
+              name="status" 
+              id="status" 
+              value={status}
+              onChange={(e) => setStatus(Number(e.target.value))}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="1">Aktif</option>
+              <option value="0">Non-Aktif</option>
+            </select>
+          </div>
+          )}
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="is_member"
+              checked={formData.is_member === 1}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  is_member: e.target.checked ? 1 : 0,
+                }))
+              }
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <label htmlFor="is_member" className="text-sm text-gray-700">
+              Diskon khusus untuk member
+            </label>
+          </div>
+        </div>
 
         <div>
           <label className={labelClass}>Deskripsi*</label>
@@ -362,24 +399,6 @@ export function DiscountCreate() {
             className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Masukkan deskripsi diskon"
           />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="is_member"
-            checked={formData.is_member === 1}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                is_member: e.target.checked ? 1 : 0,
-              }))
-            }
-            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-          />
-          <label htmlFor="is_member" className="text-sm text-gray-700">
-            Diskon khusus untuk member
-          </label>
         </div>
 
         <div className="flex gap-4 justify-end">

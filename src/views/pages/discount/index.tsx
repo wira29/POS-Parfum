@@ -32,13 +32,8 @@ const FilterModal = ({
   setTanggalMulaiFilter,
   tanggalBerakhirFilter,
   setTanggalBerakhirFilter,
-  sortByFilter,
-  setSortByFilter,
-  sortDirectionFilter,
-  setSortDirectionFilter,
   onApplyFilter,
   onResetFilter,
-  statusOptions,
 }: any) => {
   if (!open) return null;
 
@@ -259,6 +254,7 @@ interface Voucher {
   percentage: string;
   nominal: string;
   max_used: number;
+  is_member: number | string | boolean;
   discount: number;
   variant_name: string;
   code_product: string;
@@ -274,7 +270,6 @@ interface Voucher {
 export default function DiscountIndex() {
   const ApiClient = useApiClient();
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
-  const [allVouchers, setAllVouchers] = useState<Voucher[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -296,62 +291,7 @@ export default function DiscountIndex() {
 
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-
-  const [namaDiskonOptions, setNamaDiskonOptions] = useState<string[]>([]);
-  const [namaVariantOptions, setNamaVariantOptions] = useState<string[]>([]);
   const [statusOptions, setStatusOptions] = useState<any[]>([]);
-
-  async function fetchAllVouchers() {
-    try {
-      const response = await ApiClient.get("/discount-vouchers?per_page=1000");
-      if (response.data.success) {
-        const apiData = response.data.data.map((item: any) => ({
-          id: item.id,
-          name: item.name,
-          expired: item.expired,
-          min: item.min,
-          max_used: item.max_used,
-          variant_name: item.details?.variant_name || "",
-          code_product: item.code_product,
-          discount: item.discount,
-          category: item.type,
-          used: item.used,
-          active: item.active,
-          store: {
-            id: item.store?.id || "",
-            name: item.store?.name || "",
-          },
-        }));
-
-        setAllVouchers(apiData);
-
-        const uniqueNames = [
-          ...new Set(apiData.map((v: Voucher) => v.name).filter(Boolean)),
-        ];
-        const uniqueVariants = [
-          ...new Set(
-            apiData.map((v: Voucher) => v.variant_name).filter(Boolean)
-          ),
-        ];
-        const uniqueStatuses = [
-          ...new Set(
-            apiData
-              .map((v: Voucher) => ({
-                value: v.active.toString(),
-                label: v.active === 1 ? "Aktif" : "Tidak Aktif",
-              }))
-              .map((s) => JSON.stringify(s))
-          ),
-        ].map((s) => JSON.parse(s));
-
-        setNamaDiskonOptions(uniqueNames);
-        setNamaVariantOptions(uniqueVariants);
-        setStatusOptions(uniqueStatuses);
-      }
-    } catch (error) {
-      console.error("Error fetching all vouchers:", error);
-    }
-  }
 
   async function fetchVouchers(page = 1) {
     setError(null);
@@ -401,6 +341,7 @@ export default function DiscountIndex() {
           name: item.name,
           start_date: FormatTime(item.start_date),
           end_date: FormatTime(item.end_date),
+          is_member: item.is_member,
           nominal: item.nominal,
           type: item.type,
           percentage: item.percentage,
@@ -432,10 +373,6 @@ export default function DiscountIndex() {
   }
 
   useEffect(() => {
-    fetchAllVouchers();
-  }, []);
-
-  useEffect(() => {
     fetchVouchers(currentPage);
   }, [currentPage, searchQuery]);
 
@@ -452,7 +389,6 @@ export default function DiscountIndex() {
           await ApiClient.delete(`/discount-vouchers/${id}`);
           Toaster("success", "Diskon berhasil dihapus");
           fetchVouchers(currentPage);
-          fetchAllVouchers();
         } catch (error) {
           Toaster("error", "Gagal menghapus diskon");
         }
@@ -466,6 +402,8 @@ export default function DiscountIndex() {
   }
 
   function resetFilter() {
+    fetchVouchers(1);
+    setCurrentPage(1);
     setStatusFilter("");
     setMemberFilter("");
     setJenisFilter("");
@@ -476,9 +414,7 @@ export default function DiscountIndex() {
     setTanggalBerakhirFilter("");
     setSortByFilter("");
     setSortDirectionFilter("");
-    setCurrentPage(1);
     setShowFilter(false);
-    fetchVouchers(1);
   }
 
   const formatDiscount = (discount: number | string): string => {
@@ -506,7 +442,7 @@ export default function DiscountIndex() {
         title="Pengelolaan Diskon Produk"
         desc="Tampilan daftar diskon produk yang sedang aktif"
       />
-      
+
       <div className="bg-white shadow-md p-4 rounded-md flex flex-col gap-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2 mb-4 w-full sm:w-auto max-w-lg">
@@ -537,6 +473,9 @@ export default function DiscountIndex() {
                 <th className="px-6 py-4 font-medium">Nama Diskon</th>
                 <th className="px-6 py-4 font-medium">Nilai</th>
                 <th className="px-6 py-4 font-medium text-center">Waktu</th>
+                <th className="px-6 py-4 font-medium text-center">
+                  Diskon Untuk
+                </th>
                 <th className="px-6 py-4 font-medium">Status</th>
                 <th className="px-6 py-4 font-medium text-center">Aksi</th>
               </tr>
@@ -558,13 +497,24 @@ export default function DiscountIndex() {
                   className="border-b border-gray-200 text-gray-600 hover:bg-gray-50"
                 >
                   <td className="px-6 py-4">{item.name || "-"}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 font-semibold">
                     {formatDiscount(
                       item.percentage ? item.percentage : item.nominal
                     )}
                   </td>
                   <td className="px-6 py-4 text-center">
                     {`${item.start_date} - ${item.end_date}`}
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    {item.is_member ? (
+                    <span className="text-yellow-600 font-semibold bg-yellow-50 py-1 border border-yellow-500 px-5 rounded-lg">
+                      Member
+                    </span>
+                    ) : (
+                    <span className="text-blue-600 font-semibold bg-blue-50 py-1 border border-blue-500 px-5 rounded-lg">
+                      Umum
+                    </span>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     {item.active === 1 ? (
@@ -592,7 +542,7 @@ export default function DiscountIndex() {
               {loading && (
                 <tr>
                   <td colSpan={5}>
-                   <LoadingColumn column={3}/>
+                    <LoadingColumn column={3} />
                   </td>
                 </tr>
               )}

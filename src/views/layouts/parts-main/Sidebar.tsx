@@ -4,7 +4,7 @@ import {
   FiUsers, FiLayers, FiChevronDown, FiChevronUp,
 } from "react-icons/fi";
 import { LayoutGrid } from "lucide-react"
-import { FaUserTag } from "react-icons/fa6";
+import { FaMoneyBillTransfer, FaUserTag } from "react-icons/fa6";
 import { TbCoinTakaFilled, TbShoppingCart } from "react-icons/tb";
 import { FaBoxesPacking, FaShop } from "react-icons/fa6";
 import { useEffect, useState } from "react";
@@ -51,6 +51,7 @@ const menuItems = [
     label: "Lainnya",
     children: [
       { label: "Retail", icon: <FaShop />, path: "/retails", roles: ["owner", "warehouse"] },
+      { label: "Laporan Laba Rugi", icon: <FaMoneyBillTransfer />, path: "/laba-rugi", roles: ["retail","outlet"] },
       { label: "Warehouse", icon: <FaShop />, path: "/warehouses", roles: ["owner", "admin"] },
       { label: "Tambah Pengguna", icon: <FiUsers />, path: "/users", roles: ["owner", "warehouse", "outlet"] },
       { label: "Role", icon: <FaUserTag />, path: "/roles", roles: ["owner", "warehouse","retail"] },

@@ -71,7 +71,7 @@ export const Header = ({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="absolute right-0 mt-6 border w-80 border-gray-400 bg-white shadow-xl rounded-lg p-4 z-50"
+              className="absolute right-0 mt-6 w-80 bg-white shadow-2xl rounded-lg p-4 z-50"
             >
               <div className="flex items-center gap-4">
                 <img

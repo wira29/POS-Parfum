@@ -8,6 +8,7 @@ import { useApiClient } from "@/core/helpers/ApiClient";
 import { Eye, LogOut, Pencil, Trash, X } from "lucide-react";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
 import Swal from "sweetalert2";
+import { LoadingCards } from "@/views/components/Loading";
 
 const BundlingFilterModal = ({
   open,
@@ -227,7 +228,7 @@ export default function BundlingPage() {
       </div>
 
       {loading ? (
-        <div className="text-gray-600">Memuat data bundling...</div>
+        <LoadingCards/>
       ) : filteredPackages.length === 0 ? (
         <div className="text-gray-500">Tidak ada paket bundling ditemukan.</div>
       ) : (
@@ -288,7 +289,7 @@ export default function BundlingPage() {
                   <div className="flex items-center gap-2">
                     <div className="relative" ref={dropdownOpenId === pkg.id ? dropdownRef : null}>
                       <button
-                        className="p-1 rounded-full hover:bg-gray-100"
+                        className="p-1 rounded-full cursor-pointer hover:bg-gray-100"
                         onClick={() => handleDropdownToggle(pkg.id)}
                       >
                         <FiMoreVertical size={20} className="text-gray-600" />
@@ -296,26 +297,26 @@ export default function BundlingPage() {
                       {dropdownOpenId === pkg.id && (
                         <div className="absolute right-0 top-8 w-40 bg-white border border-gray-300 rounded-lg shadow-lg z-20 py-1">
                           <button
-                            className="w-full text-left px-4 py-2 flex items-center gap-2 hover:bg-gray-100 text-sm hover:font-semibold"
+                            className="w-full text-left px-4 py-2 cursor-pointer flex items-center gap-2 hover:bg-gray-100 text-sm hover:font-semibold"
                             onClick={() => handleDetail(pkg)}
                           >
                             <Eye size={16} />Detail
                           </button>
                           <button
-                            className="w-full text-left px-4 py-2 flex items-center gap-2 hover:bg-gray-100 text-sm hover:font-semibold"
+                            className="w-full text-left px-4 py-2 cursor-pointer flex items-center gap-2 hover:bg-gray-100 text-sm hover:font-semibold"
                             onClick={() => handleEdit(pkg)}
                           >
                             <Pencil size={16} />Edit
                           </button>
                           <button
-                            className="w-full text-left px-4 py-2 flex items-center gap-2 hover:bg-gray-100 text-sm text-red-600 hover:font-semibold"
+                            className="w-full text-left px-4 py-2 cursor-pointer flex items-center gap-2 hover:bg-gray-100 text-sm text-red-600 hover:font-semibold"
                             onClick={() => handleDelete(pkg)}
                           >
                             <Trash size={16} />Hapus
                           </button>
                           <hr className="my-1 border-gray-300" />
                           <button
-                            className="w-full text-left px-4 py-2 flex items-center gap-2 hover:bg-gray-100 text-sm text-red-600 hover:font-semibold"
+                            className="w-full text-left px-4 py-2 cursor-pointer flex items-center gap-2 hover:bg-gray-100 text-sm text-red-600 hover:font-semibold"
                             onClick={() => handleCancel(pkg)}
                           >
                             <LogOut size={16} />Batalkan

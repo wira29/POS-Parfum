@@ -8,22 +8,15 @@ import ViewIcon from "@/views/components/ViewIcon";
 import { X } from "lucide-react";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { LoadingColumn } from "@/views/components/Loading";
+import { ImageHelper } from "@/core/helpers/ImageHelper";
 
 interface BlendingProduct {
   id: number;
   nama: string;
   tanggalPembuatan: string;
-  kategori: string;
-  stok: string;
-  hargaNormal: string;
-  hargaDiskon: string;
-  status: string;
-  products: {
-    nama: string;
-    harga: string;
-    gambar: string;
-    variants: { nama: string; harga: string }[];
-  }[];
+  product_image: string;
+  used_product_count: number;
+  quantity: number;
 }
 
 interface FilterState {
@@ -56,55 +49,56 @@ export default function BlendingIndex() {
     quantityTo: "",
   });
 
+  const buildQueryParams = () => {
+    const params = new URLSearchParams();
+    params.append("page", currentPage.toString());
+    params.append("per_page", itemsPerPage.toString());
+
+    if (filters.dateFrom) params.append("start_date", filters.dateFrom);
+    if (filters.dateTo) params.append("end_date", filters.dateTo);
+    if (filters.quantityFrom)
+      params.append("min_quantity", filters.quantityFrom);
+    if (filters.quantityTo) params.append("max_quantity", filters.quantityTo);
+
+    return params.toString();
+  };
+
   const getData = async () => {
-  try {
-    setLoading(true);
-    const response = await ApiClient.get(
-      `/product-blend?page=${currentPage}&per_page=${itemsPerPage}`
-    );
+    try {
+      setLoading(true);
+      const queryParams = buildQueryParams();
+      const response = await ApiClient.get(`/product-blend?${queryParams}`);
 
-    const apiData = response.data.data ?? [];
-    // console.log(apiData);
-    
-    const meta = response.data.pagination;
+      const apiData = response.data.data ?? [];
+      const meta = response.data.pagination;
 
-    const transformed: BlendingProduct[] = apiData.map((item: any) => ({
-      id: item.id,
-      nama: item.product?.blend_name || "Tanpa Nama",
-      tanggalPembuatan: item.date || "",
-      kategori: "-",
-      stok: item.quantity ? `${item.quantity}G` : "-",
-      hargaNormal: "-",
-      hargaDiskon: "-",
-      status: "-",
-      products:
-        item.product_blend_details?.map((detail: any) => ({
-          nama: detail.product_detail?.product?.name ?? "Produk Tanpa Nama",
-          harga: "-",
-          gambar: "/img/default.png",
-          variants: [],
-        })) ?? [],
-    }));
-    setBlendingData(transformed);
-    setTotalData(meta.total);
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    setBlendingData([]);
-    setTotalData(0);
-  } finally {
-    setLoading(false);
-  }
-};
+      const transformed: BlendingProduct[] = apiData.map((item: any) => ({
+        id: item.id,
+        nama: item.variant_blending || "Unknown",
+        product_image: ImageHelper(item.product_image),
+        tanggalPembuatan: item.date || "",
+        used_product_count: item.used_product_count
+          ? `${item.used_product_count} Macam`
+          : "-",
+        quantity: item.quantity ? `${item.quantity} G` : "-",
+      }));
+      setBlendingData(transformed);
+      setTotalData(meta.total);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setBlendingData([]);
+      setTotalData(0);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
+    getData();
+  }, [currentPage, filters]);
 
-useEffect(() => {
-  getData();
-}, [currentPage]);
-
-
-const paginatedData = blendingData;
-const totalPages = Math.ceil(totalData / itemsPerPage);
-
+  const paginatedData = blendingData;
+  const totalPages = Math.ceil(totalData / itemsPerPage);
 
   const handleFilterOpen = () => {
     setTempFilters({ ...filters });
@@ -130,6 +124,12 @@ const totalPages = Math.ceil(totalData / itemsPerPage);
     setCurrentPage(1);
   };
 
+  const hasActiveFilters =
+    filters.dateFrom ||
+    filters.dateTo ||
+    filters.quantityFrom ||
+    filters.quantityTo;
+
   return (
     <div className="p-6 space-y-6">
       <Breadcrumb
@@ -146,7 +146,12 @@ const totalPages = Math.ceil(totalData / itemsPerPage);
                 setCurrentPage(1);
               }}
             />
-            <Filter onClick={handleFilterOpen} />
+            <div className="relative">
+              <Filter onClick={handleFilterOpen} />
+              {hasActiveFilters && (
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
+              )}
+            </div>
           </div>
           <div className="w-full sm:w-auto">
             <AddButton to="/blendings/create">Tambah Blending</AddButton>
@@ -157,9 +162,10 @@ const totalPages = Math.ceil(totalData / itemsPerPage);
           <table className="min-w-full border border-gray-300 rounded-lg text-sm text-left">
             <thead className="bg-gray-100 border border-gray-300 text-gray-700">
               <tr>
-                <th className="px-6 py-4 font-medium">Nama Blending</th>
+                <th className="px-6 py-4 font-medium">Variant Yang Blending</th>
+                <th className="px-6 py-4 font-medium">Hasil</th>
+                <th className="px-6 py-4 font-medium">Jumlah Komposisi</th>
                 <th className="px-6 py-4 font-medium">Tanggal Pembuatan</th>
-                <th className="px-6 py-4 font-medium">Stok</th>
                 <th className="px-6 py-4 font-medium text-center">Aksi</th>
               </tr>
             </thead>
@@ -167,7 +173,7 @@ const totalPages = Math.ceil(totalData / itemsPerPage);
               {loading ? (
                 <tr>
                   <td className="px-6 py-4" colSpan={4}>
-                      <LoadingColumn column={4}/>
+                    <LoadingColumn column={4} />
                   </td>
                 </tr>
               ) : paginatedData.length === 0 ? (
@@ -185,12 +191,18 @@ const totalPages = Math.ceil(totalData / itemsPerPage);
                     key={index}
                     className="border-b border-gray-200 text-gray-600 hover:bg-gray-50"
                   >
-                    <td className="px-6 py-4">
-                      <span className="text-black text-base font-semibold">
-                        {item.nama}
-                      </span>
-                      <br /> Terdiri dari {item.products.length} Product
+                    <td className="px-6 py-3 font-semibold text-black text-lg">
+                      <div className="flex gap-5 items-center">
+                        <img
+                          src={item.product_image}
+                          className="w-16 h-16 rounded-lg border border-slate-200 object-contain"
+                          alt={item.nama}
+                        />
+                        <span>{item.nama}</span>
+                      </div>
                     </td>
+                    <td className="px-6 py-4">{item.quantity}</td>
+                    <td className="px-6 py-4">{item.used_product_count}</td>
                     <td className="px-6 py-4">
                       {item.tanggalPembuatan
                         ? new Date(item.tanggalPembuatan).toLocaleDateString(
@@ -203,7 +215,6 @@ const totalPages = Math.ceil(totalData / itemsPerPage);
                           )
                         : "-"}
                     </td>
-                    <td className="px-6 py-4">{item.stok}</td>
                     <td className="px-6 py-4">
                       <div className="flex justify-center gap-2">
                         <ViewIcon to={`/blendings/${item.id}/detail`} />

@@ -6,6 +6,7 @@ import AddButton from "@/views/components/AddButton";
 import { Users } from "lucide-react";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import Swal from "sweetalert2";
+import { LoadingCards } from "@/views/components/Loading";
 
 function RoleFormModal({ open, onClose, onSubmit, initialData, loading }) {
   const [name, setName] = useState("");
@@ -333,7 +334,7 @@ export default function RolePage() {
 
         <div className="p-6 space-y-4">
           {loading ? (
-            <div className="text-center text-gray-500">Memuat data...</div>
+            <LoadingCards/>
           ) : filteredRoles.length === 0 ? (
             <div className="text-center text-gray-500">Tidak ada data role.</div>
           ) : filteredRoles.map((role) => (

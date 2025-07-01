@@ -19,6 +19,7 @@ export interface DiscountFormData {
 export interface DiscountData {
   id?: string;
   name?: string;
+  active: string | number | boolean;
   description?: string;
   desc?: string;
   product_detail?: {
