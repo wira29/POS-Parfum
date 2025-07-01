@@ -115,17 +115,7 @@ export default function BundlingEdit() {
         );
         setComposition(
           (data.bundling_material || []).map(
-            (mat) => {
-              // Find product and variant for display
-              const prod = products.find(p =>
-                p.variants.some(v => v.id === mat.product_detail_id)
-              );
-              const variant = prod?.variants.find(v => v.id === mat.product_detail_id);
-              if (prod && variant) {
-                return `${prod.name} - ${variant.name}`;
-              }
-              return mat.variant_name || "";
-            }
+            (mat) => mat.variant_name || ""
           )
         );
         setMaterials(
@@ -138,8 +128,7 @@ export default function BundlingEdit() {
       }
     };
     fetchBundling();
-    // eslint-disable-next-line
-  }, [id, categories, products]);
+  }, [id, categories]);
 
   useEffect(() => {
     const handler = (e) => {
@@ -164,6 +153,20 @@ export default function BundlingEdit() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!materials.length || materials.some(mat => !mat.product_detail_id)) {
+      setErrors({
+        ...errors,
+        details: [
+          {
+            product_detail_id: ["Product detail ID wajib diisi."]
+          }
+        ]
+      });
+      Toaster("error", "Pilih minimal satu varian produk bundling.");
+      return;
+    }
+
     const body = {
       name: productName,
       quantity: stock,
@@ -171,14 +174,11 @@ export default function BundlingEdit() {
       kode_Blend: productCode,
       deskripsi: description,
       category_id: category,
-      details: [
-        {
-          product_bundling_material: materials.map((mat) => ({
-            product_detail_id: mat.product_detail_id,
-          })),
-        },
-      ],
+      details: materials.map((mat) => ({
+        product_detail_id: mat.product_detail_id,
+      })),
     };
+
     try {
       await apiClient.put(`/product-bundling/${id}`, body);
       navigate("/bundlings");
@@ -360,6 +360,11 @@ export default function BundlingEdit() {
                     </div>
                   ))}
                 </div>
+                {errors.details?.[0]?.product_detail_id && (
+                  <div className="text-red-500 text-sm mt-1">
+                    {errors.details[0].product_detail_id[0]}
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">

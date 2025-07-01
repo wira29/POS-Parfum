@@ -90,6 +90,39 @@ function RoleFormModal({ open, onClose, onSubmit, initialData, loading }) {
   );
 }
 
+function Pagination({ currentPage, lastPage, onPageChange }) {
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50"
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+      >
+        Previous
+      </button>
+      {Array.from({ length: lastPage }, (_, i) => (
+        <button
+          key={i + 1}
+          className={`px-3 py-2 text-sm rounded ${currentPage === i + 1
+            ? "bg-blue-500 text-white"
+            : "text-gray-700 hover:text-gray-900"
+            }`}
+          onClick={() => onPageChange(i + 1)}
+        >
+          {i + 1}
+        </button>
+      ))}
+      <button
+        className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50"
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === lastPage}
+      >
+        Next
+      </button>
+    </div>
+  );
+}
+
 export default function RolePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
@@ -101,16 +134,25 @@ export default function RolePage() {
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
   const [restoringId, setRestoringId] = useState(null);
+  const [pagination, setPagination] = useState({
+    total: 0,
+    per_page: 5,
+    current_page: 1,
+    last_page: 1,
+    from: 1,
+    to: 5,
+  });
 
   useEffect(() => {
-    fetchRoles();
-  }, []);
+    fetchRoles(pagination.current_page);
+  }, [pagination.current_page]);
 
-  const fetchRoles = async () => {
+  const fetchRoles = async (page = 1) => {
     setLoading(true);
     try {
-      const res = await apiClient.get("/roles");
+      const res = await apiClient.get(`/roles?page=${page}`);
       setRoles(res.data?.data || []);
+      setPagination(res.data?.pagination || pagination);
     } catch (e) {
       setRoles([]);
     }
@@ -121,7 +163,7 @@ export default function RolePage() {
     setModalLoading(true);
     try {
       const res = await apiClient.post("/roles", values);
-      setRoles((prev) => [...prev, res.data.data]);
+      fetchRoles(pagination.current_page);
       Swal.fire("Berhasil", "Role berhasil ditambahkan.", "success");
       closeModal();
     } catch (e) {
@@ -134,9 +176,7 @@ export default function RolePage() {
     setModalLoading(true);
     try {
       const res = await apiClient.put(`/roles/${id}`, values);
-      setRoles((prev) =>
-        prev.map((role) => (role.id === id ? { ...role, ...res.data.data } : role))
-      );
+      fetchRoles(pagination.current_page);
       Swal.fire("Berhasil", "Role berhasil diubah.", "success");
       closeModal();
     } catch (e) {
@@ -149,9 +189,7 @@ export default function RolePage() {
     setDeletingId(id);
     try {
       await apiClient.delete(`/roles/${id}`);
-      setRoles((prev) => prev.map((role) =>
-        role.id === id ? { ...role, status: "Nonaktif", deleted_at: new Date().toISOString() } : role
-      ));
+      fetchRoles(pagination.current_page);
       Swal.fire("Berhasil", "Berhasil Menonaktifkan role.", "success");
     } catch (e) {
       Swal.fire("Gagal", "Gagal menghapus role.", "error");
@@ -163,9 +201,7 @@ export default function RolePage() {
     setRestoringId(id);
     try {
       await apiClient.post(`/roles/${id}/restore`);
-      setRoles((prev) => prev.map((role) =>
-        role.id === id ? { ...role, status: "Aktif", deleted_at: null } : role
-      ));
+      fetchRoles(pagination.current_page);
       Swal.fire("Berhasil", "Berhasil mengembalikan role.", "success");
     } catch (e) {
       Swal.fire("Gagal", "Gagal mengembalikan role.", "error");
@@ -347,25 +383,13 @@ export default function RolePage() {
         <div className="px-6 py-4 border-t border-gray-200">
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-700">
-              Menampilkan {filteredRoles.length} dari {roles.length} data
+              Menampilkan {pagination.from} - {pagination.to} dari {pagination.total} data
             </div>
-            <div className="flex items-center gap-2">
-              <button className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50">
-                Previous
-              </button>
-              <button className="px-3 py-2 text-sm bg-blue-500 text-white rounded">
-                1
-              </button>
-              <button className="px-3 py-2 text-sm text-gray-700 hover:text-gray-900">
-                2
-              </button>
-              <button className="px-3 py-2 text-sm text-gray-700 hover:text-gray-900">
-                3
-              </button>
-              <button className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700">
-                Next
-              </button>
-            </div>
+            <Pagination
+              currentPage={pagination.current_page}
+              lastPage={pagination.last_page}
+              onPageChange={(page) => setPagination((prev) => ({ ...prev, current_page: page }))}
+            />
           </div>
         </div>
       </div>

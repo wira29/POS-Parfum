@@ -226,7 +226,7 @@ export const ProductIndex = () => {
                                             <div className="font-medium">{variant.name}</div>
                                             <div className="text-xs text-gray-500">Kode Varian: {variant.code}</div>
                                           </div>
-                                          <div className="w-1/2 md:w-2/12">{variant.category.name}</div>
+                                          <div className="w-1/2 md:w-2/12">{variant.category}</div>
                                           <div className="w-1/2 md:w-2/16">{variant.penjualan}</div>
                                           <div className="w-1/2 md:w-2/13">Rp {variant.price.toLocaleString("id-ID")}</div>
                                           <div className="w-1/2 md:w-2/12">{variant.stock} G</div>

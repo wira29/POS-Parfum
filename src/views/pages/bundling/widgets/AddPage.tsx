@@ -157,6 +157,12 @@ export default function BundlingCreate() {
   };
 
   const toggleSelectVariant = (productId, productName, variantId, variantName) => {
+    const product = products.find((p) => p.id === productId);
+    const variant = product?.variants.find((v) => v.id === variantId);
+    if (variant && stock > variant.stock) {
+      Toaster("error", `Stok varian yang ada kurang untuk membuat bundling.`);
+      return;
+    }
     const exists = materials.some((mat) => mat.product_detail_id === variantId);
     if (exists) {
       setMaterials((prev) => prev.filter((mat) => mat.product_detail_id !== variantId));
@@ -438,6 +444,7 @@ export default function BundlingCreate() {
         toggleExpand={toggleExpand}
         expandedProducts={expandedProducts}
         toggleSelectVariant={toggleSelectVariant}
+        stock={stock}
         compositions={
           composition.map((item) => {
             const [productName, variantName] = item.split(" - ");
