@@ -88,7 +88,7 @@ export const RiwayatPenjualan: React.FC = () => {
 
   return (
     <div className="py-3 sm:py-5 px-2 sm:px-6 bg-gray-50 min-h-screen">
-      <Breadcrumb title="Riwayat Transaksi" desc="Riwayat transaksi pusat" />
+      <Breadcrumb title="Riwayat Penjualan" desc="Riwayat Penjualan pusat" />
       <Card className="mt-3 sm:mt-5">
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-5">
           <div className="w-full sm:w-1/3 md:w-1/4">
@@ -152,7 +152,7 @@ export const RiwayatPenjualan: React.FC = () => {
                   </td>
                   <td className="px-2 sm:px-4 py-2 sm:py-4">
                     <div className="flex justify-center gap-2">
-                      <ViewIcon to={`/detail-transaksi/${data.id}/detail`} />
+                      <ViewIcon to={`/riwayat-penjualan/${data.id}/detail`} />
                     </div>
                   </td>
                 </tr>

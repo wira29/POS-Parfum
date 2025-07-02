@@ -736,14 +736,6 @@ export const AuditIndex = () => {
       <RetailRequestModal
         isOpen={isModalOpen}
         auditId={selectedAuditId}
-        description={{
-          descriptionApproved: `Anda Menerima Audit ID ${
-            selectedAuditId || ""
-          }.`,
-          descriptionRejected: `Anda Menolak Audit ID ${
-            selectedAuditId || ""
-          }, sehingga audit tidak diproses.`,
-        }}
         onClose={() => {
           setIsModalOpen(false);
           setSelectedAuditId(undefined);

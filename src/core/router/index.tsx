@@ -272,7 +272,7 @@ export const router = createBrowserRouter([
             element: <LabaRugiIndex/>,
           },
           {
-            path: "/detail-transaksi/:id/detail",
+            path: "/riwayat-penjualan/:id/detail",
             element: <DetailRiwayatTransaksi/>,
           },
         ],

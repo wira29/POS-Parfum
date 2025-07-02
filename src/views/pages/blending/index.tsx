@@ -204,7 +204,6 @@ export default function BlendingIndex() {
                           <h1 className="text-lg text-black font-semibold">{item.name_product}</h1>
                           <h1 className="text-sm text-slate-700 font-normal">Variant : {item.nama}</h1>
                         </div>
-                        {/* <span>{item.nama}</span> | <span>{item.name_product}</span> */}
                       </div>
                     </td>
                     <td className="px-6 py-4">{item.quantity}</td>
