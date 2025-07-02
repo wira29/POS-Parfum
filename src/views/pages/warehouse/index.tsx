@@ -6,6 +6,7 @@ import { SearchInput } from "@/views/components/SearchInput";
 import { NoData } from "@/views/components/NoData";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import Swal from "sweetalert2";
+import { ImageHelper } from "@/core/helpers/ImageHelper";
 
 interface Warehouse {
   id: string;
@@ -147,22 +148,23 @@ export const WarehouseIndex = () => {
                 key={warehouse.id}
                 className="bg-white rounded-xl shadow-sm border border-gray-100"
               >
-                <div className="h-32 overflow-hidden">
-                  <img
-                    src={warehouse.image || "/no-image.jpg"}
-                    alt={warehouse.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="p-4">
+                <div className="h-32 overflow-hidden p-2">
                   <h3 className="text-[16px] font-semibold text-gray-900 mb-1">
                     {warehouse.name}
                   </h3>
-                  <p className="text-[13px] text-gray-800 mb-0.5">{warehouse.telp}</p>
-                  <p className="text-[13px] text-gray-500 truncate">{warehouse.address}</p>
-
-                  <p className="text-[13px] font-medium text-gray-600 mt-3">Total Product</p>
-                  <p className="text-[12px] font-medium text-gray-600 mb-4">{warehouse.product_count}</p>
+                  <img
+                    src={ImageHelper(warehouse.image)}
+                    alt={warehouse.name}
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                </div>
+                <div className="p-4">
+                  <h3 className="text-[14px] font-semibold text-gray-900 mb-1">
+                    Penanggung Jawab:
+                  </h3>
+                  <p className="text-[13px] text-gray-500 mb-0.5 ">{warehouse.telp}</p>
+                  <p className="text-[14px] text-gray-600 font-semibold truncate mt-2.5">Alamat</p>
+                  <p className="text-[12px] text-gray-500 truncate">{warehouse.address}</p>
                   <div className="flex gap-2 mt-4">
                     <button
                       className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl text-sm font-medium flex-1"

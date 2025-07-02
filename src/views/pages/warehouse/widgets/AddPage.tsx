@@ -126,6 +126,21 @@ export default function WarehouseCreate() {
 
             <div className="space-y-2">
               <label className="block text-sm font-medium">
+                Penanggung Jawab<span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="telp"
+                value={formData.telp}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                placeholder="No telepon warehouse"
+              />
+              {errors.telp && <p className="text-red-500 text-sm">{errors.telp}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">
                 No Telp<span className="text-red-500">*</span>
               </label>
               <input
@@ -147,7 +162,7 @@ export default function WarehouseCreate() {
                 type="file"
                 name="image"
                 onChange={handleFileChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                className="w-full border border-gray-200 rounded-lg bg-[#F5F8FA] text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#E9EFF5] file:text-gray-700"
               />
               {errors.image && <p className="text-red-500 text-sm">{errors.image}</p>}
             </div>

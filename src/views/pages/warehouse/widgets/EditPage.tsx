@@ -110,7 +110,7 @@ export default function WarehouseEdit() {
 
               <div className="space-y-2">
                 <label className="block text-sm font-medium">
-                  Pemilik
+                  Penanggung Jawab <span className="text-red-500">*</span>  
                 </label>
                 <input
                   type="text"
@@ -125,7 +125,7 @@ export default function WarehouseEdit() {
 
               <div className="space-y-2">
                 <label className="block text-sm font-medium">
-                  No Telp
+                  No Telp <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -138,12 +138,14 @@ export default function WarehouseEdit() {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-sm font-medium">Gambar</label>
+                <label className="block text-sm font-medium">
+                  Gambar<span className="text-red-500">*</span>
+                </label>
                 <input
                   type="file"
                   name="image"
                   onChange={handleFileChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  className="w-full border border-gray-200 rounded-lg bg-[#F5F8FA] text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#E9EFF5] file:text-gray-700"
                 />
               </div>
             </div>
@@ -173,7 +175,7 @@ export default function WarehouseEdit() {
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md"
+                className="px-4 py-2 bg-yellow-500 text-white rounded-md"
               >
                 Simpan
               </button>
