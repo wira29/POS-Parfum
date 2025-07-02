@@ -23,7 +23,7 @@ export function DiscountCreate() {
     start_date: "",
     end_date: "",
     is_member: 0,
-    minimum_purchase: "0",
+    minimum_purchase: null,
   });
   const [discountType, setDiscountType] = useState<"%" | "Rp">("Rp");
   const [status, setStatus] = useState<number>(1);
@@ -96,7 +96,7 @@ export function DiscountCreate() {
         start_date: data.start_date || "",
         end_date: data.end_date || "",
         is_member: data.is_member ?? false,
-        minimum_purchase: data.minimum_purchase?.toString() || "0",
+        minimum_purchase: data.minimum_purchase?.toString() || "",
       };
 
       setFormData(updatedFormData);
@@ -133,8 +133,6 @@ export function DiscountCreate() {
     const errors: Partial<DiscountFormData & { discount: string }> = {};
 
     if (!formData.name) errors.name = "Nama diskon wajib diisi";
-    if (!formData.product_detail_id)
-      errors.product_detail_id = "Produk wajib dipilih";
     if (
       !formData.minimum_purchase ||
       isNaN(parseInt(formData.minimum_purchase)) ||

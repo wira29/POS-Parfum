@@ -46,6 +46,7 @@ interface BlendingFormData {
   id: string;
   productVariantId: string;
   variantName: string;
+  product_name: string;
   quantity: number;
   description: string;
   compositions: CompositionItem[];
@@ -56,6 +57,7 @@ export const BlendingCreate: React.FC = () => {
     {
       id: "1",
       productVariantId: "",
+      product_name: "",
       variantName: "",
       quantity: 0,
       description: "",
@@ -99,6 +101,7 @@ export const BlendingCreate: React.FC = () => {
       {
         id: Date.now().toString(),
         productVariantId: "",
+        product_name: "",
         variantName: "",
         quantity: 0,
         description: "",
@@ -129,16 +132,26 @@ export const BlendingCreate: React.FC = () => {
 
   const handleSelectProduct = (product: Product) => {
     if (!currentFormId) return;
+
     const variantId = product.variants?.[0]?.id || product.id || "";
+
+    const productName = product.product || product.product || "No Product";
     const variantName =
       product.variants?.[0]?.variant_name ||
       product.variant_name ||
       product.product ||
       "No Variant";
+
+    const combinedName =
+      variantName === "No Variant"
+        ? productName
+        : `Product : ${productName} - Variant : ${variantName}`;
+
     updateBlendingForm(currentFormId, {
       productVariantId: variantId,
-      variantName,
+      variantName: combinedName,
     });
+
     setOpenModalVariant(false);
   };
 
@@ -172,7 +185,7 @@ export const BlendingCreate: React.FC = () => {
 
     const newCompositions = selectedVariants.map((v) => ({
       id: `${v.productId}-${v.variantId}`,
-      label: `${v.productName}: ${v.variantName}`,
+      label: `Product : ${v.productName} - ${v.variantName}`,
       quantity: 1,
       productDetailId: v.variantId,
     }));
@@ -302,7 +315,6 @@ export const BlendingCreate: React.FC = () => {
       try {
         const res = await API.get("/products/no-paginate");
         const apiProducts = res.data?.data || [];
-        console.log(apiProducts);
 
         if (!Array.isArray(apiProducts)) {
           console.error("Data produk tidak valid:", apiProducts);
@@ -329,7 +341,7 @@ export const BlendingCreate: React.FC = () => {
             ? parseInt(product.details_sum_stock)
             : 0,
         }));
-        console.log(formattedProducts);
+        // console.log(formattedProducts);
 
         setProducts(formattedProducts);
       } catch (err) {
@@ -343,12 +355,15 @@ export const BlendingCreate: React.FC = () => {
   return (
     <div className="bg-gray-50 min-h-screen p-6">
       <div className="max-w-8xl mx-auto space-y-5">
-      <Breadcrumb title="Buat Blending" desc="Susun komposisi blending Anda di sini" />
+        <Breadcrumb
+          title="Buat Blending"
+          desc="Susun komposisi blending Anda di sini"
+        />
 
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center mb-6">
             <span className="text-blue-600 mr-2">
-              <InfoIcon/>
+              <InfoIcon />
             </span>
             <h2 className="text-lg font-semibold text-gray-800">
               Informasi Blending
@@ -468,12 +483,13 @@ export const BlendingCreate: React.FC = () => {
                                 form.id,
                                 item.id,
                                 e.target.value === ""
-                                  ? ""
-                                  : parseInt(e.target.value)
+                                  ? 0
+                                  : Math.max(0, parseInt(e.target.value))
                               )
                             }
                             className="w-20 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none"
                             placeholder="Qty"
+                            min={0}
                             required
                           />
                           <input
@@ -585,7 +601,12 @@ export const BlendingCreate: React.FC = () => {
                   <tbody>
                     {filteredProducts.length < 1 ? (
                       <tr>
-                        <td className="py-5 px-5 text-center font-semibold text-xl w-full" colSpan={3}>Data tidak di temukan</td>
+                        <td
+                          className="py-5 px-5 text-center font-semibold text-xl w-full"
+                          colSpan={3}
+                        >
+                          Data tidak di temukan
+                        </td>
                       </tr>
                     ) : (
                       filteredProducts.map((product, i) => (

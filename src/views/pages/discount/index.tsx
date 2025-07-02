@@ -481,7 +481,14 @@ export default function DiscountIndex() {
               </tr>
             </thead>
             <tbody>
-              {vouchers.length === 0 && !loading && (
+              {loading && (
+                <tr>
+                  <td colSpan={7}>
+                    <LoadingColumn column={3} />
+                  </td>
+                </tr>
+              )}
+              {!loading && vouchers.length === 0 && (
                 <tr>
                   <td
                     colSpan={7}
@@ -491,60 +498,55 @@ export default function DiscountIndex() {
                   </td>
                 </tr>
               )}
-              {vouchers.map((item) => (
-                <tr
-                  key={item.id}
-                  className="border-b border-gray-200 text-gray-600 hover:bg-gray-50"
-                >
-                  <td className="px-6 py-4">{item.name || "-"}</td>
-                  <td className="px-6 py-4 font-semibold">
-                    {formatDiscount(
-                      item.percentage ? item.percentage : item.nominal
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    {`${item.start_date} - ${item.end_date}`}
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    {item.is_member ? (
-                    <span className="text-yellow-600 font-semibold bg-yellow-50 py-1 border border-yellow-500 px-5 rounded-lg">
-                      Member
-                    </span>
-                    ) : (
-                    <span className="text-blue-600 font-semibold bg-blue-50 py-1 border border-blue-500 px-5 rounded-lg">
-                      Umum
-                    </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    {item.active === 1 ? (
-                      <span className="text-green-600 font-semibold bg-green-50 py-1.5 px-5 rounded-lg">
-                        Aktif
-                      </span>
-                    ) : (
-                      <span className="text-red-600 font-semibold bg-red-50 py-1.5 px-5 rounded-lg">
-                        Tidak Aktif
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex justify-center gap-2">
-                      <ViewIcon to={`/discounts/${item.id}/detail`} />
-                      <EditIcon
-                        to={`/discounts/${item.id}/edit`}
-                        className="text-white hover:bg-yellow-600"
-                      />
-                      <DeleteIcon onClick={() => deleteVoucher(item.id)} />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {loading && (
-                <tr>
-                  <td colSpan={5}>
-                    <LoadingColumn column={3} />
-                  </td>
-                </tr>
+              {!loading && vouchers.length > 0 && (
+                <>
+                  {vouchers.map((item) => (
+                    <tr
+                      key={item.id}
+                      className="border-b border-gray-200 text-gray-600 hover:bg-gray-50"
+                    >
+                      <td className="px-6 py-4">{item.name || "-"}</td>
+                      <td className="px-6 py-4 font-semibold">
+                        {formatDiscount(item.percentage ?? item.nominal)}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        {`${item.start_date} - ${item.end_date}`}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        {item.is_member ? (
+                          <span className="text-yellow-600 font-semibold bg-yellow-50 py-1 border border-yellow-500 px-5 rounded-lg">
+                            Member
+                          </span>
+                        ) : (
+                          <span className="text-blue-600 font-semibold bg-blue-50 py-1 border border-blue-500 px-5 rounded-lg">
+                            Umum
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        {item.active === 1 ? (
+                          <span className="text-green-600 font-semibold bg-green-50 py-1.5 px-5 rounded-lg">
+                            Aktif
+                          </span>
+                        ) : (
+                          <span className="text-red-600 font-semibold bg-red-50 py-1.5 px-5 rounded-lg">
+                            Tidak Aktif
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex justify-center gap-2">
+                          <ViewIcon to={`/discounts/${item.id}/detail`} />
+                          <EditIcon
+                            to={`/discounts/${item.id}/edit`}
+                            className="text-white hover:bg-yellow-600"
+                          />
+                          <DeleteIcon onClick={() => deleteVoucher(item.id)} />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </>
               )}
             </tbody>
           </table>

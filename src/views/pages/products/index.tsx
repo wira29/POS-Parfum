@@ -162,7 +162,7 @@ export const ProductIndex = () => {
                 <tr><td colSpan={6} className="text-center p-4">Tidak ada data produk</td></tr>
               ) : (
                 products.map((product) => {
-                  const variants = getVariants(product);
+                  const variants = getVariants(product);                  
                   const singleVariant = product.product_detail?.length === 1 ? variants[0] : null;
                   return (
                     <React.Fragment key={product.id}>

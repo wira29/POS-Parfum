@@ -25,7 +25,7 @@ const menuItems = [
     roles: ["warehouse", "outlet"],
     children: [
       { label: "Kasir", icon: <TbShoppingCart />, path: "/outlets" },
-      { label: "Riwayat Penjualan", icon: <FiTag />, path: "/riwayat-penjualan" },
+      { label: "Riwayat Transaksi", icon: <FiTag />, path: "/riwayat-penjualan" },
     ],
   },
   {

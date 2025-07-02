@@ -138,15 +138,7 @@ export const DiscountDetail = () => {
                 image: ImageHelper(data.product_detail?.product_image) || null,
               },
             ]
-          : [
-              {
-                nama: "Produk Contoh",
-                varian: "Varian Contoh",
-                category: "Kategori Contoh",
-                kode: "Code",
-                image: null,
-              },
-            ],
+          : [],
       };
 
       setDetail(displayDetail);
@@ -302,52 +294,69 @@ export const DiscountDetail = () => {
               </div>
             </div>
             <div className="p-4">
-              {detail.produkTerkait.map((produk, index) => (
-                <div
-                  key={index}
-                  className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200"
-                >
-                  <div className="w-30 h-30 overflow-hidden bg-gradient-to-br rounded-lg flex items-center justify-center flex-shrink-0">
-                    <img src={ImageHelper(produk.image)} alt={produk.nama} />
-                  </div>
-
-                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-                    <div>
-                      <div className="flex items-center gap-2 text-blue-600 mb-1">
-                        <Package className="w-4 h-4" />
-                        <span className="text-sm font-medium">Nama Produk</span>
+              {detail.produkTerkait && detail.produkTerkait.length > 0 ? (
+                <>
+                  {detail.produkTerkait.map((produk, index) => (
+                    <div
+                      key={index}
+                      className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200"
+                    >
+                      <div className="w-30 h-30 overflow-hidden bg-gradient-to-br rounded-lg flex items-center justify-center flex-shrink-0">
+                        <img
+                          src={produk.image}
+                          alt={produk.nama}
+                        />
                       </div>
-                      <p className="text-gray-800 font-medium">{produk.nama}</p>
-                    </div>
 
-                    <div>
-                      <div className="flex items-center gap-2 text-blue-600 mb-1">
-                        <span className="text-sm font-medium">
-                          Kategori Produk
-                        </span>
-                      </div>
-                      <p className="text-gray-800">{produk.category}</p>
-                    </div>
+                      <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                        <div>
+                          <div className="flex items-center gap-2 text-blue-600 mb-1">
+                            <Package className="w-4 h-4" />
+                            <span className="text-sm font-medium">
+                              Nama Produk
+                            </span>
+                          </div>
+                          <p className="text-gray-800 font-medium">
+                            {produk.nama}
+                          </p>
+                        </div>
 
-                    <div>
-                      <div className="flex items-center gap-2 text-blue-600 mb-1">
-                        <Tag className="w-4 h-4" />
-                        <span className="text-sm font-medium">Nama Varian</span>
-                      </div>
-                      <p className="text-gray-800">{produk.varian}</p>
-                    </div>
+                        <div>
+                          <div className="flex items-center gap-2 text-blue-600 mb-1">
+                            <span className="text-sm font-medium">
+                              Kategori Produk
+                            </span>
+                          </div>
+                          <p className="text-gray-800">{produk.category}</p>
+                        </div>
 
-                    <div>
-                      <div className="flex items-center gap-2 text-blue-600 mb-1">
-                        <span className="text-sm font-medium">Kode Varian</span>
+                        <div>
+                          <div className="flex items-center gap-2 text-blue-600 mb-1">
+                            <Tag className="w-4 h-4" />
+                            <span className="text-sm font-medium">
+                              Nama Varian
+                            </span>
+                          </div>
+                          <p className="text-gray-800">{produk.varian}</p>
+                        </div>
+
+                        <div>
+                          <div className="flex items-center gap-2 text-blue-600 mb-1">
+                            <span className="text-sm font-medium">
+                              Kode Varian
+                            </span>
+                          </div>
+                          <span className="bg-blue-50 rounded-full px-2 py-1.5 text-xs font-medium text-blue-500">
+                            {produk.kode}
+                          </span>
+                        </div>
                       </div>
-                      <span className="bg-blue-50 rounded-full px-2 py-1.5 text-xs font-medium text-blue-500">
-                        {produk.kode}
-                      </span>
                     </div>
-                  </div>
-                </div>
-              ))}
+                  ))}
+                </>
+              ) : (
+                <h1>Tidak ada product Terkait</h1>
+              )}
             </div>
           </div>
         </div>

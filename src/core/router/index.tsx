@@ -33,6 +33,7 @@ import {
   BundlingCreate,
   BundlingEdit,
   LabaRugiIndex,
+  DetailRiwayatTransaksi,
   // BlendingEdit
 } from "@/views/pages/pages";
 import RequestStockIndex from "@/views/pages/request-stock";
@@ -269,6 +270,10 @@ export const router = createBrowserRouter([
           {
             path: "/laba-rugi",
             element: <LabaRugiIndex/>,
+          },
+          {
+            path: "/detail-transaksi/:id/detail",
+            element: <DetailRiwayatTransaksi/>,
           },
         ],
       },

@@ -14,6 +14,7 @@ interface BlendingProduct {
   id: number;
   nama: string;
   tanggalPembuatan: string;
+  name_product:string;
   product_image: string;
   used_product_count: number;
   quantity: number;
@@ -74,6 +75,7 @@ export default function BlendingIndex() {
 
       const transformed: BlendingProduct[] = apiData.map((item: any) => ({
         id: item.id,
+        name_product: item.product_name || "Unknown",
         nama: item.variant_blending || "Unknown",
         product_image: ImageHelper(item.product_image),
         tanggalPembuatan: item.date || "",
@@ -198,7 +200,11 @@ export default function BlendingIndex() {
                           className="w-16 h-16 rounded-lg border border-slate-200 object-contain"
                           alt={item.nama}
                         />
-                        <span>{item.nama}</span>
+                        <div className="flex flex-col gap-1">
+                          <h1 className="text-lg text-black font-semibold">{item.name_product}</h1>
+                          <h1 className="text-sm text-slate-700 font-normal">Variant : {item.nama}</h1>
+                        </div>
+                        {/* <span>{item.nama}</span> | <span>{item.name_product}</span> */}
                       </div>
                     </td>
                     <td className="px-6 py-4">{item.quantity}</td>

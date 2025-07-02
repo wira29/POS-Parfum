@@ -70,16 +70,13 @@ const ProductSelectionModal = ({ openModalvariant, closeModal, onSelectProduct }
   const handleCloseModal = () => {
     setSelectedProduct(null);
     closeModal();
-  };
-
-  console.log(products);
-  
+  };  
 
   const formatPrice = (price: number) => new Intl.NumberFormat("id-ID").format(price);
 
   const getProductDisplayName = (p: Product) => !p.variant_name ? "Tidak ada varian name" : p.variant_name;
 
-  const isVariant = (p: Product) => p.variant_name !== null && p.variant_name !== "Tidak ada variant name";
+  const isVariant = (p: Product) => `${p.variant_name} - ${p.product}` !== null && `${p.variant_name} - ${p.product}` !== "Tidak ada variant name";
 
   if (!openModalvariant) return null;
 
@@ -136,7 +133,7 @@ const ProductSelectionModal = ({ openModalvariant, closeModal, onSelectProduct }
 
                   <div className="flex-1">
                     <div className={`font-medium text-sm ${isVariant(product) ? "text-blue-600" : "text-gray-800"}`}>{getProductDisplayName(product)}</div>
-                    <div className="text-xs text-gray-500">Kode : {product.product_code}</div>
+                    <div className="text-xs text-gray-500">Kode : {product.product_code} | <span className="font-semibold text-black/70">Product : {product.product ?? "unknown"}</span></div>
                   </div>
 
                   <div className="text-right">
