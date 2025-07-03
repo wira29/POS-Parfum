@@ -34,6 +34,7 @@ import {
   BundlingEdit,
   LabaRugiIndex,
   DetailRiwayatTransaksi,
+  DashboardOwner,
   // BlendingEdit
 } from "@/views/pages/pages";
 import RequestStockIndex from "@/views/pages/request-stock";
@@ -275,6 +276,10 @@ export const router = createBrowserRouter([
             path: "/riwayat-penjualan/:id/detail",
             element: <DetailRiwayatTransaksi/>,
           },
+          {
+            path:"/dashboard-owner",
+            element:<DashboardOwner/>
+          }
         ],
       },
     ],

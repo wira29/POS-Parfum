@@ -34,3 +34,4 @@ export { RetailIndex as RetailIndex} from "./retail/index";
 export {BlendingCreate as BlendingCreate} from "./blending/create"
 export {LabaRugiIndex as LabaRugiIndex} from "@/views/pages/Laba-Rugi/index"
 export {DetailRiwayatTransaksi as DetailRiwayatTransaksi} from "@/views/pages/outlet/DetailRiwayatTransaksi"
+export {DashboardOwner as DashboardOwner} from "@/views/pages/dashboard/owner/index"
