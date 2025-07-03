@@ -6,10 +6,13 @@ interface UserFilterModalProps {
   selectedRole: string;
   setSelectedRole: (value: string) => void;
   availableRoles: string[];
+  selectedStatus: string;
+  setSelectedStatus: (value: string) => void;
   startDate: string;
   setStartDate: (value: string) => void;
   endDate: string;
   setEndDate: (value: string) => void;
+  onApply: () => void;
 }
 
 export const UserFilterModal = ({
@@ -18,10 +21,13 @@ export const UserFilterModal = ({
   selectedRole,
   setSelectedRole,
   availableRoles,
+  selectedStatus,
+  setSelectedStatus,
   startDate,
   setStartDate,
   endDate,
   setEndDate,
+  onApply,
 }: UserFilterModalProps) => {
   if (!open) return null;
 
@@ -31,9 +37,9 @@ export const UserFilterModal = ({
 
   const handleReset = () => {
     setSelectedRole("");
+    setSelectedStatus("");
     setStartDate("");
     setEndDate("");
-    onClose();
   };
 
   return (
@@ -41,74 +47,97 @@ export const UserFilterModal = ({
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
       onClick={handleBackdropClick}
     >
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h3 className="text-xl font-semibold text-gray-900">
-            Filter Pengguna
-          </h3>
+      <div className="bg-white rounded-xl shadow-lg w-full max-w-3xl mx-4">
+        <div className="flex items-center justify-between p-5 border-gray-400 border-b">
+          <h2 className="text-lg font-semibold">Filter Data</h2>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            className="text-gray-500 hover:text-gray-700"
           >
-            <X className="w-6 h-6 cursor-pointer" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Role
-            </label>
-            <select
-              value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Semua Role</option>
-              {availableRoles.map((role, i) => (
-                <option key={i} value={role}>
-                  {role}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tanggal Mulai
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Role
+              </label>
+              <select
+                value={selectedRole}
+                onChange={(e) => setSelectedRole(e.target.value)}
+                className="w-full border rounded-lg px-3 py-2 text-sm text-gray-700"
+              >
+                <option value="">Ketik atau pilih...</option>
+                {availableRoles.map((role, i) => (
+                  <option key={i} value={role}>
+                    {role}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Status Pengguna
+              </label>
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="w-full border rounded-lg px-3 py-2 text-sm text-gray-700"
+              >
+                <option value="">Pilih Status</option>
+                <option value="Online">Online</option>
+                <option value="Offline">Offline</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tanggal Bergabung
               </label>
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border rounded-lg px-3 py-2 text-sm text-gray-700"
               />
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tanggal Akhir
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Hingga Tanggal
               </label>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border rounded-lg px-3 py-2 text-sm text-gray-700"
               />
             </div>
           </div>
         </div>
 
-        <div className="flex justify-end gap-2 p-4 border-t border-gray-200">
+        <div className="flex justify-end items-center gap-2 p-5 border-gray-400 border-t">
           <button
             onClick={handleReset}
-            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100"
+            className="px-4 py-2 border rounded-lg text-sm text-gray-700 hover:bg-gray-100"
           >
             Reset
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
+            className="px-4 py-2 border rounded-lg text-sm text-gray-700 bg-gray-100"
+          >
+            Batal
+          </button>
+          <button
+            onClick={() => {
+              onApply();
+              onClose();
+            }}
+            className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700"
           >
             Terapkan
           </button>

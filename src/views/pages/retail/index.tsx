@@ -131,7 +131,7 @@ export const RetailIndex = () => {
           </div>
           <div className="w-full sm:w-auto">
             <button
-              className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 px-4 py-2 rounded-lg font-medium"
+              className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 px-4 py-2 rounded-lg font-medium cursor-pointer"
               onClick={handleTambah}
             >
               <FiPlus /> Tambah Retail
@@ -175,14 +175,14 @@ export const RetailIndex = () => {
                   </p>
                   <div className="flex gap-2 mt-4">
                     <button
-                      className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl text-sm font-medium flex-1"
+                      className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl text-sm font-medium flex-1 cursor-pointer"
                       onClick={() => handleView(retail)}
                     >
                       Detail
                     </button>
                     <div className="relative">
                       <button
-                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-400 hover:bg-gray-300"
+                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-400 hover:bg-gray-300 cursor-pointer"
                         onClick={() => handleDropdownToggle(retail.id)}
                         type="button"
                       >

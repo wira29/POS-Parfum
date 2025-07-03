@@ -19,24 +19,50 @@ import { LoadingColumn } from "@/views/components/Loading";
 export const ProductIndex = () => {
   const api = useApiClient();
   const [products, setProducts] = useState<any[]>([]);
-  const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState<{ id: number; name: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [expandedProducts, setExpandedProducts] = useState<string[]>([]);
   const expandRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [showFilter, setShowFilter] = useState(false);
-  const [categoryFilter, setCategoryFilter] = useState("");
-  const [stockMin, setStockMin] = useState("");
-  const [stockMax, setStockMax] = useState("");
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [variantPage, setVariantPage] = useState<Record<string, number>>({});
   const pageSize = 5;
   const variantPageSize = 5;
 
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [stockMin, setStockMin] = useState("");
+  const [stockMax, setStockMax] = useState("");
+  const [priceMin, setPriceMin] = useState("");
+  const [priceMax, setPriceMax] = useState("");
+  const [salesMin, setSalesMin] = useState("");
+  const [salesMax, setSalesMax] = useState("");
+
+  const [tempCategoryFilter, setTempCategoryFilter] = useState("");
+  const [tempStockMin, setTempStockMin] = useState("");
+  const [tempStockMax, setTempStockMax] = useState("");
+  const [tempPriceMin, setTempPriceMin] = useState("");
+  const [tempPriceMax, setTempPriceMax] = useState("");
+  const [tempSalesMin, setTempSalesMin] = useState("");
+  const [tempSalesMax, setTempSalesMax] = useState("");
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
   useEffect(() => {
     fetchData(page);
-  }, [page, search, categoryFilter, stockMin, stockMax]);
+  }, [page, search, categoryFilter, stockMin, stockMax, priceMin, priceMax, salesMin, salesMax]);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await api.get("/categories/no-paginate");
+      setCategoryOptions(res.data.data || []);
+    } catch {
+      setCategoryOptions([]);
+    }
+  };
 
   const fetchData = async (page: number = 1) => {
     setLoading(true);
@@ -46,8 +72,12 @@ export const ProductIndex = () => {
         per_page: pageSize.toString(),
         search,
         category: categoryFilter,
-        stock_min: stockMin,
-        stock_max: stockMax,
+        min_stock: stockMin,
+        max_stock: stockMax,
+        min_price: priceMin,
+        max_price: priceMax,
+        min_sales: salesMin,
+        max_sales: salesMax,
       });
 
       const res = await api.get(`/products?${query.toString()}`);
@@ -56,15 +86,6 @@ export const ProductIndex = () => {
       setProducts(res.data.data);
       setPage(pagination.current_page);
       setLastPage(pagination.last_page);
-
-      const categories = Array.from(
-        new Set(
-          res.data.data
-            .map((p: any) => p.category?.name)
-            .filter(Boolean)
-        )
-      );
-      setCategoryOptions(categories);
     } catch (error) {
       Toaster("error", "Gagal memuat data produk");
     } finally {
@@ -124,24 +145,50 @@ export const ProductIndex = () => {
     }
   };
 
+  const openFilterModal = () => {
+    setTempCategoryFilter(categoryFilter);
+    setTempStockMin(stockMin);
+    setTempStockMax(stockMax);
+    setTempPriceMin(priceMin);
+    setTempPriceMax(priceMax);
+    setTempSalesMin(salesMin);
+    setTempSalesMax(salesMax);
+    setShowFilter(true);
+  };
+
+  const isFilterActive = () => {
+    return !!(
+      categoryFilter ||
+      stockMin ||
+      stockMax ||
+      priceMin ||
+      priceMax ||
+      salesMin ||
+      salesMax
+    );
+  };
+
   return (
     <div className="p-6 space-y-6">
       <Breadcrumb title="Produk" desc="Daftar produk dalam sistem" />
-
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex gap-5">
-        <SearchInput
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-        />
-        <Filter onClick={() => setShowFilter(true)} />
+          <SearchInput
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+          />
+          <div className="relative">
+            <Filter onClick={openFilterModal} />
+            {isFilterActive() && (
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />
+            )}
+          </div>
         </div>
         <AddButton to="/products/create">Tambah Produk</AddButton>
       </div>
-
       <div className="bg-white rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[800px]">
@@ -157,12 +204,18 @@ export const ProductIndex = () => {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} className="text-center p-4"><LoadingColumn column={3}/></td></tr>
+                <tr>
+                  <td colSpan={6} className="text-center p-4">
+                    <LoadingColumn column={3} />
+                  </td>
+                </tr>
               ) : products.length === 0 ? (
-                <tr><td colSpan={6} className="text-center p-4">Tidak ada data produk</td></tr>
+                <tr>
+                  <td colSpan={6} className="text-center p-4">Tidak ada data produk</td>
+                </tr>
               ) : (
                 products.map((product) => {
-                  const variants = getVariants(product);                  
+                  const variants = getVariants(product);
                   const singleVariant = product.product_detail?.length === 1 ? variants[0] : null;
                   return (
                     <React.Fragment key={product.id}>
@@ -194,17 +247,31 @@ export const ProductIndex = () => {
                           </div>
                         </td>
                       </tr>
-
                       {variants.length > 1 && (
                         <>
                           <tr>
-                            <td colSpan={6} className="text-center text-gray-500 py-2 cursor-pointer select-none" onClick={() => toggleExpand(product.id)}>
-                              {expandedProducts.includes(product.id) ? <><FiChevronUp className="inline" /> Close <FiChevronUp className="inline" /></> : <><FiChevronDown className="inline" /> Expand <FiChevronDown className="inline" /></>}
+                            <td
+                              colSpan={6}
+                              className="text-center text-gray-500 py-2 cursor-pointer select-none"
+                              onClick={() => toggleExpand(product.id)}
+                            >
+                              {expandedProducts.includes(product.id) ? (
+                                <>
+                                  <FiChevronUp className="inline" /> Close <FiChevronUp className="inline" />
+                                </>
+                              ) : (
+                                <>
+                                  <FiChevronDown className="inline" /> Expand <FiChevronDown className="inline" />
+                                </>
+                              )}
                             </td>
                           </tr>
                           <tr>
                             <td colSpan={6} className="p-0">
-                              <div ref={(el) => (expandRefs.current[product.id] = el)} className={`variant-slide ${expandedProducts.includes(product.id) ? "variant-enter" : "variant-leave"}`}>
+                              <div
+                                ref={(el) => (expandRefs.current[product.id] = el)}
+                                className={`variant-slide ${expandedProducts.includes(product.id) ? "variant-enter" : "variant-leave"}`}
+                              >
                                 {expandedProducts.includes(product.id) && (() => {
                                   const vPage = variantPage[product.id] || 1;
                                   const totalVariantPages = Math.ceil(variants.length / variantPageSize);
@@ -213,7 +280,10 @@ export const ProductIndex = () => {
                                   return (
                                     <div className="ml-[72px] md:ml-[70px]">
                                       {shownVariants.map((variant) => (
-                                        <div key={variant.id} className="flex flex-wrap md:flex-nowrap items-center p-4 bg-gray-50 border-b border-gray-200">
+                                        <div
+                                          key={variant.id}
+                                          className="flex flex-wrap md:flex-nowrap items-center p-4 bg-gray-50 border-b border-gray-200"
+                                        >
                                           <div className="w-1/2 md:w-1/18">
                                             <img
                                               src={ImageHelper(variant.image)}
@@ -226,7 +296,7 @@ export const ProductIndex = () => {
                                             <div className="font-medium">{variant.name}</div>
                                             <div className="text-xs text-gray-500">Kode Varian: {variant.code}</div>
                                           </div>
-                                          <div className="w-1/2 md:w-2/12">{variant.category}</div>
+                                          <div className="w-1/2 md:w-2/12">{variant.category?.name ?? "-"}</div>
                                           <div className="w-1/2 md:w-2/16">{variant.penjualan}</div>
                                           <div className="w-1/2 md:w-2/13">Rp {variant.price.toLocaleString("id-ID")}</div>
                                           <div className="w-1/2 md:w-2/12">{variant.stock} G</div>
@@ -258,24 +328,38 @@ export const ProductIndex = () => {
           </table>
         </div>
       </div>
-
       {lastPage > 1 && (
         <Pagination currentPage={page} totalPages={lastPage} onPageChange={setPage} />
       )}
-
       <FilterModal
         open={showFilter}
-        onClose={() => {
-          setShowFilter(false);
+        onClose={() => setShowFilter(false)}
+        onApply={() => {
+          setCategoryFilter(tempCategoryFilter);
+          setStockMin(tempStockMin);
+          setStockMax(tempStockMax);
+          setPriceMin(tempPriceMin);
+          setPriceMax(tempPriceMax);
+          setSalesMin(tempSalesMin);
+          setSalesMax(tempSalesMax);
           setPage(1);
+          setShowFilter(false);
         }}
-        categoryFilter={categoryFilter}
-        setCategoryFilter={setCategoryFilter}
+        categoryFilter={tempCategoryFilter}
+        setCategoryFilter={setTempCategoryFilter}
         categoryOptions={categoryOptions}
-        stockMin={stockMin}
-        setStockMin={setStockMin}
-        stockMax={stockMax}
-        setStockMax={setStockMax}
+        stockMin={tempStockMin}
+        setStockMin={setTempStockMin}
+        stockMax={tempStockMax}
+        setStockMax={setTempStockMax}
+        priceMin={tempPriceMin}
+        setPriceMin={setTempPriceMin}
+        priceMax={tempPriceMax}
+        setPriceMax={setTempPriceMax}
+        salesMin={tempSalesMin}
+        setSalesMin={setTempSalesMin}
+        salesMax={tempSalesMax}
+        setSalesMax={setTempSalesMax}
       />
     </div>
   );

@@ -29,13 +29,18 @@ export const CategoryIndex = () => {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [showFilter, setShowFilter] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [loading,setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [totalData, setTotalData] = useState(0);
   const [perPage, setPerPage] = useState(8);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const isFilterActive = !!(startDate || endDate || statusFilter);
+  const [tempStartDate, setTempStartDate] = useState("");
+  const [tempEndDate, setTempEndDate] = useState("");
+  const [tempStatusFilter, setTempStatusFilter] = useState("");
+
 
   const ApiClient = useApiClient();
 
@@ -72,7 +77,7 @@ export const CategoryIndex = () => {
       console.error("Error fetching categories:", error);
       setCategories([]);
       setTotalData(0);
-    }finally{
+    } finally {
       setLoading(false)
     }
   };
@@ -259,18 +264,17 @@ export const CategoryIndex = () => {
               </button>
               <button
                 type="submit"
-                className={`${
-                  editingCategory
-                    ? "bg-yellow-400 hover:bg-yellow-500 "
-                    : "bg-blue-600"
-                } cursor-pointer px-6 py-2 rounded-lg text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
+                className={`${editingCategory
+                  ? "bg-yellow-400 hover:bg-yellow-500 "
+                  : "bg-blue-600"
+                  } cursor-pointer px-6 py-2 rounded-lg text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
                 disabled={isLoading}
               >
                 {isLoading
                   ? "Menyimpan..."
                   : editingCategory
-                  ? "Simpan"
-                  : "Tambah"}
+                    ? "Simpan"
+                    : "Tambah"}
               </button>
             </div>
           </div>
@@ -295,7 +299,13 @@ export const CategoryIndex = () => {
                 setCurrentPage(1);
               }}
             />
-            <Filter onClick={() => setShowFilter(true)} />
+            <div className="relative">
+              <Filter onClick={() => setShowFilter(true)} />
+              {isFilterActive && (
+                <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-white" />
+              )}
+            </div>
+
           </div>
           <AddButton onClick={openCreateModal}>Tambah Category</AddButton>
         </div>
@@ -315,10 +325,10 @@ export const CategoryIndex = () => {
               {loading ? (
                 <tr>
                   <td colSpan={5}>
-                  <LoadingColumn column={3}/>
+                    <LoadingColumn column={3} />
                   </td>
                 </tr>
-              ): (
+              ) : (
                 filteredData.length === 0 ? (
                   <tr>
                     <td
@@ -343,11 +353,11 @@ export const CategoryIndex = () => {
                           year: "numeric",
                         })}
                       </td>
-                      <td className="px-6 py-4">{item.status}</td>
+                      <td className="px-6 py-4">Aktif</td>
                       <td className="px-6 py-4">
                         <div className="flex justify-center gap-2">
                           <button onClick={() => openEditModal(item)}>
-                            <EditIcon className="text-blue-500 hover:text-blue-700" />
+                            <EditIcon className="text-blue-500 hover:text-blue-700 cursor-pointer" />
                           </button>
                           <DeleteIcon onClick={() => confirmDelete(item.id)} />
                         </div>
@@ -372,19 +382,26 @@ export const CategoryIndex = () => {
       <CategoryFilterModal
         show={showFilter}
         onClose={() => setShowFilter(false)}
-        startDate={startDate}
-        endDate={endDate}
-        statusFilter={statusFilter}
-        setStartDate={setStartDate}
-        setEndDate={setEndDate}
-        setStatusFilter={setStatusFilter}
-        onApply={() => setCurrentPage(1)}
+        startDate={tempStartDate}
+        endDate={tempEndDate}
+        statusFilter={tempStatusFilter}
+        setStartDate={setTempStartDate}
+        setEndDate={setTempEndDate}
+        setStatusFilter={setTempStatusFilter}
+        onApply={() => {
+          setStartDate(tempStartDate);
+          setEndDate(tempEndDate);
+          setStatusFilter(tempStatusFilter);
+          setCurrentPage(1);
+          setShowFilter(false);
+        }}
         onReset={() => {
-          setStartDate("");
-          setEndDate("");
-          setStatusFilter("");
+          setTempStartDate("");
+          setTempEndDate("");
+          setTempStatusFilter("");
         }}
       />
+
 
       <Modal />
     </div>

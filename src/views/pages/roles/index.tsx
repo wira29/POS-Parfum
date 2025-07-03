@@ -72,7 +72,7 @@ function RoleFormModal({ open, onClose, onSubmit, initialData, loading }) {
         <div className="flex items-center justify-between px-6 py-4">
           <button
             type="button"
-            className="px-4 py-2 rounded border border-gray-300 bg-gray-100 text-gray-700 font-medium hover:bg-gray-200"
+            className="px-4 py-2 rounded border border-gray-300 bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 cursor-pointer"
             onClick={onClose}
             disabled={loading}
           >
@@ -80,7 +80,7 @@ function RoleFormModal({ open, onClose, onSubmit, initialData, loading }) {
           </button>
           <button
             type="submit"
-            className="px-4 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700"
+            className="px-4 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 cursor-pointer"
             disabled={loading}
           >
             {initialData ? "Simpan Perubahan" : "Tambah"}
@@ -95,7 +95,7 @@ function Pagination({ currentPage, lastPage, onPageChange }) {
   return (
     <div className="flex items-center gap-2">
       <button
-        className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50"
+        className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 cursor-pointer"
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
       >
@@ -104,7 +104,7 @@ function Pagination({ currentPage, lastPage, onPageChange }) {
       {Array.from({ length: lastPage }, (_, i) => (
         <button
           key={i + 1}
-          className={`px-3 py-2 text-sm rounded ${currentPage === i + 1
+          className={`px-3 py-2 text-sm rounded cursor-pointer ${currentPage === i + 1
             ? "bg-blue-500 text-white"
             : "text-gray-700 hover:text-gray-900"
             }`}
@@ -114,7 +114,7 @@ function Pagination({ currentPage, lastPage, onPageChange }) {
         </button>
       ))}
       <button
-        className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50"
+        className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 cursor-pointer"
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === lastPage}
       >
@@ -255,7 +255,7 @@ export default function RolePage() {
     if (role.status === "Nonaktif" || role.deleted_at) {
       return (
         <button
-          className="bg-green-500 text-white px-4 py-1 rounded text-xs font-medium hover:bg-green-200 transition-colors"
+          className="bg-green-500 text-white px-4 py-1 rounded text-xs font-medium hover:bg-green-200 transition-colors cursor-pointer"
           onClick={() => confirmRestore(role.id)}
           disabled={restoringId === role.id}
         >
@@ -270,12 +270,12 @@ export default function RolePage() {
             setModalInitialData(role);
             setModalOpen(true);
           }}
-          className="bg-orange-500 text-white px-4 py-1 rounded text-xs font-medium hover:bg-orange-200 transition-colors"
+          className="bg-orange-500 text-white px-4 py-1 rounded text-xs font-medium hover:bg-orange-200 transition-colors cursor-pointer"
         >
           Edit
         </button>
         <button
-          className="bg-red-500 text-white px-4 py-1 rounded text-xs font-medium transition-colors"
+          className="bg-red-500 text-white px-4 py-1 rounded text-xs font-medium transition-colors cursor-pointer"
           onClick={() => confirmDelete(role.id)}
           disabled={deletingId === role.id}
         >
@@ -325,7 +325,7 @@ export default function RolePage() {
                 setModalInitialData(null);
                 setModalOpen(true);
               }}
-              className="bg-blue-600 text-white px-4 py-2 rounded"
+              className="bg-blue-600 text-white px-4 py-2 rounded cursor-pointer"
             >
               Tambah Role
             </AddButton>
@@ -348,7 +348,7 @@ export default function RolePage() {
                   </div>
                 </div>
                 <button
-                  className="bg-blue-500 text-white px-4 py-1 rounded text-sm hover:bg-blue-600 transition-colors"
+                  className="bg-blue-500 text-white px-4 py-1 rounded text-sm hover:bg-blue-600 transition-colors cursor-pointer"
                   onClick={() => navigate(`/roles/${role.id}/Detail`)}
                 >
                   Detail
