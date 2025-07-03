@@ -13,6 +13,7 @@ export default function WarehouseCreate() {
     address: "",
     telp: "",
     image: null as File | null,
+    person_responsible: "",
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -32,11 +33,11 @@ export default function WarehouseCreate() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // 🔎 Validasi lokal
     const newErrors: Record<string, string> = {}
     if (!formData.name.trim()) newErrors.name = "Nama warehouse wajib diisi"
     if (!formData.telp.trim()) newErrors.telp = "Nomor telepon wajib diisi"
     else if (!/^[0-9+\-()\s]+$/.test(formData.telp)) newErrors.telp = "Format nomor tidak valid"
+    if (!formData.person_responsible.trim()) newErrors.person_responsible = "Penanggung jawab wajib diisi"
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
@@ -51,6 +52,7 @@ export default function WarehouseCreate() {
     payload.append("name", formData.name)
     payload.append("address", formData.address)
     payload.append("telp", formData.telp)
+    payload.append("person_responsible", formData.person_responsible)
     if (formData.image) {
       payload.append("image", formData.image)
     }
@@ -85,6 +87,7 @@ export default function WarehouseCreate() {
           "telp": "telp",
           "image": "image",
           "users.0.email": "email",
+          "person_responsible": "person_responsible",
         }
 
         Object.entries(data).forEach(([key, val]) => {
@@ -130,13 +133,13 @@ export default function WarehouseCreate() {
               </label>
               <input
                 type="text"
-                name="telp"
-                value={formData.telp}
+                name="person_responsible"
+                value={formData.person_responsible}
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                placeholder="No telepon warehouse"
+                placeholder="Masukkan nama penanggung jawab"
               />
-              {errors.telp && <p className="text-red-500 text-sm">{errors.telp}</p>}
+              {errors.person_responsible && <p className="text-red-500 text-sm">{errors.person_responsible}</p>}
             </div>
 
             <div className="space-y-2">
@@ -185,14 +188,14 @@ export default function WarehouseCreate() {
           <div className="flex justify-end space-x-2 pt-4">
             <button
               type="button"
-              className="px-4 py-2 bg-gray-400 text-white rounded-md"
+              className="px-4 py-2 bg-gray-400 text-white rounded-md cursor-pointer"
               onClick={() => navigate("/warehouses")}
             >
               Kembali
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md"
+              className="px-4 py-2 bg-blue-600 text-white rounded-md cursor-pointer"
             >
               Tambah
             </button>

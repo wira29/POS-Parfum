@@ -168,14 +168,14 @@ export default function WarehouseEdit() {
             <div className="flex justify-end space-x-2 pt-4">
               <button
                 type="button"
-                className="px-4 py-2 bg-gray-400 text-white rounded-md"
+                className="px-4 py-2 bg-gray-400 text-white rounded-md cursor-pointer"
                 onClick={() => navigate("/warehouses")}
               >
                 Kembali
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-yellow-500 text-white rounded-md"
+                className="px-4 py-2 bg-yellow-500 text-white rounded-md cursor-pointer"
               >
                 Simpan
               </button>

@@ -129,7 +129,7 @@ export const WarehouseIndex = () => {
           </div>
           <div className="w-full sm:w-auto">
             <button
-              className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 px-4 py-2 rounded-lg font-medium"
+              className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 px-4 py-2 rounded-lg font-medium cursor-pointer"
               onClick={handleTambah}
             >
               <FiPlus /> Tambah Warehouse
@@ -167,14 +167,14 @@ export const WarehouseIndex = () => {
                   <p className="text-[12px] text-gray-500 truncate">{warehouse.address}</p>
                   <div className="flex gap-2 mt-4">
                     <button
-                      className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl text-sm font-medium flex-1"
+                      className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl text-sm font-medium flex-1 cursor-pointer"
                       onClick={() => handleView(warehouse)}
                     >
                       Detail
                     </button>
                     <div className="relative">
                       <button
-                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-400 hover:bg-gray-300"
+                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-400 hover:bg-gray-300 cursor-pointer"
                         onClick={() => handleDropdownToggle(warehouse.id)}
                         type="button"
                       >
@@ -183,7 +183,7 @@ export const WarehouseIndex = () => {
                       {dropdownOpenId === warehouse.id && (
                         <div className="absolute right-0 top-12 w-36 bg-white border rounded shadow-lg z-20">
                           <button
-                            className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                            className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm cursor-pointer"
                             onClick={() => {
                               setDropdownOpenId(null);
                               handleEdit(warehouse);
@@ -192,7 +192,7 @@ export const WarehouseIndex = () => {
                             Edit
                           </button>
                           <button
-                            className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-red-600"
+                            className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-red-600 cursor-pointer"
                             onClick={() => {
                               setDropdownOpenId(null);
                               confirmDelete(warehouse.id);
@@ -224,7 +224,7 @@ export const WarehouseIndex = () => {
                 return (
                   <button
                     key={index}
-                    className={`px-3 py-1 border rounded text-sm ${link.active
+                    className={`px-3 py-1 border rounded text-sm cursor-pointer ${link.active
                       ? "bg-blue-600 text-white"
                       : "text-gray-600 hover:bg-gray-50"
                       }`}
