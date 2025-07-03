@@ -18,7 +18,7 @@ const ownerMenu = [
   {
     label: "Owner",
     children: [
-      { label: "Beranda", icon: <FiHome />, path: "/dashboard" },
+      { label: "Beranda", icon: <FiHome />, path: "/dashboard-owner" },
       { label: "Warehouse", icon: <FaShop />, path: "/warehouses" },
     ],
   },
