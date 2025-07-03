@@ -195,11 +195,6 @@ export const Register = () => {
         formData.append("logo", storeData.storeLogo);
       }
 
-      console.log("FormData contents:");
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, value);
-      }
-
       setLoading(true);
 
       const res = await apiClient.post("register", formData, {
