@@ -370,13 +370,13 @@ export const Register = () => {
 
   const renderStep1 = () => {
     return (
-      <div className="w-full lg:w-[40%] flex justify-center items-start pt-32">
+      <div className="w-full lg:w-[40%] flex justify-center items-start pt-12">
         <div className="w-[350px]">
-          <div className="flex flex-col items-center mb-8">
+          <div className="flex flex-col items-center mb-3">
             <img
               src="images/logos/logo-new.png"
               alt="Logo"
-              className="w-[150px] h-auto mb-4"
+              className="w-[150px] h-auto mb-8"
             />
           </div>
 
@@ -399,7 +399,7 @@ export const Register = () => {
                 placeholder="Username"
                 value={credentialsData.username}
                 onChange={handleCredentialsChange}
-                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm ${
+                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   formErrorMsg.username ? "border-red-500" : "border-gray-300"
                 }`}
                 autoFocus
@@ -423,7 +423,7 @@ export const Register = () => {
                 placeholder="Email"
                 value={credentialsData.email}
                 onChange={handleCredentialsChange}
-                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm ${
+                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   formErrorMsg.email ? "border-red-500" : "border-gray-300"
                 }`}
               />
@@ -447,7 +447,7 @@ export const Register = () => {
                 value={credentialsData.password}
                 onChange={handleCredentialsChange}
                 maxLength={8}
-                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm ${
+                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   formErrorMsg.password ? "border-red-500" : "border-gray-300"
                 }`}
               />
@@ -471,7 +471,7 @@ export const Register = () => {
                 value={credentialsData.confirmPassword}
                 onChange={handleCredentialsChange}
                 maxLength={8}
-                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm ${
+                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   formErrorMsg.confirmPassword
                     ? "border-red-500"
                     : "border-gray-300"
@@ -485,7 +485,7 @@ export const Register = () => {
                 ))}
             </div>
 
-            <div className="flex items-start space-x-2 mt-4">
+            {/* <div className="flex items-start space-x-2 mt-4">
               <input type="checkbox" id="privacy" className="mt-1" />
               <label htmlFor="privacy" className="text-sm text-gray-600">
                 Dengan melanjutkan maka anda menyetujui{" "}
@@ -494,12 +494,12 @@ export const Register = () => {
                 </Link>{" "}
                 kami.
               </label>
-            </div>
+            </div> */}
 
             <button
               type="submit"
               disabled={isLoading}
-              className="bg-[#2d50ff] disabled:opacity-50 text-white w-full py-2 rounded-md font-medium"
+              className="bg-[#2d50ff] disabled:opacity-50 text-white w-full py-2 rounded-md font-medium cursor-pointer"
             >
               {isLoading ? "Memproses..." : "Lanjutkan"}
             </button>
@@ -518,9 +518,9 @@ export const Register = () => {
 
   const renderStep2 = () => {
     return (
-      <div className="w-full lg:w-[40%] flex justify-center items-start pt-32">
+      <div className="w-full lg:w-[40%] flex justify-center items-start pt-8">
         <div className="w-[350px]">
-          <div className="flex flex-col items-center mb-8">
+          <div className="flex flex-col items-center mb-3">
             <img
               src="images/logos/logo-new.png"
               alt="Logo"
@@ -535,7 +535,7 @@ export const Register = () => {
             Silahkan masukkan identitas toko anda untuk mendaftar.
           </p>
 
-          <form className="space-y-4" onSubmit={handleStep2Submit} noValidate>
+          <form className="space-y-2" onSubmit={handleStep2Submit} noValidate>
             <div>
               <div className="flex items-center mb-2">
                 <svg
@@ -612,7 +612,7 @@ export const Register = () => {
                 placeholder="Nama Toko"
                 value={storeData.storeName}
                 onChange={handleStoreChange}
-                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm ${
+                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   formErrorMsg.storeName ? "border-red-500" : "border-gray-300"
                 }`}
               />
@@ -635,7 +635,7 @@ export const Register = () => {
                 value={storeData.storeAddress}
                 onChange={handleStoreChange}
                 rows={3}
-                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm ${
+                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   formErrorMsg.storeAddress
                     ? "border-red-500"
                     : "border-gray-300"
@@ -652,7 +652,7 @@ export const Register = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="bg-[#2d50ff] disabled:opacity-50 text-white w-full py-2 rounded-md font-medium"
+              className="bg-[#2d50ff] disabled:opacity-50 text-white w-full py-2 rounded-md font-medium cursor-pointer"
             >
               {isLoading ? "Memproses..." : "Lanjutkan"}
             </button>
@@ -670,9 +670,9 @@ export const Register = () => {
 
   const renderStep3 = () => {
     return (
-      <div className="w-full lg:w-[40%] flex justify-center items-start pt-32">
+      <div className="w-full lg:w-[40%] flex justify-center items-start pt-8">
         <div className="w-[350px]">
-          <div className="flex flex-col items-center mb-8">
+          <div className="flex flex-col items-center mb-3">
             <img
               src="images/logos/logo-new.png"
               alt="Logo"
@@ -687,7 +687,7 @@ export const Register = () => {
             Periksa kembali data yang anda masukkan.
           </p>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="text-center">
               {storeData.storeLogo ? (
                 <div className="inline-block">
@@ -738,7 +738,7 @@ export const Register = () => {
             </div>
 
             <div className="flex items-start space-x-2 mt-4">
-              <input type="checkbox" id="confirm" className="mt-1" />
+              <input type="checkbox" id="confirm" className="mt-1 cursor-pointer" />
               <label htmlFor="confirm" className="text-sm text-gray-600">
                 Saya memastikan data yang diisi sudah benar.
               </label>
@@ -747,7 +747,7 @@ export const Register = () => {
             <button
               onClick={handleFinalSubmit}
               disabled={isLoading}
-              className="bg-[#2d50ff] disabled:opacity-50 text-white w-full py-2 rounded-md font-medium"
+              className="bg-[#2d50ff] disabled:opacity-50 text-white w-full py-2 rounded-md font-medium cursor-pointer"
             >
               {isLoading ? "Memproses..." : "Daftar Sekarang"}
             </button>

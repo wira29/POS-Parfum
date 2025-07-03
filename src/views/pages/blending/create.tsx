@@ -352,6 +352,9 @@ export const BlendingCreate: React.FC = () => {
     setVariants(dummyVariants);
   }, []);
 
+  console.log(blendingForms);
+  
+
   return (
     <div className="bg-gray-50 min-h-screen p-6">
       <div className="max-w-8xl mx-auto space-y-5">
