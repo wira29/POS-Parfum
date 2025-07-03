@@ -5,6 +5,7 @@ import { useApiClient } from "@/core/helpers/ApiClient";
 import { useAuthStore } from "@/core/stores/AuthStore";
 import { toast, Toaster } from "sonner";
 import { setToken } from "@/core/helpers/TokenHandle";
+import { Eye, EyeOff } from "lucide-react";
 
 const UsernameEmailPasswordSchema = z
   .object({
@@ -44,7 +45,7 @@ export const Register = () => {
   const navigate = useNavigate();
   const apiClient = useApiClient();
   const { setUser, setRole, setAuth, isLoading, setLoading } = useAuthStore();
-
+  const [showPassword, setShowPassword] = useState(false);
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [formErrorMsg, setFormErrorMsg] = useState<{ [key: string]: string[] }>(
     {}
@@ -57,7 +58,6 @@ export const Register = () => {
     confirmPassword: "",
   });
 
-  // const [storeData, setStoreData] = useState({
   const [storeData, setStoreData] = useState<{
     storeLogo: File | null;
     storeName: string;
@@ -69,6 +69,8 @@ export const Register = () => {
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const togglePassword = () => setShowPassword((prev) => !prev);
 
   const handleCredentialsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -430,13 +432,13 @@ export const Register = () => {
                 ))}
             </div>
 
-            <div>
+            <div className="relative">
               <label className="text-sm font-medium" htmlFor="password">
                 Password
               </label>
               <input
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="Password (8 karakter)"
                 value={credentialsData.password}
@@ -446,6 +448,18 @@ export const Register = () => {
                   formErrorMsg.password ? "border-red-500" : "border-gray-300"
                 }`}
               />
+              <button
+                type="button"
+                onClick={togglePassword}
+                className="absolute right-3 top-[38px] text-gray-500 hover:text-gray-700"
+                tabIndex={-1}
+              >
+                {showPassword ? (
+                  <EyeOff size={18} className="cursor-pointer" />
+                ) : (
+                  <Eye className="cursor-pointer" size={18} />
+                )}
+              </button>
               {formErrorMsg.password &&
                 formErrorMsg.password.map((msg, idx) => (
                   <p key={idx} className="text-red-500 text-xs mt-1">
@@ -472,6 +486,7 @@ export const Register = () => {
                     : "border-gray-300"
                 }`}
               />
+              
               {formErrorMsg.confirmPassword &&
                 formErrorMsg.confirmPassword.map((msg, idx) => (
                   <p key={idx} className="text-red-500 text-xs mt-1">
@@ -733,7 +748,11 @@ export const Register = () => {
             </div>
 
             <div className="flex items-start space-x-2 mt-4">
-              <input type="checkbox" id="confirm" className="mt-1 cursor-pointer" />
+              <input
+                type="checkbox"
+                id="confirm"
+                className="mt-1 cursor-pointer"
+              />
               <label htmlFor="confirm" className="text-sm text-gray-600">
                 Saya memastikan data yang diisi sudah benar.
               </label>
