@@ -143,7 +143,7 @@ export const ProductShow = () => {
                   return (
                     <button
                       key={mainName}
-                      className={`border px-3 py-1 text-sm font-semibold flex items-center gap-2 w-40 ${selectedMainVariant === mainName
+                      className={`border px-3 py-1 text-sm font-semibold flex items-center gap-2 w-40 cursor-pointer ${selectedMainVariant === mainName
                         ? "bg-blue-100 border-blue-500 text-blue-700 rounded-sm"
                         : "bg-gray-100 border-gray-300 text-gray-700"
                         }`}
@@ -171,7 +171,7 @@ export const ProductShow = () => {
                   {currentVariants.map((v, idx) => (
                     <button
                       key={v.id}
-                      className={`border-2 text-xs flex items-center p-3 rounded-sm w-30 justify-center gap-1 ${selectedOptionIndex === idx
+                      className={`border-2 text-xs flex items-center p-3 rounded-sm w-30 justify-center gap-1 cursor-pointer ${selectedOptionIndex === idx
                         ? "text-blue-700 border-blue-500"
                         : "text-gray-700 border-gray-400"
                         }`}
@@ -203,7 +203,7 @@ export const ProductShow = () => {
               </p>
             </div>
           </div>
-          <button className="mt-6 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors" onClick={() => navigate("/products")}>
+          <button className="mt-6 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors cursor-pointer" onClick={() => navigate("/products")}>
             <p className="flex items-center gap-2"><ArrowLeft /> Kembali</p>
           </button>
         </div>

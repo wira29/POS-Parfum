@@ -3,11 +3,15 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
+import { ArrowLeft } from "lucide-react";
 
 type BundlingMaterial = {
   product_detail_id: string;
   variant_name: string;
   image: string | null;
+  price?: number;
+  stock?: number;
+  category?: string;
 };
 
 type BundlingPackage = {
@@ -18,29 +22,57 @@ type BundlingPackage = {
   stock: number;
   status: string;
   category: string;
+  description?: string;
   bundling_material_count: number;
   bundling_material: BundlingMaterial[];
 };
+
+function groupVariants(materials: BundlingMaterial[]) {
+  const groups: Record<string, BundlingMaterial[]> = {};
+  materials.forEach((mat) => {
+    const variantName = mat.variant_name || "";
+    const [mainName, optionName] = variantName.split("-");
+    const groupKey = mainName.trim();
+    const matWithOption = { ...mat, optionName: optionName ? optionName.trim() : "" };
+    if (!groups[groupKey]) groups[groupKey] = [];
+    groups[groupKey].push(matWithOption);
+  });
+  return groups;
+}
 
 export default function BundlingDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const apiClient = useApiClient();
   const [packageData, setPackageData] = useState<BundlingPackage | null>(null);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [selectedMainVariant, setSelectedMainVariant] = useState<string>("");
+  const [selectedOptionIndex, setSelectedOptionIndex] = useState(0);
 
   useEffect(() => {
     const fetchDetail = async () => {
       try {
         const res = await apiClient.get(`/product-bundling/${id}`);
         setPackageData(res.data.data);
-        setSelectedImageIndex(0);
       } catch {
         setPackageData(null);
       }
     };
     if (id) fetchDetail();
   }, [id]);
+
+  const variantGroups = packageData ? groupVariants(packageData.bundling_material) : {};
+  const mainVariantNames = Object.keys(variantGroups);
+
+  useEffect(() => {
+    if (packageData && mainVariantNames.length > 0) {
+      setSelectedMainVariant(mainVariantNames[0]);
+      setSelectedOptionIndex(0);
+    }
+  }, [packageData]);
+
+  const currentVariants = variantGroups[selectedMainVariant] || [];
+  const selectedVariant = currentVariants[selectedOptionIndex] || (packageData?.bundling_material?.[0] ?? null);
+  const mainImage = selectedVariant?.image || "/images/placeholder.jpg";
 
   const formatPrice = (price: number) => {
     return price.toLocaleString("id-ID");
@@ -61,105 +93,116 @@ export default function BundlingDetailPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6">
       <Breadcrumb
         title="Detail Bundling Produk"
         desc="Data Bundling Produk"
       />
-      <div className="bg-white rounded-lg p-8 shadow-2xl">
-        <div className="flex flex-col md:flex-row gap-8 md:gap-12">
-          <div className="flex-shrink-0 mb-8 md:mb-0">
-            <div className="w-80 h-96 bg-gray-50 rounded-lg flex items-center justify-center mb-4">
-              <img
-                src={ImageHelper(packageData.bundling_material[selectedImageIndex]?.image)}
-                alt={packageData.name}
-                className="max-w-full max-h-full object-contain"
-                onError={(e) => {
-                  e.currentTarget.src = "/images/placeholder.jpg";
-                }}
-              />
-            </div>
-            <div className="flex gap-2">
-              {packageData.bundling_material.map((mat, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImageIndex(index)}
-                  className={`w-16 h-16 rounded-lg overflow-hidden border-2 flex items-center justify-center bg-gray-50 ${
-                    selectedImageIndex === index 
-                      ? "border-blue-500" 
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  <img
-                    src={ImageHelper(mat.image)}
-                    alt={`${packageData.name} ${index + 1}`}
-                    className="max-w-full max-h-full object-contain"
-                    onError={(e) => {
-                      e.currentTarget.src = "/images/placeholder.jpg";
+
+      <div className="bg-white p-6 rounded-md shadow-xl mt-4">
+        <div className="flex flex-col md:flex-row gap-20 w-full">
+          <img
+            src={ImageHelper(mainImage)}
+            alt={packageData.name}
+            className="w-full max-w-[520px] h-[450px] object-cover rounded-lg shadow-md mb-4 md:mb-0 md:mr-2"
+            onError={(e) => {
+              e.currentTarget.src = "/images/placeholder.jpg";
+            }}
+          />
+
+          <div className="flex-1 max-w-150 space-y-4">
+            <p className="text-xl text-black font-bold border-b-3 border-gray-300 w-full p-2 uppercase">
+              {packageData.name.toUpperCase()}
+            </p>
+
+            <div className="flex flex-col gap-2">
+              {mainVariantNames.map((mainName, idx) => {
+                const mainVariant = variantGroups[mainName][0];
+                return (
+                  <button
+                    key={mainName}
+                    className={`border px-3 py-1 text-sm font-semibold flex items-center gap-2 w-50 cursor-pointer ${
+                      selectedMainVariant === mainName
+                        ? "bg-blue-100 border-blue-500 text-blue-700 rounded-sm"
+                        : "bg-gray-100 border-gray-300 text-gray-700"
+                    }`}
+                    onClick={() => {
+                      setSelectedMainVariant(mainName);
+                      setSelectedOptionIndex(0);
                     }}
-                  />
-                </button>
-              ))}
+                  >
+                    <img
+                      src={ImageHelper(mainVariant?.image)}
+                      className="w-6 h-6 rounded"
+                      alt="variant"
+                    />
+                    <span>{mainName}</span>
+                  </button>
+                );
+              })}
             </div>
-          </div>
-          <div className="flex-1 w-full">
-            <h1 className="text-2xl font-semibold text-gray-900 mb-4">
-              {packageData.name}
-            </h1>
-            <div className="text-4xl font-bold text-blue-600 mb-8">
-              Rp {formatPrice(packageData.harga)}
+
+            <div className="border-b-3 border-gray-300 pb-4">
+              <p className="text-gray-500 mb-5">{packageData.kode_Bundling}</p>
+              <p className="text-2xl font-bold text-gray-800">
+                Rp {formatPrice(packageData.harga)}
+              </p>
             </div>
-            <div className="space-y-6">
-              <div>
-                <div className="flex items-center gap-4 mb-3">
-                  <span className="text-sm font-medium text-gray-900 w-40">Quantity Item</span>
-                  <div className="flex gap-2 flex-wrap">
-                    {packageData.bundling_material.map((mat, index) => (
-                      <div key={index} className="flex items-center gap-2 bg-white rounded px-2 py-1 border border-gray-400">
-                        <div className="w-8 h-8 bg-white rounded flex items-center justify-center">
-                          <img
-                            src={ImageHelper(mat.image)}
-                            alt={`Item ${index + 1}`}
-                            className="w-6 h-6 object-contain"
-                            onError={(e) => {
-                              e.currentTarget.src = "/images/placeholder.jpg";
-                            }}
-                          />
-                        </div>
-                        <span className="text-black text-base font-semibold">1</span>
-                        <span className="text-black text-base">{mat.variant_name || "-"}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="text-sm font-medium text-gray-900 w-40">Kode Bundling</span>
-                <span className="text-sm text-gray-600">{packageData.kode_Bundling}</span>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="text-sm font-medium text-gray-900 w-40">Stok Produk</span>
-                <span className="text-sm text-gray-600">{packageData.stock} Pcs</span>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="text-sm font-medium text-gray-900 w-40">Status</span>
-                <span className="text-sm text-gray-600">{packageData.status === "active" ? "Tersedia" : "Habis"}</span>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="text-sm font-medium text-gray-900 w-40">Kategori</span>
-                <span className="text-sm text-gray-600">{packageData.category}</span>
+
+            <div className="pb-4 border-b-2 border-gray-300">
+              <h2 className="text-gray-500 mb-2">
+                Tersedia {currentVariants.length} Opsi
+              </h2>
+              <div className="flex gap-4">
+                {currentVariants.map((v, idx) => (
+                  <button
+                    key={v.product_detail_id}
+                    className={`border-2 text-xs flex items-center p-3 rounded-sm w-30 justify-center gap-1 cursor-pointer ${
+                      selectedOptionIndex === idx
+                        ? "text-blue-700 border-blue-500"
+                        : "text-gray-700 border-gray-400"
+                    }`}
+                    onClick={() => setSelectedOptionIndex(idx)}
+                  >
+                    <span className="font-semibold text-sm">
+                      {v.optionName || v.variant_name || "Opsi"}
+                    </span>
+                  </button>
+                ))}
               </div>
             </div>
-            <div className="mt-12">
-              <button 
-                onClick={() => navigate(-1)}
-                className="px-8 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium"
-              >
-                Kembali
-              </button>
+
+            <div className="text-sm text-gray-700">
+              <div className="flex justify-between">
+                <span className="font-semibold">Stok Produk</span>
+                <span>{selectedVariant?.stock ?? packageData.stock} Pcs</span>
+              </div>
             </div>
           </div>
         </div>
+
+        <h2 className="font-bold text-xl p-3 text-gray-800 border-b-3 border-gray-300 mt-3">
+          Deskripsi
+        </h2>
+        <div className="mt-10 gap-6">
+          <div className="md:col-span-2">
+            <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
+              {packageData.description || (
+                <span className="text-gray-400 italic">
+                  Belum ada deskripsi
+                </span>
+              )}
+            </p>
+          </div>
+        </div>
+        <button
+          className="mt-6 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors cursor-pointer"
+          onClick={() => navigate(-1)}
+        >
+          <span className="flex items-center gap-2">
+            <ArrowLeft /> Kembali
+          </span>
+        </button>
       </div>
     </div>
   );

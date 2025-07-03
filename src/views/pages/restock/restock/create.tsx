@@ -3,50 +3,9 @@ import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { ChevronDown, ChevronUp, Search, X } from "lucide-react";
 import DeleteIcon from "@/views/components/DeleteIcon";
 import { useNavigate } from "react-router-dom";
-
-const dummyWarehouse = [
-  { id: 1, name: "Gudang Utama" },
-  { id: 2, name: "Gudang Cabang" },
-  { id: 3, name: "Gudang Bahan" },
-];
-
-const dummyProducts = [
-  { id: 1, name: "Alcohol 70%", code: "PR001", variantCount: 5, category: "Cairan", image: "https://dummyimage.com/300x400/eee/333&text=Alcohol+70%" },
-  { id: 2, name: "Hand Sanitizer", code: "PR002", variantCount: 3, category: "Gel", image: "https://dummyimage.com/300x400/eee/333&text=Hand+Sanitizer" },
-  { id: 3, name: "Alcohol 70%", code: "PR001", variantCount: 5, category: "Cairan", image: "https://dummyimage.com/300x400/eee/333&text=Alcohol+70%" },
-  { id: 4, name: "Hand Sanitizer", code: "PR002", variantCount: 3, category: "Gel", image: "https://dummyimage.com/300x400/eee/333&text=Hand+Sanitizer" },
-  { id: 5, name: "Alcohol 70%", code: "PR001", variantCount: 5, category: "Cairan", image: "https://dummyimage.com/300x400/eee/333&text=Alcohol+70%" },
-  { id: 6, name: "Hand Sanitizer", code: "PR002", variantCount: 3, category: "Gel", image: "https://dummyimage.com/300x400/eee/333&text=Hand+Sanitizer" },
-  { id: 7, name: "Alcohol 70%", code: "PR001", variantCount: 5, category: "Cairan", image: "https://dummyimage.com/300x400/eee/333&text=Alcohol+70%" },
-  { id: 8, name: "Hand Sanitizer", code: "PR002", variantCount: 3, category: "Gel", image: "https://dummyimage.com/300x400/eee/333&text=Hand+Sanitizer" },
-  { id: 9, name: "Alcohol 70%", code: "PR001", variantCount: 5, category: "Cairan", image: "https://dummyimage.com/300x400/eee/333&text=Alcohol+70%" },
-  { id: 10, name: "Hand Sanitizer", code: "PR002", variantCount: 3, category: "Gel", image: "https://dummyimage.com/300x400/eee/333&text=Hand+Sanitizer" },
-  { id: 11, name: "Alcohol 70%", code: "PR001", variantCount: 5, category: "Cairan", image: "https://dummyimage.com/300x400/eee/333&text=Alcohol+70%" },
-  { id: 12, name: "Hand Sanitizer", code: "PR002", variantCount: 3, category: "Gel", image: "https://dummyimage.com/300x400/eee/333&text=Hand+Sanitizer" },
-  { id: 13, name: "Alcohol 70%", code: "PR001", variantCount: 5, category: "Cairan", image: "https://dummyimage.com/300x400/eee/333&text=Alcohol+70%" },
-  { id: 14, name: "Hand Sanitizer", code: "PR002", variantCount: 3, category: "Gel", image: "https://dummyimage.com/300x400/eee/333&text=Hand+Sanitizer" },
-  { id: 15, name: "Alcohol 70%", code: "PR001", variantCount: 5, category: "Cairan", image: "https://dummyimage.com/300x400/eee/333&text=Alcohol+70%" },
-  { id: 16, name: "Hand Sanitizer", code: "PR002", variantCount: 3, category: "Gel", image: "https://dummyimage.com/300x400/eee/333&text=Hand+Sanitizer" },
-  { id: 17, name: "Alcohol 70%", code: "PR001", variantCount: 5, category: "Cairan", image: "https://dummyimage.com/300x400/eee/333&text=Alcohol+70%" },
-  { id: 18, name: "Hand Sanitizer", code: "PR002", variantCount: 3, category: "Gel", image: "https://dummyimage.com/300x400/eee/333&text=Hand+Sanitizer" },
-  { id: 19, name: "Alcohol 70%", code: "PR001", variantCount: 5, category: "Cairan", image: "https://dummyimage.com/300x400/eee/333&text=Alcohol+70%" },
-  { id: 20, name: "Hand Sanitizer", code: "PR002", variantCount: 3, category: "Gel", image: "https://dummyimage.com/300x400/eee/333&text=Hand+Sanitizer" },
-];
-
-const dummyVariants = {
-  1: [
-    { id: "VPR001-01", name: "Alkohol 01", weight: "5000G", image: "https://dummyimage.com/300x400/eee/333&text=Alcohol+01" },
-    { id: "VPR001-02", name: "Alkohol 02", weight: "5000G", image: "https://dummyimage.com/300x400/eee/333&text=Alcohol+02" },
-    { id: "VPR001-03", name: "Alkohol 03", weight: "5000G", image: "https://dummyimage.com/300x400/eee/333&text=Alcohol+03" },
-    { id: "VPR001-04", name: "Alkohol 04", weight: "5000G", image: "https://dummyimage.com/300x400/eee/333&text=Alcohol+04" },
-    { id: "VPR001-05", name: "Alkohol 05", weight: "5000G", image: "https://dummyimage.com/300x400/eee/333&text=Alcohol+05" },
-  ],
-  2: [
-    { id: "VPR002-01", name: "Sanitizer 01", weight: "100ML", image: "https://dummyimage.com/300x400/eee/333&text=Sanitizer+01" },
-    { id: "VPR002-02", name: "Sanitizer 02", weight: "250ML", image: "https://dummyimage.com/300x400/eee/333&text=Sanitizer+02" },
-    { id: "VPR002-03", name: "Sanitizer 03", weight: "500ML", image: "https://dummyimage.com/300x400/eee/333&text=Sanitizer+03" },
-  ],
-};
+import { useApiClient } from "@/core/helpers/ApiClient";
+import Swal from "sweetalert2";
+import { toast } from "sonner";
 
 const PRODUCTS_PER_PAGE = 10;
 
@@ -62,14 +21,42 @@ export const RestockCreate = () => {
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [warehouses, setWarehouses] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
   const warehouseRef = useRef<HTMLDivElement>(null);
   const variantModalRef = useRef<HTMLDivElement>(null);
   const productModalRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const apiClient = useApiClient();
+
+  useEffect(() => {
+    const fetchWarehouses = async () => {
+      try {
+        const res = await apiClient.get("/warehouses");
+        setWarehouses(res.data.data || []);
+      } catch (e) {
+        setWarehouses([]);
+      }
+    };
+    fetchWarehouses();
+  }, []);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await apiClient.get("/products/no-paginate");
+        setProducts(res.data.data || []);
+      } catch (e) {
+        setProducts([]);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   useEffect(() => {
     if (!showVariantModal) return;
-    const handleClickOutside = (event) => {
+    const handleClickOutside = (event: any) => {
       if (
         variantModalRef.current &&
         !variantModalRef.current.contains(event.target)
@@ -84,7 +71,7 @@ export const RestockCreate = () => {
 
   useEffect(() => {
     if (!showProductModal) return;
-    const handleClickOutside = (event) => {
+    const handleClickOutside = (event: any) => {
       if (
         productModalRef.current &&
         !productModalRef.current.contains(event.target)
@@ -96,20 +83,19 @@ export const RestockCreate = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showProductModal]);
 
-  const filteredWarehouses = dummyWarehouse.filter((w) =>
+  const filteredWarehouses = warehouses.filter((w) =>
     w.name.toLowerCase().includes(warehouseSearch.toLowerCase())
   );
 
   const filteredProducts = useMemo(() => {
-    if (!search) return dummyProducts;
+    if (!search) return products;
     const lower = search.toLowerCase();
-    return dummyProducts.filter(
+    return products.filter(
       (p) =>
         p.name.toLowerCase().includes(lower) ||
-        p.code.toLowerCase().includes(lower) ||
-        p.category.toLowerCase().includes(lower)
+        (p.category && p.category.toLowerCase().includes(lower))
     );
-  }, [search]);
+  }, [search, products]);
 
   const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
 
@@ -118,14 +104,14 @@ export const RestockCreate = () => {
     return filteredProducts.slice(start, start + PRODUCTS_PER_PAGE);
   }, [filteredProducts, currentPage]);
 
-  const handleAddProduct = (product) => {
+  const handleAddProduct = (product: any) => {
     if (selectedProducts.some((p) => p.product.id === product.id)) return;
     setSelectedProduct(product);
     setShowProductModal(false);
     setShowVariantModal(true);
   };
 
-  const handleAddVariants = (variants) => {
+  const handleAddVariants = (variants: any[]) => {
     if (!selectedProduct) return;
     setSelectedProducts((prev) => [
       ...prev,
@@ -140,11 +126,11 @@ export const RestockCreate = () => {
     setShowVariantModal(false);
   };
 
-  const handleRemoveProduct = (productId) => {
+  const handleRemoveProduct = (productId: string) => {
     setSelectedProducts((prev) => prev.filter((p) => p.product.id !== productId));
   };
 
-  const handleToggleTable = (productId) => {
+  const handleToggleTable = (productId: string) => {
     setSelectedProducts((prev) =>
       prev.map((p) =>
         p.product.id === productId ? { ...p, showTable: !p.showTable } : p
@@ -152,13 +138,13 @@ export const RestockCreate = () => {
     );
   };
 
-  const handleVariantQtyChange = (productId, variantId, value) => {
+  const handleVariantQtyChange = (productId: string, variantId: string, value: string) => {
     setSelectedProducts((prev) =>
       prev.map((p) =>
         p.product.id === productId
           ? {
               ...p,
-              variants: p.variants.map((v) =>
+              variants: p.variants.map((v: any) =>
                 v.id === variantId ? { ...v, qty: value } : v
               ),
             }
@@ -167,13 +153,13 @@ export const RestockCreate = () => {
     );
   };
 
-  const handleVariantUnitChange = (productId, variantId, value) => {
+  const handleVariantUnitChange = (productId: string, variantId: string, value: string) => {
     setSelectedProducts((prev) =>
       prev.map((p) =>
         p.product.id === productId
           ? {
               ...p,
-              variants: p.variants.map((v) =>
+              variants: p.variants.map((v: any) =>
                 v.id === variantId ? { ...v, unit: value } : v
               ),
             }
@@ -182,21 +168,70 @@ export const RestockCreate = () => {
     );
   };
 
-  const handleRemoveVariant = (productId, variantId) => {
+  const handleRemoveVariant = (productId: string, variantId: string) => {
     setSelectedProducts((prev) =>
       prev
         .map((p) =>
           p.product.id === productId
-            ? { ...p, variants: p.variants.filter((v) => v.id !== variantId) }
+            ? { ...p, variants: p.variants.filter((v: any) => v.id !== variantId) }
             : p
         )
         .filter((p) => p.variants.length > 0)
     );
   };
 
-  const goToPage = (page) => {
+  const goToPage = (page: number) => {
     if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedWarehouse) {
+      Swal.fire({
+        icon: "warning",
+        title: "Pilih Gudang",
+        text: "Silakan pilih gudang terlebih dahulu sebelum membuat request restock.",
+      });
+      return;
+    }
+    if (selectedProducts.length === 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "Tidak ada produk",
+        text: "Silakan pilih produk yang ingin direstock.",
+      });
+      return;
+    }
+    const requested_stock = selectedProducts.flatMap((p) =>
+      p.variants.map((v: any) => ({
+        variant_id: v.id,
+        requested_stock: Number(v.qty),
+      }))
+    );
+    if (requested_stock.some((r) => !r.variant_id || !r.requested_stock)) {
+      Swal.fire({
+        icon: "warning",
+        title: "Jumlah tidak valid",
+        text: "Pastikan semua varian memiliki jumlah yang valid.",
+      });
+      return;
+    }
+    setLoading(true);
+    try {
+      await apiClient.post("/stock-request", {
+        warehouse_id: selectedWarehouse,
+        requested_stock,
+      });
+      navigate("/restock");
+      toast.success("Request restock berhasil dibuat");
+    } catch (e: any) {
+      Swal.fire({
+        icon: "error",
+        title: "Gagal membuat request",
+        text: e?.response?.data?.message || "Terjadi kesalahan saat membuat request restock.",
+      });
+    }
+    setLoading(false);
   };
 
   return (
@@ -216,7 +251,7 @@ export const RestockCreate = () => {
               }
             }}
           >
-            {dummyWarehouse.find((w) => w.id === selectedWarehouse)?.name || "Pilih warehouse"}
+            {warehouses.find((w) => w.id === selectedWarehouse)?.name || "Pilih warehouse"}
           </div>
           {warehouseDropdown && (
             <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg">
@@ -253,7 +288,7 @@ export const RestockCreate = () => {
           )}
         </div>
         <button
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 cursor-pointer"
           onClick={() => setShowProductModal(true)}
         >
           <Search /> Cari dan Pilih Produk
@@ -282,7 +317,7 @@ export const RestockCreate = () => {
               </div>
               <div className="p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 max-h-[400px] overflow-y-auto">
                 {paginatedProducts.length > 0 ? (
-                  paginatedProducts.map((product) => {
+                  paginatedProducts.map((product: any) => {
                     const isSelected = selectedProducts.some((p) => p.product.id === product.id);
                     return (
                       <div
@@ -295,16 +330,15 @@ export const RestockCreate = () => {
                         title={isSelected ? "Sudah dipilih" : ""}
                       >
                         <div className="relative">
-                          <img src={product.image} alt={product.name} className="w-full h-32 object-contain" />
+                          <img src={product.image || "/images/big/img8.jpg"} alt={product.name} className="w-full h-32 object-contain" />
                           <span className="absolute top-1 left-1 bg-gray-800 text-white text-xs px-2 py-0.5 rounded">
-                            {product.variantCount} Varian
+                            {product.product_detail?.length || 0} Varian
                           </span>
                           <span className="absolute top-1 right-1 bg-blue-600 text-white text-xs px-2 py-0.5 rounded">
                             {product.category}
                           </span>
                         </div>
                         <div className="mt-2 text-sm font-medium">{product.name}</div>
-                        <div className="text-xs text-gray-500">{product.code}</div>
                         {isSelected && (
                           <div className="mt-2 text-xs text-green-700 font-semibold text-center">Sudah dipilih</div>
                         )}
@@ -323,7 +357,7 @@ export const RestockCreate = () => {
                   <button
                     disabled={currentPage === 1}
                     onClick={() => goToPage(currentPage - 1)}
-                    className={`text-sm px-3 py-1 border rounded-md ${currentPage === 1 ? "border-gray-200 text-gray-400 cursor-not-allowed" : "border-gray-300 hover:bg-gray-100"
+                    className={`text-sm px-3 py-1 border rounded-md cursor-pointer ${currentPage === 1 ? "border-gray-200 text-gray-400 cursor-not-allowed " : "border-gray-300 hover:bg-gray-100"
                       }`}
                   >
                     Previous
@@ -332,7 +366,7 @@ export const RestockCreate = () => {
                     <button
                       key={page}
                       onClick={() => goToPage(page)}
-                      className={`text-sm px-3 py-1 border rounded-md ${page === currentPage ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 hover:bg-gray-100"
+                      className={`text-sm px-3 py-1 border rounded-md cursor-pointer ${page === currentPage ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 hover:bg-gray-100"
                         }`}
                     >
                       {page}
@@ -341,7 +375,7 @@ export const RestockCreate = () => {
                   <button
                     disabled={currentPage === totalPages}
                     onClick={() => goToPage(currentPage + 1)}
-                    className={`text-sm px-3 py-1 border rounded-md ${currentPage === totalPages ? "border-gray-200 text-gray-400 cursor-not-allowed" : "border-gray-300 hover:bg-gray-100"
+                    className={`text-sm px-3 py-1 border rounded-md cursor-pointer ${currentPage === totalPages ? "border-gray-200 text-gray-400 cursor-not-allowed" : "border-gray-300 hover:bg-gray-100"
                       }`}
                   >
                     Next
@@ -349,7 +383,7 @@ export const RestockCreate = () => {
                 </div>
               </div>
               <button
-                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 cursor-pointer"
                 onClick={() => setShowProductModal(false)}
               >
                 <X />
@@ -360,7 +394,7 @@ export const RestockCreate = () => {
         {selectedProducts.map((item) => (
           <div key={item.product.id} className="mt-6 border border-gray-300 rounded-md p-5">
             <div className="flex gap-5">
-              <img src={item.product.image} className="w-40 border border-gray-300 rounded-md" alt="Product" />
+              <img src={item.product.image || "/images/big/img8.jpg"} className="w-40 border border-gray-300 rounded-md" alt="Product" />
               <div className="flex-1 space-y-4">
                 <div className="flex justify-between">
                   <h1 className="font-semibold text-xl">{item.product.name}</h1>
@@ -394,10 +428,10 @@ export const RestockCreate = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {item.variants.map((variant, i) => (
+                    {item.variants.map((variant: any, i: number) => (
                       <tr key={variant.id} className="hover:bg-gray-50">
                         <td className="p-6 align-top">{i + 1}</td>
-                        <td className="p-6 align-top">{variant.name}</td>
+                        <td className="p-6 align-top">{variant.variant_name || variant.name}</td>
                         <td className="p-6 align-top">
                           <div className="w-60">
                             <div className="flex items-center">
@@ -408,14 +442,9 @@ export const RestockCreate = () => {
                                 value={variant.qty}
                                 onChange={(e) => handleVariantQtyChange(item.product.id, variant.id, e.target.value)}
                               />
-                              <select
-                                className="px-3 py-2 border border-gray-300 border-l-0 rounded-r-lg bg-gray-300 text-sm"
-                                value={variant.unit}
-                                onChange={(e) => handleVariantUnitChange(item.product.id, variant.id, e.target.value)}
-                              >
-                                <option>G</option>
-                                <option>ML</option>
-                              </select>
+                              <span className="px-3 py-2 border border-gray-300 border-l-0 rounded-r-lg bg-gray-300 text-sm">
+                                Gram
+                              </span>
                             </div>
                           </div>
                         </td>
@@ -438,7 +467,7 @@ export const RestockCreate = () => {
             >
               <div className="p-4 border-b border-gray-200 font-semibold text-lg">Pilih Varian</div>
               <div className="p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 max-h-[400px] overflow-y-auto">
-                {(dummyVariants[selectedProduct.id] || []).map((variant) => {
+                {(selectedProduct.product_detail || []).map((variant: any) => {
                   const isSelected = selectedVariants.includes(variant.id);
                   return (
                     <div
@@ -451,10 +480,10 @@ export const RestockCreate = () => {
                       className={`border rounded-lg p-2 shadow cursor-pointer transition ${isSelected ? "border-blue-600 ring-2 ring-blue-200" : "border-gray-200 hover:shadow-md"
                         }`}
                     >
-                      <img src={variant.image} alt={variant.name} className="w-full h-32 object-contain" />
-                      <div className="mt-2 text-sm font-medium">{variant.name}</div>
-                      <div className="text-xs text-gray-500">{selectedProduct.code}</div>
-                      <div className="text-xs text-green-600">{variant.weight}</div>
+                      <img src={variant.product_image || "/images/big/img8.jpg"} alt={variant.variant_name || variant.name} className="w-full h-32 object-contain" />
+                      <div className="mt-2 text-sm font-medium">{variant.variant_name || variant.name}</div>
+                      <div className="text-xs text-gray-500">{variant.product_code}</div>
+                      <div className="text-xs text-green-600">{variant.stock ? `${variant.stock} stok` : ""}</div>
                     </div>
                   );
                 })}
@@ -467,15 +496,15 @@ export const RestockCreate = () => {
                       setShowVariantModal(false);
                       setSelectedProduct(null);
                     }}
-                    className="border border-gray-300 px-4 py-1.5 rounded-md hover:bg-gray-100 text-sm"
+                    className="border border-gray-300 px-4 py-1.5 rounded-md hover:bg-gray-100 text-sm cursor-pointer"
                   >
                     Kembali
                   </button>
                   <button
-                    className="bg-blue-600 text-white px-4 py-1.5 rounded-md text-sm hover:bg-blue-700"
+                    className="bg-blue-600 text-white px-4 py-1.5 rounded-md text-sm hover:bg-blue-700 cursor-pointer"
                     disabled={selectedVariants.length === 0}
                     onClick={() => {
-                      const selected = (dummyVariants[selectedProduct.id] || []).filter((v) =>
+                      const selected = (selectedProduct.product_detail || []).filter((v: any) =>
                         selectedVariants.includes(v.id)
                       );
                       handleAddVariants(selected);
@@ -489,8 +518,14 @@ export const RestockCreate = () => {
           </div>
         )}
         <div className="flex gap-5 w-full justify-end mt-10">
-          <button className="bg-gray-400 text-white p-2.5 w-25 rounded-sm" onClick={() => navigate("/restock")}> Kembali</button>
-          <button className="bg-blue-600 text-white p-2.5 w-25 rounded-sm"> Request</button>
+          <button className="bg-gray-400 text-white p-2.5 w-25 rounded-sm cursor-pointer" onClick={() => navigate("/restock")}> Kembali</button>
+          <button
+            className="bg-blue-600 text-white p-2.5 w-25 rounded-sm cursor-pointer"
+            disabled={loading}
+            onClick={handleSubmit}
+          >
+            {loading ? "Mengirim..." : "Request"}
+          </button>
         </div>
       </div>
     </div>

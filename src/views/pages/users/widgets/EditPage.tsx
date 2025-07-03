@@ -326,14 +326,14 @@ export default function UserEdit() {
           <button
             type="button"
             onClick={handleBack}
-            className="px-6 py-2 bg-gray-400 text-white rounded"
+            className="px-6 py-2 bg-gray-400 text-white rounded cursor-pointer"
           >
             Kembali
           </button>
           <button
             type="button"
             onClick={handleSubmit}
-            className="px-6 py-2 bg-blue-600 text-white rounded"
+            className="px-6 py-2 bg-blue-600 text-white rounded cursor-pointer"
           >
             Simpan
           </button>

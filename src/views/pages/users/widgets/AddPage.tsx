@@ -211,7 +211,7 @@ export default function UserCreateSelect() {
                                             ))}
                                     </select>
                                     {userData.role.length > 1 && (
-                                        <button type="button" onClick={() => handleRemoveRole(i)} className="text-red-600 hover:text-red-800" title="Hapus role">
+                                        <button type="button" onClick={() => handleRemoveRole(i)} className="text-red-600 hover:text-red-800 cursor-pointer" title="Hapus role">
                                             &times;
                                         </button>
                                     )}
@@ -219,7 +219,7 @@ export default function UserCreateSelect() {
                             );
                         })}
                         {errors.role && <p className="text-red-500 text-sm mt-1">{errors.role}</p>}
-                        <button type="button" onClick={handleAddRole} className="text-blue-600 text-sm mt-1">+ Tambah Role</button>
+                        <button type="button" onClick={handleAddRole} className="text-blue-600 text-sm mt-1 cursor-pointer">+ Tambah Role</button>
                     </div>
 
                     <div>
@@ -252,10 +252,10 @@ export default function UserCreateSelect() {
                 </div>
 
                 <div className="flex justify-end space-x-3 mt-8">
-                    <button type="button" onClick={handleBack} className="px-6 py-2 bg-gray-400 text-white rounded">
+                    <button type="button" onClick={handleBack} className="px-6 py-2 bg-gray-400 text-white rounded cursor-pointer">
                         Kembali
                     </button>
-                    <button type="button" onClick={handleSubmit} className="px-6 py-2 bg-blue-600 text-white rounded">
+                    <button type="button" onClick={handleSubmit} className="px-6 py-2 bg-blue-600 text-white rounded cursor-pointer">
                         Tambah
                     </button>
                 </div>

@@ -321,7 +321,7 @@ export default function RoleDetail() {
             </div>
           </div>
           <button
-            className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-600"
+            className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-600 cursor-pointer"
             onClick={() => {
               setEditField("name");
               setEditModalOpen(true);
@@ -349,7 +349,7 @@ export default function RoleDetail() {
             </div>
           </div>
           <button
-            className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-600"
+            className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-600 cursor-pointer"
             onClick={() => {
               setEditField("guardName");
               setEditModalOpen(true);
@@ -397,7 +397,7 @@ export default function RoleDetail() {
             </div>
             <div className="flex gap-3">
               <button
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
                 onClick={() => nav("/roles")}
               >
                 <span>Kembali</span>
@@ -488,7 +488,7 @@ export default function RoleDetail() {
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 Previous
               </button>
@@ -499,7 +499,7 @@ export default function RoleDetail() {
                   <button
                     key={page}
                     onClick={() => handlePageChange(page)}
-                    className={`px-3 py-1 text-sm border rounded-md ${currentPage === page
+                    className={`px-3 py-1 text-sm border rounded-md cursor-pointer ${currentPage === page
                         ? 'bg-blue-600 text-white border-blue-600'
                         : 'border-gray-300 hover:bg-gray-50'
                       }`}
@@ -512,7 +512,7 @@ export default function RoleDetail() {
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 Next
               </button>

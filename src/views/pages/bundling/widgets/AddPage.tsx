@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Toaster } from "@/core/helpers/BaseAlert";
-import { Plus, X, Info, Image as ImageIcon } from "lucide-react";
+import { Info, Image as ImageIcon } from "lucide-react";
 import VariantSelectModal from "./modal/VariantSelectModal";
 import InputOneImage from "@/views/components/Input-v2/InputOneImage";
+import { ImageHelper } from "@/core/helpers/ImageHelper";
 
 export default function BundlingCreate() {
   const navigate = useNavigate();
@@ -32,6 +33,8 @@ export default function BundlingCreate() {
 
   const [categorySearch, setCategorySearch] = useState("");
   const [categoryDropdown, setCategoryDropdown] = useState(false);
+  const [showComposition, setShowComposition] = useState(true);
+  const [compositionAnim, setCompositionAnim] = useState("opened");
   const categoryRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -210,8 +213,50 @@ export default function BundlingCreate() {
     cat.label.toLowerCase().includes(categorySearch.toLowerCase())
   );
 
+  const handleToggleComposition = () => {
+    if (showComposition) {
+      setCompositionAnim("closing");
+      setTimeout(() => {
+        setShowComposition(false);
+        setCompositionAnim("closed");
+      }, 250);
+    } else {
+      setShowComposition(true);
+      setCompositionAnim("opening");
+      setTimeout(() => {
+        setCompositionAnim("opened");
+      }, 10);
+    }
+  };
+
   return (
     <div className="p-6 space-y-6">
+      <style>
+        {`
+        .slide-composition {
+          overflow: hidden;
+          transition: max-height 0.25s cubic-bezier(0.4,0,0.2,1), opacity 0.25s cubic-bezier(0.4,0,0.2,1);
+          max-height: 1000px;
+          opacity: 1;
+        }
+        .slide-composition.opening {
+          max-height: 1000px;
+          opacity: 1;
+        }
+        .slide-composition.opened {
+          max-height: 1000px;
+          opacity: 1;
+        }
+        .slide-composition.closing {
+          max-height: 0;
+          opacity: 0;
+        }
+        .slide-composition.closed {
+          max-height: 0;
+          opacity: 0;
+        }
+        `}
+      </style>
       <Breadcrumb title="Buat Bundling Produk" desc="Data Bundling Produk" />
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-8">
@@ -287,42 +332,116 @@ export default function BundlingCreate() {
               </div>
 
               <div>
-                <label className={`${labelClass} flex items-center gap-1`}>
-                  Produk Dibundling<span className="text-red-500">*</span>
-                  <button
-                    type="button"
-                    className="text-blue-600 text-sm ml-auto flex items-center gap-1"
-                    onClick={() => setShowModal(true)}
+                <div className="bg-white rounded-lg shadow-none mt-2">
+                  <div className="flex justify-between items-center px-2 pt-2 pb-1 border-b border-gray-100 p-2 bg-gray-100">
+                    <span className="text-blue-600 font-semibold cursor-pointer text-base">
+                      Produk Dibundling
+                    </span>
+                    <button
+                      type="button"
+                      className="ml-2"
+                      onClick={handleToggleComposition}
+                    >
+                      <svg width="30" height="30" viewBox="0 0 20 20">
+                        <polygon
+                          points="10,7 15,13 5,13"
+                          fill="#0066FF"
+                          style={{
+                            transform: showComposition ? "rotate(180deg)" : "none",
+                            transformOrigin: "50% 60%",
+                            transition: "transform 0.2s",
+                          }}
+                          className="cursor-pointer"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  <div
+                    className={`slide-composition ${showComposition ? compositionAnim : compositionAnim}`}
                   >
-                    <Plus size={16} /> Tambah Bundling
-                  </button>
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {composition.length === 0 && (
-                    <div className="text-gray-400 italic">Belum ada produk bundling dipilih</div>
-                  )}
-                  {composition.map((item, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        className="flex-1 px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
-                        placeholder="Produk Bundling"
-                        value={item}
-                        readOnly
-                        onClick={() => handleRemoveComposition(index)}
-                        title="Klik untuk hapus varian ini"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveComposition(index)}
-                        className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
-                        title="Hapus"
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                  ))}
+                    {showComposition && (
+                      <>
+                        <div className="space-y-4 py-4 max-h-75 overflow-y-auto mb-4">
+                          {composition.length === 0 && (
+                            <div className="text-gray-400 italic px-4 py-6 text-center">
+                              Belum ada produk bundling dipilih
+                            </div>
+                          )}
+                          {composition.map((item, index) => {
+                            const [productName, variantName] = item.split(" - ");
+                            const prod = products.find((p) => p.name === productName);
+                            const variant = prod?.variants.find((v) => v.name === variantName);
+                            const categoryLabel = categories.find((cat) => cat.value === prod?.category_id)?.label || "-";
+                            return (
+                              <div
+                                key={index}
+                                className="flex flex-col md:flex-row md:items-center justify-between border border-gray-200 rounded-xl px-5 py-4 bg-white"
+                                style={{ boxShadow: "0 0 0 1px #E5E7EB" }}
+                              >
+                                <div className="flex items-center gap-4 flex-1">
+                                  <img
+                                    src={ImageHelper(variant?.product_image)}
+                                    alt={productName}
+                                    className="w-14 h-14 rounded bg-gray-100 object-cover border border-gray-200"
+                                  />
+                                  <div className="flex flex-col gap-1">
+                                    <div className="font-semibold text-base">{productName}</div>
+                                    <div className="text-xs text-gray-500">
+                                      Varian
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                      <span className="font-medium text-gray-700">{variantName}</span>
+                                    </div>
+                                  </div>
+                                  <div className="flex flex-wrap gap-15 mt-1 text-xs ml-5">
+                                    <div className="flex flex-col">
+                                      <span className="text-gray-500 text-sm font-semibold">Harga</span>
+                                      <span className="font-medium text-gray-700 mt-1">
+                                        Rp {variant?.price?.toLocaleString("id-ID") || "-"}
+                                      </span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                      <span className="text-gray-500 text-sm font-semibold">Stok</span>
+                                      <span className="font-medium text-gray-700">
+                                        {variant?.stock || "-"} G
+                                      </span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                      <span className="text-gray-500 text-sm font-semibold">Kategori</span>
+                                      <span className="font-medium text-gray-700">
+                                        {categoryLabel}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="mt-3 md:mt-0">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveComposition(index)}
+                                    className="bg-red-500 text-white px-5 py-2 rounded font-semibold hover:bg-red-600 cursor-pointer"
+                                  >
+                                    Hapus
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <div className="flex justify-between items-center px-4 py-3 bg-[#F7F7F7] rounded-b-lg border-t border-gray-100">
+                          <span className="text-gray-400 text-base">{composition.length} Produk Ditambah</span>
+                          <button
+                            type="button"
+                            className="bg-blue-600 text-white px-4 py-2 rounded font-semibold hover:bg-blue-700 cursor-pointer"
+                            onClick={() => setShowModal(true)}
+                          >
+                            Tambah Produk
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
+                {errors.category_id && <div className="text-red-500 text-sm mt-1">{errors.category_id}</div>}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -384,22 +503,21 @@ export default function BundlingCreate() {
               onRemoveImage={() => setImages([])}
               label="Unggah"
             />
-          </div>
-
-          <div className="flex justify-center gap-4 pt-6">
-            <button
-              type="button"
-              onClick={() => navigate("/bundlings")}
-              className="px-8 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Simpan
-            </button>
+            <div className="flex justify-end gap-4 pt-6">
+              <button
+                type="button"
+                onClick={() => navigate("/bundlings")}
+                className="px-8 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+              >
+                Simpan
+              </button>
+            </div>
           </div>
         </div>
 
