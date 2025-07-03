@@ -36,7 +36,7 @@ interface AuditItem {
   outlet_id: string;
   deleted_at: string | null;
   created_at: string | null;
-  audit_details: AuditDetail[];
+  audit_detail: AuditDetail[];
 }
 
 interface ApiResponse {
@@ -674,7 +674,7 @@ export const AuditIndex = () => {
                     <td className="px-6 py-4">{item.name}</td>
                     <td className="px-6 py-4">{item.date}</td>
                     <td className="px-6 py-4">
-                      {item.audit_details.length} Variant
+                      {item.audit_detail?.length ?? "Tidak ada"} Variant
                     </td>
                     <td className="px-6 py-4">
                       <span
@@ -736,14 +736,6 @@ export const AuditIndex = () => {
       <RetailRequestModal
         isOpen={isModalOpen}
         auditId={selectedAuditId}
-        description={{
-          descriptionApproved: `Anda Menerima Audit ID ${
-            selectedAuditId || ""
-          }.`,
-          descriptionRejected: `Anda Menolak Audit ID ${
-            selectedAuditId || ""
-          }, sehingga audit tidak diproses.`,
-        }}
         onClose={() => {
           setIsModalOpen(false);
           setSelectedAuditId(undefined);

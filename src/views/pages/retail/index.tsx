@@ -7,6 +7,7 @@ import { NoData } from "@/views/components/NoData";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import Swal from "sweetalert2";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
+import { LoadingCards } from "@/views/components/Loading";
 
 interface Retail {
   id: string;
@@ -41,7 +42,7 @@ export const RetailIndex = () => {
         image: ImageHelper(item.image),
         telp: item.telp,
         address: item.address,
-        owner: item.pemilik_outlet || "-", 
+        owner: item.pemilik_outlet || "-",
         location: item.store?.name || "-",
       }));
 
@@ -130,7 +131,7 @@ export const RetailIndex = () => {
           </div>
           <div className="w-full sm:w-auto">
             <button
-              className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 px-4 py-2 rounded-lg font-medium"
+              className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 px-4 py-2 rounded-lg font-medium cursor-pointer"
               onClick={handleTambah}
             >
               <FiPlus /> Tambah Retail
@@ -139,7 +140,9 @@ export const RetailIndex = () => {
         </div>
 
         {loading ? (
-          <p>Loading...</p>
+          <>
+          <LoadingCards/>
+          </>
         ) : filteredRetails.length === 0 ? (
           <div className="bg-white rounded-xl p-6">
             <NoData img_size={300} />
@@ -172,14 +175,14 @@ export const RetailIndex = () => {
                   </p>
                   <div className="flex gap-2 mt-4">
                     <button
-                      className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl text-sm font-medium flex-1"
+                      className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl text-sm font-medium flex-1 cursor-pointer"
                       onClick={() => handleView(retail)}
                     >
                       Detail
                     </button>
                     <div className="relative">
                       <button
-                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-400 hover:bg-gray-300"
+                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-400 hover:bg-gray-300 cursor-pointer"
                         onClick={() => handleDropdownToggle(retail.id)}
                         type="button"
                       >

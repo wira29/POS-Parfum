@@ -8,13 +8,14 @@ import { useApiClient } from "@/core/helpers/ApiClient";
 import { Eye, LogOut, Pencil, Trash, X } from "lucide-react";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
 import Swal from "sweetalert2";
+import { LoadingCards } from "@/views/components/Loading";
 
 const BundlingFilterModal = ({
   open,
   onClose,
-  selectedStatus,
-  setSelectedStatus,
-  availableStatuses,
+  filterValues,
+  setFilterValues,
+  onApply,
 }: any) => {
   if (!open) return null;
 
@@ -35,28 +36,108 @@ const BundlingFilterModal = ({
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
             <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
+              value={filterValues.status}
+              onChange={(e) => setFilterValues((prev: any) => ({ ...prev, status: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Semua Status</option>
-              {availableStatuses.map((status: string, i: number) => (
-                <option key={i} value={status}>{status}</option>
-              ))}
+              <option value="active">Tersedia</option>
+              <option value="non-active">Habis</option>
             </select>
+          </div>
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Min Stok</label>
+              <input
+                type="number"
+                value={filterValues.minStock}
+                onChange={(e) => setFilterValues((prev: any) => ({ ...prev, minStock: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                placeholder="Min Stok"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Max Stok</label>
+              <input
+                type="number"
+                value={filterValues.maxStock}
+                onChange={(e) => setFilterValues((prev: any) => ({ ...prev, maxStock: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                placeholder="Max Stok"
+              />
+            </div>
+          </div>
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Min Harga</label>
+              <input
+                type="number"
+                value={filterValues.minPrice}
+                onChange={(e) => setFilterValues((prev: any) => ({ ...prev, minPrice: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                placeholder="Min Harga"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Max Harga</label>
+              <input
+                type="number"
+                value={filterValues.maxPrice}
+                onChange={(e) => setFilterValues((prev: any) => ({ ...prev, maxPrice: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                placeholder="Max Harga"
+              />
+            </div>
+          </div>
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Min Jumlah Material</label>
+              <input
+                type="number"
+                value={filterValues.minMaterial}
+                onChange={(e) => setFilterValues((prev: any) => ({ ...prev, minMaterial: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                placeholder="Min Material"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Max Jumlah Material</label>
+              <input
+                type="number"
+                value={filterValues.maxMaterial}
+                onChange={(e) => setFilterValues((prev: any) => ({ ...prev, maxMaterial: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                placeholder="Max Material"
+              />
+            </div>
           </div>
         </div>
         <div className="flex justify-end gap-2 p-4 border-t border-gray-200">
           <button
             onClick={() => {
-              setSelectedStatus("");
+              setFilterValues({
+                status: "",
+                minStock: "",
+                maxStock: "",
+                minPrice: "",
+                maxPrice: "",
+                minMaterial: "",
+                maxMaterial: "",
+              });
+              onApply();
               onClose();
             }}
             className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100"
           >
             Reset
           </button>
-          <button onClick={onClose} className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
+          <button
+            onClick={() => {
+              onApply();
+              onClose();
+            }}
+            className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
+          >
             Terapkan
           </button>
         </div>
@@ -94,14 +175,42 @@ export default function BundlingPage() {
   });
 
   const [showFilter, setShowFilter] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState("");
+  const [filterValues, setFilterValues] = useState({
+    status: "",
+    minStock: "",
+    maxStock: "",
+    minPrice: "",
+    maxPrice: "",
+    minMaterial: "",
+    maxMaterial: "",
+  });
+  const [appliedFilter, setAppliedFilter] = useState({
+    status: "",
+    minStock: "",
+    maxStock: "",
+    minPrice: "",
+    maxPrice: "",
+    minMaterial: "",
+    maxMaterial: "",
+  });
+
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const apiClient = useApiClient();
 
   useEffect(() => {
     fetchBundling();
-  }, [pagination.current_page, selectedStatus, searchQuery]);
+  }, [
+    pagination.current_page,
+    appliedFilter.status,
+    appliedFilter.minStock,
+    appliedFilter.maxStock,
+    appliedFilter.minPrice,
+    appliedFilter.maxPrice,
+    appliedFilter.minMaterial,
+    appliedFilter.maxMaterial,
+    searchQuery,
+  ]);
 
   const fetchBundling = async () => {
     setLoading(true);
@@ -109,9 +218,16 @@ export default function BundlingPage() {
       const params = new URLSearchParams({
         per_page: "5",
         page: pagination.current_page.toString(),
-        status: selectedStatus,
-        search: searchQuery,
       });
+      if (appliedFilter.status) params.append("status", appliedFilter.status);
+      if (appliedFilter.minStock) params.append("min_stock", appliedFilter.minStock);
+      if (appliedFilter.maxStock) params.append("max_stock", appliedFilter.maxStock);
+      if (appliedFilter.minPrice) params.append("min_price", appliedFilter.minPrice);
+      if (appliedFilter.maxPrice) params.append("max_price", appliedFilter.maxPrice);
+      if (appliedFilter.minMaterial) params.append("min_material", appliedFilter.minMaterial);
+      if (appliedFilter.maxMaterial) params.append("max_material", appliedFilter.maxMaterial);
+      if (searchQuery) params.append("search", searchQuery);
+
       const res = await apiClient.get(`/product-bundling?${params.toString()}`);
       setPackages(res.data.data);
       setPagination((prev) => ({
@@ -127,11 +243,7 @@ export default function BundlingPage() {
     }
   };
 
-  const filteredPackages = packages.filter((pkg) => {
-    const matchSearch = `${pkg.name} ${pkg.kode_Bundling}`.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchStatus = selectedStatus ? pkg.status === selectedStatus : true;
-    return matchSearch && matchStatus;
-  });
+  const filteredPackages = packages;
 
   const handleDropdownToggle = (id: string) => {
     setDropdownOpenId(dropdownOpenId === id ? null : id);
@@ -204,6 +316,13 @@ export default function BundlingPage() {
     setPagination((prev) => ({ ...prev, current_page: page }));
   };
 
+  const handleApplyFilter = () => {
+    setPagination((prev) => ({ ...prev, current_page: 1 }));
+    setAppliedFilter({ ...filterValues });
+  };
+
+  const isFilterActive = Object.values(appliedFilter).some((v) => v && v !== "");
+
   return (
     <div className="p-6 space-y-6">
       <Breadcrumb
@@ -214,11 +333,16 @@ export default function BundlingPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
         <div className="flex items-center gap-2 w-full sm:w-auto max-w-lg">
           <SearchInput value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-          <Filter onClick={() => setShowFilter(true)} />
+          <div className="relative">
+            <Filter onClick={() => setShowFilter(true)} />
+            {isFilterActive && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
+            )}
+          </div>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
           <button
-            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 px-4 py-2 rounded-lg font-medium"
+            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 px-4 py-2 rounded-lg font-medium cursor-pointer"
             onClick={() => navigate("/bundlings/create")}
           >
             <FiPlus /> Tambah Bundling
@@ -227,7 +351,7 @@ export default function BundlingPage() {
       </div>
 
       {loading ? (
-        <div className="text-gray-600">Memuat data bundling...</div>
+        <LoadingCards/>
       ) : filteredPackages.length === 0 ? (
         <div className="text-gray-500">Tidak ada paket bundling ditemukan.</div>
       ) : (
@@ -288,7 +412,7 @@ export default function BundlingPage() {
                   <div className="flex items-center gap-2">
                     <div className="relative" ref={dropdownOpenId === pkg.id ? dropdownRef : null}>
                       <button
-                        className="p-1 rounded-full hover:bg-gray-100"
+                        className="p-1 rounded-full cursor-pointer hover:bg-gray-100"
                         onClick={() => handleDropdownToggle(pkg.id)}
                       >
                         <FiMoreVertical size={20} className="text-gray-600" />
@@ -296,26 +420,26 @@ export default function BundlingPage() {
                       {dropdownOpenId === pkg.id && (
                         <div className="absolute right-0 top-8 w-40 bg-white border border-gray-300 rounded-lg shadow-lg z-20 py-1">
                           <button
-                            className="w-full text-left px-4 py-2 flex items-center gap-2 hover:bg-gray-100 text-sm hover:font-semibold"
+                            className="w-full text-left px-4 py-2 cursor-pointer flex items-center gap-2 hover:bg-gray-100 text-sm hover:font-semibold"
                             onClick={() => handleDetail(pkg)}
                           >
                             <Eye size={16} />Detail
                           </button>
                           <button
-                            className="w-full text-left px-4 py-2 flex items-center gap-2 hover:bg-gray-100 text-sm hover:font-semibold"
+                            className="w-full text-left px-4 py-2 cursor-pointer flex items-center gap-2 hover:bg-gray-100 text-sm hover:font-semibold"
                             onClick={() => handleEdit(pkg)}
                           >
                             <Pencil size={16} />Edit
                           </button>
                           <button
-                            className="w-full text-left px-4 py-2 flex items-center gap-2 hover:bg-gray-100 text-sm text-red-600 hover:font-semibold"
+                            className="w-full text-left px-4 py-2 cursor-pointer flex items-center gap-2 hover:bg-gray-100 text-sm text-red-600 hover:font-semibold"
                             onClick={() => handleDelete(pkg)}
                           >
                             <Trash size={16} />Hapus
                           </button>
                           <hr className="my-1 border-gray-300" />
                           <button
-                            className="w-full text-left px-4 py-2 flex items-center gap-2 hover:bg-gray-100 text-sm text-red-600 hover:font-semibold"
+                            className="w-full text-left px-4 py-2 cursor-pointer flex items-center gap-2 hover:bg-gray-100 text-sm text-red-600 hover:font-semibold"
                             onClick={() => handleCancel(pkg)}
                           >
                             <LogOut size={16} />Batalkan
@@ -369,9 +493,9 @@ export default function BundlingPage() {
       <BundlingFilterModal
         open={showFilter}
         onClose={() => setShowFilter(false)}
-        selectedStatus={selectedStatus}
-        setSelectedStatus={setSelectedStatus}
-        availableStatuses={["Tersedia", "Habis"]}
+        filterValues={filterValues}
+        setFilterValues={setFilterValues}
+        onApply={handleApplyFilter}
       />
     </div>
   );

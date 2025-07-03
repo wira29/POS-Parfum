@@ -4,7 +4,7 @@ import {
   FiUsers, FiLayers, FiChevronDown, FiChevronUp,
 } from "react-icons/fi";
 import { LayoutGrid } from "lucide-react"
-import { FaUserTag } from "react-icons/fa6";
+import { FaMoneyBillTransfer, FaUserTag } from "react-icons/fa6";
 import { TbCoinTakaFilled, TbShoppingCart } from "react-icons/tb";
 import { FaBoxesPacking, FaShop } from "react-icons/fa6";
 import { useEffect, useState } from "react";
@@ -13,6 +13,51 @@ import { Wallet2Icon } from "lucide-react";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Toaster } from "@/core/helpers/BaseAlert";
 import { ShoppingCart } from "react-feather";
+
+const ownerMenu = [
+  {
+    label: "Owner",
+    children: [
+      { label: "Beranda", icon: <FiHome />, path: "/dashboard" },
+      { label: "Warehouse", icon: <FaShop />, path: "/warehouses" },
+    ],
+  },
+  {
+    label: "Warehouse",
+    children: [
+      { label: "Req Pembelian", icon: <FiTag />, path: "/request-stock" },
+      { label: "Kategori", icon: <FiLayers />, path: "/categories" },
+      { label: "Produk", icon: <FiBox />, path: "/products" },
+      { label: "Bundling", icon: <ShoppingCart size={16} />, path: "/bundlings" },
+      { label: "Blending", icon: <FiCoffee />, path: "/blendings" },
+      { label: "Unit", icon: <LayoutGrid />, path: "/units" },
+      { label: "Diskon", icon: <FiPercent />, path: "/discounts" },
+      { label: "Laba Rugi", icon: <FaMoneyBillTransfer />, path: "/laba-rugi" },
+      { label: "Retail", icon: <FaShop />, path: "/retails" },
+      { label: "Pengguna", icon: <FiUsers />, path: "/users" },
+      { label: "Role", icon: <FaUserTag />, path: "/roles" },
+    ],
+    more: [
+      { label: "Audit", icon: <AiOutlineFileSearch />, path: "/audit" },
+      { label: "Pengeluaran", icon: <Wallet2Icon />, path: "/pengeluaran" },
+      { label: "Riwayat Transaksi", icon: <FiTag />, path: "/riwayat-penjualan" },
+    ],
+  },
+  {
+    label: "Retail",
+    children: [
+      { label: "Kategori", icon: <FiLayers />, path: "/categories" },
+      { label: "Produk", icon: <FiBox />, path: "/products" },
+      { label: "Request Stok", icon: <FaBoxesPacking />, path: "/restock" },
+      { label: "Unit", icon: <LayoutGrid />, path: "/units" },
+    ],
+    more: [
+      { label: "Laporan", icon: <TbCoinTakaFilled />, path: "/laporan" },
+      { label: "Pengeluaran", icon: <Wallet2Icon />, path: "/pengeluaran" },
+      { label: "Riwayat Transaksi", icon: <FiTag />, path: "/riwayat-penjualan" },
+    ],
+  },
+];
 
 const menuItems = [
   { label: "Beranda", icon: <FiHome />, path: "/dashboard", roles: ["admin", "warehouse", "owner", "outlet"] },
@@ -42,20 +87,30 @@ const menuItems = [
       { label: "Produk", icon: <FiBox />, path: "/products", roles: ["owner", "warehouse", "outlet"] },
       { label: "Bundling", icon: <ShoppingCart size={16} />, path: "/bundlings", roles: ["owner", "warehouse", "outlet"] },
       { label: "Blending Produk", icon: <FiCoffee />, path: "/blendings", roles: ["warehouse"] },
+      { label: "Request Stock", icon: <FaBoxesPacking />, path: "/restock", roles: ["outlet"] },
       { label: "Unit", icon: <LayoutGrid />, path: "/units", roles: ["admin", "warehouse", "retail"] },
       { label: "Audit", icon: <AiOutlineFileSearch />, path: "/audit", roles: ["admin", "outlet"] },
       { label: "Diskon", icon: <FiPercent />, path: "/discounts", roles: ["owner", "warehouse", "outlet"] },
+    ],
+    more: [
+      { label: "Produk Lainnya", icon: <FiBox />, path: "/produk-lainnya" },
+      { label: "Produk Arsip", icon: <FiBox />, path: "/produk-arsip" },
     ],
   },
   {
     label: "Lainnya",
     children: [
       { label: "Retail", icon: <FaShop />, path: "/retails", roles: ["owner", "warehouse"] },
+      { label: "Laporan Laba Rugi", icon: <FaMoneyBillTransfer />, path: "/laba-rugi", roles: ["retail", "outlet"] },
       { label: "Warehouse", icon: <FaShop />, path: "/warehouses", roles: ["owner", "admin"] },
       { label: "Tambah Pengguna", icon: <FiUsers />, path: "/users", roles: ["owner", "warehouse", "outlet"] },
-      { label: "Role", icon: <FaUserTag />, path: "/roles", roles: ["owner", "warehouse","retail"] },
+      { label: "Role", icon: <FaUserTag />, path: "/roles", roles: ["owner", "warehouse", "retail"] },
       { label: "Laporan", icon: <TbCoinTakaFilled />, path: "/laporan", roles: ["owner", "outlet"] },
       { label: "Pengeluaran", icon: <Wallet2Icon />, path: "/pengeluaran", roles: ["owner", "outlet"] },
+    ],
+    more: [
+      { label: "Lainnya 1", icon: <FiTag />, path: "/lainnya-1" },
+      { label: "Lainnya 2", icon: <FiTag />, path: "/lainnya-2" },
     ],
   },
 ];
@@ -64,8 +119,9 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const isCollapsed = sidebar === "mini-sidebar";
-  const [openDropdowns, setOpenDropdowns] = useState<{ [key: string]: boolean }>({});
   const [userRoles, setUserRoles] = useState<string[]>([]);
+  const [showMore, setShowMore] = useState<{ [key: string]: boolean }>({});
+  const [openDropdowns, setOpenDropdowns] = useState<{ [key: string]: boolean }>({});
   const apiClient = useApiClient();
 
   useEffect(() => {
@@ -117,18 +173,88 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
       if (item.children) {
         const filteredChildren = item.children.filter((child) => hasAccess(child.roles));
         if (filteredChildren.length === 0) return null;
-        return { ...item, children: filteredChildren };
+        return { ...item, children: filteredChildren, more: item.more };
       }
       return item;
     })
     .filter(Boolean);
 
-  const toggleDropdown = (label: string) => {
-    setOpenDropdowns((prev) => ({
-      ...prev,
-      [label]: !prev[label],
-    }));
-  };
+  if (userRoles.includes("owner")) {
+    return (
+      <aside className={`h-screen fixed left-0 top-0 shadow-md z-20 transition-all duration-300 ${isCollapsed ? "w-20" : "w-64"} bg-white`}>
+        <div className="flex py-3 px-4">
+          <div className="flex items-center justify-center mx-auto">
+            <img
+              src={
+                isCollapsed
+                  ? "../../../../public/images/logos/logo-mini-new.png"
+                  : "../../../../public/images/logos/logo-new.png"
+              }
+              alt="Logo"
+              className={`transition-all duration-300 ${isCollapsed ? "w-16 h-11" : "w-full h-12"}`}
+            />
+          </div>
+        </div>
+        <nav className={`p-4 space-y-6 ${isCollapsed ? "overflow-visible" : "overflow-y-auto"} h-[calc(100vh-4rem)]`}>
+          {ownerMenu.map((section, idx) => (
+            <div key={idx}>
+              <p className={`text-xs font-bold uppercase mb-2 text-gray-400 ${isCollapsed ? "text-center text-[10px]" : ""}`}>
+                {section.label}
+              </p>
+              <ul className="space-y-1">
+                {section.children.map((item, i) => (
+                  <li key={i}>
+                    <Link
+                      to={item.path}
+                      className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${location.pathname.startsWith(item.path)
+                        ? "bg-blue-600 text-white hover:bg-blue-600"
+                        : "text-gray-700"
+                        } ${isCollapsed ? "justify-center" : ""}`}
+                    >
+                      <span className="text-lg">{item.icon}</span>
+                      {!isCollapsed && item.label}
+                    </Link>
+                  </li>
+                ))}
+                {section.more && (
+                  <>
+                    {showMore[section.label] && (
+                      <ul className="mt-2 space-y-1">
+                        {section.more.map((moreItem, mi) => (
+                          <li key={mi}>
+                            <Link
+                              to={moreItem.path}
+                              className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${location.pathname.startsWith(moreItem.path)
+                                ? "bg-blue-600 text-white hover:bg-blue-600"
+                                : "text-gray-700"
+                                } ${isCollapsed ? "justify-center" : ""}`}
+                            >
+                              <span className="text-lg">{moreItem.icon}</span>
+                              {!isCollapsed && moreItem.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    <li>
+                      <button
+                        className="px-3 py-1 border border-gray-300 rounded text-xs text-gray-700 hover:bg-gray-100 transition w-fit mt-2"
+                        style={{ minWidth: 100 }}
+                        type="button"
+                        onClick={() => setShowMore((prev) => ({ ...prev, [section.label]: !prev[section.label] }))}
+                      >
+                        {showMore[section.label] ? "Sembunyikan" : "Selengkapnya"}
+                      </button>
+                    </li>
+                  </>
+                )}
+              </ul>
+            </div>
+          ))}
+        </nav>
+      </aside>
+    );
+  }
 
   return (
     <aside className={`h-screen fixed left-0 top-0 shadow-md z-20 transition-all duration-300 ${isCollapsed ? "w-20" : "w-64"} bg-white`}>
@@ -145,7 +271,6 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
           />
         </div>
       </div>
-
       <nav className={`p-4 space-y-2.5 ${isCollapsed ? "overflow-visible" : "overflow-y-auto"} h-[calc(100vh-4rem)]`}>
         {filteredMenuItems.map((item, i) => (
           <div key={i}>
@@ -165,7 +290,7 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                 {item.isDropdown ? (
                   <div className="relative group">
                     <button
-                      onClick={() => !isCollapsed && toggleDropdown(item.label)}
+                      onClick={() => !isCollapsed && setOpenDropdowns((prev) => ({ ...prev, [item.label]: !prev[item.label] }))}
                       className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${location.pathname.startsWith(item.path) ||
                         (item.children &&
                           item.children.some((child) => location.pathname.startsWith(child.path)))
@@ -204,11 +329,21 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                             </li>
                           );
                         })}
+                        <li>
+                          <button
+                            className="px-3 py-1 border border-gray-300 rounded text-xs text-gray-700 hover:bg-gray-100 transition w-fit mt-2"
+                            style={{ minWidth: 100 }}
+                            type="button"
+                            onClick={() => setOpenDropdowns((prev) => ({ ...prev, [item.label]: false }))}
+                          >
+                            Sembunyikan
+                          </button>
+                        </li>
                       </ul>
                     )}
 
-                    {isCollapsed && (
-                      <div className="absolute left-full overflow-hidden top-0 ml-2 bg-white shadow-lg rounded-lg z-[9999] min-w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                    {isCollapsed && openDropdowns[item.label] && (
+                      <div className="absolute left-full top-0 ml-2 bg-white shadow-lg rounded-lg z-[9999] min-w-48">
                         {item.children?.map((child, idx) => {
                           const isActive = location.pathname.startsWith(child.path);
                           return (
@@ -223,6 +358,14 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                             </Link>
                           );
                         })}
+                        <button
+                          className="px-3 py-1 border border-gray-300 rounded text-xs text-gray-700 hover:bg-gray-100 transition w-fit m-2"
+                          style={{ minWidth: 100 }}
+                          type="button"
+                          onClick={() => setOpenDropdowns((prev) => ({ ...prev, [item.label]: false }))}
+                        >
+                          Sembunyikan
+                        </button>
                       </div>
                     )}
                   </div>

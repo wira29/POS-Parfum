@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ScoreCard } from "@/views/pages/dashboard/ScoreCard";
 import { Statistik } from "@/views/pages/dashboard/Statistik";
 import { useApiClient } from "@/core/helpers/ApiClient";
+import { LoadingCards } from "@/views/components/Loading";
 
 interface DashboardData {
   total_products: number;
@@ -55,9 +56,7 @@ export const Dashboard = () => {
     setSelectedYear(parseInt(e.target.value));
   };
  
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-[400px]">Loading...</div>;
-  }
+  if (loading) return <LoadingCards/>
 
   if (error || !dashboardData) {
     return <div className="text-red-500">{error || "Tidak ada data"}</div>;

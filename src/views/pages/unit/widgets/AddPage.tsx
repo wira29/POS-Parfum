@@ -45,7 +45,7 @@ export default function AddUnitModal({ open, onClose, onSuccess }) {
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full border px-3 py-2 mt-1 rounded"
+              className="w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent border-slate-300"
               placeholder="Contoh: Kilogram"
             />
           </div>
@@ -54,17 +54,17 @@ export default function AddUnitModal({ open, onClose, onSuccess }) {
             <input
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              className="w-full border px-3 py-2 mt-1 rounded"
+              className="w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent border-slate-300"
               placeholder="Contoh: kg"
             />
           </div>
         </div>
 
         <div className="flex justify-end gap-2 pt-4">
-          <button onClick={onClose} className="px-4 py-2 bg-gray-200 rounded">Batal</button>
+          <button onClick={onClose} className="px-4 py-2 bg-gray-200 rounded cursor-pointer">Batal</button>
           <button
             onClick={handleCreate}
-            className="px-4 py-2 bg-blue-500 text-white rounded"
+            className="px-4 py-2 bg-blue-500 text-white rounded cursor-pointer"
             disabled={loading}
           >
             {loading ? "Menyimpan..." : "Simpan"}

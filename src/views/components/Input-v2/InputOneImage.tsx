@@ -1,3 +1,4 @@
+import { ImageHelper } from "@/core/helpers/ImageHelper";
 import React from "react"
 import { Trash2, Image } from "react-feather"
 
@@ -33,7 +34,7 @@ const InputOneImage = ({
             {images.map((img, i) => (
                 <div key={i} className="relative w-24 h-24 rounded overflow-hidden shadow">
                     <img
-                        src={typeof img === "string" ? img : URL.createObjectURL(img)}
+                        src={ImageHelper(img)}
                         alt={`preview-${i}`}
                         className="w-full h-full object-cover rounded"
                     />

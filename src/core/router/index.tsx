@@ -3,7 +3,6 @@ import { MainLayout } from "@/views/layouts/MainLayout";
 import { Register } from "@/views/pages/authentication/Registrasi";
 import DiscountIndex from "@/views/pages/discount";
 import { NotFoundPage } from "@/views/pages/errors";
-import { Home } from "@/views/pages/home";
 import {
   CategoryIndex,
   Dashboard,
@@ -33,6 +32,9 @@ import {
   BundlingDetail,
   BundlingCreate,
   BundlingEdit,
+  LabaRugiIndex,
+  DetailRiwayatTransaksi,
+  DashboardOwner,
   // BlendingEdit
 } from "@/views/pages/pages";
 import RequestStockIndex from "@/views/pages/request-stock";
@@ -266,6 +268,18 @@ export const router = createBrowserRouter([
             path: "pengeluaran/create",
             element: <CreateExpense/>,
           },
+          {
+            path: "/laba-rugi",
+            element: <LabaRugiIndex/>,
+          },
+          {
+            path: "/riwayat-penjualan/:id/detail",
+            element: <DetailRiwayatTransaksi/>,
+          },
+          {
+            path:"/dashboard-owner",
+            element:<DashboardOwner/>
+          }
         ],
       },
     ],

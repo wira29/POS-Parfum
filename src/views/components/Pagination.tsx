@@ -56,7 +56,7 @@ export const Pagination: React.FC<PaginationProps> = ({
             "px-3 py-1 text-sm border rounded",
             currentPage === 1
               ? "text-gray-400 bg-gray-100 border-gray-300 cursor-not-allowed"
-              : "text-gray-600 bg-white border-gray-300 hover:bg-gray-50"
+              : "text-gray-600 bg-white cursor-pointer border-gray-300 hover:bg-gray-50"
           )}
           onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
@@ -72,7 +72,7 @@ export const Pagination: React.FC<PaginationProps> = ({
               "px-3 py-1 text-sm border rounded min-w-[32px]",
               currentPage === page
                 ? "bg-gray-200 text-gray-800 border-gray-300"
-                : "text-gray-600 bg-white border-gray-300 hover:bg-gray-50"
+                : "text-gray-600 bg-white border-gray-300 hover:bg-gray-50 cursor-pointer"
             )}
           >
             {page}
@@ -84,7 +84,7 @@ export const Pagination: React.FC<PaginationProps> = ({
             "px-3 py-1 text-sm border rounded",
             currentPage === totalPages
               ? "text-gray-400 bg-gray-100 border-gray-300 cursor-not-allowed"
-              : "text-gray-600 bg-white border-gray-300 hover:bg-gray-50"
+              : "text-gray-600 bg-white border-gray-300 hover:bg-gray-50 cursor-pointer"
           )}
           onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}

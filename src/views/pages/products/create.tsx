@@ -402,7 +402,7 @@ export const ProductCreate = () => {
                 </div>
                 <button
                   type="button"
-                  className="bg-blue-600 text-white px-3 rounded-lg"
+                  className="bg-blue-600 text-white px-3 rounded-lg cursor-pointer"
                   onClick={applyToAllVariants}
                 >
                   Terapkan Ke Semua
@@ -491,8 +491,8 @@ export const ProductCreate = () => {
           </div>
 
           <div className="flex justify-end gap-4">
-            <button type="button" onClick={() => navigate("/products")} className="border border-gray-300 rounded-lg px-4 py-2">Kembali</button>
-            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg">Tambah</button>
+            <button type="button" onClick={() => navigate("/products")} className="border border-gray-300 rounded-lg px-4 py-2 cursor-pointer">Kembali</button>
+            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer">Tambah</button>
           </div>
         </div>
 

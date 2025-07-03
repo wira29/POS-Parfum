@@ -70,16 +70,13 @@ const ProductSelectionModal = ({ openModalvariant, closeModal, onSelectProduct }
   const handleCloseModal = () => {
     setSelectedProduct(null);
     closeModal();
-  };
-
-  console.log(products);
-  
+  };  
 
   const formatPrice = (price: number) => new Intl.NumberFormat("id-ID").format(price);
 
   const getProductDisplayName = (p: Product) => !p.variant_name ? "Tidak ada varian name" : p.variant_name;
 
-  const isVariant = (p: Product) => p.variant_name !== null && p.variant_name !== "Tidak ada variant name";
+  const isVariant = (p: Product) => `${p.variant_name} - ${p.product}` !== null && `${p.variant_name} - ${p.product}` !== "Tidak ada variant name";
 
   if (!openModalvariant) return null;
 
@@ -136,7 +133,7 @@ const ProductSelectionModal = ({ openModalvariant, closeModal, onSelectProduct }
 
                   <div className="flex-1">
                     <div className={`font-medium text-sm ${isVariant(product) ? "text-blue-600" : "text-gray-800"}`}>{getProductDisplayName(product)}</div>
-                    <div className="text-xs text-gray-500">Kode : {product.product_code}</div>
+                    <div className="text-xs text-gray-500">Kode : {product.product_code} | <span className="font-semibold text-black/70">Product : {product.product ?? "unknown"}</span></div>
                   </div>
 
                   <div className="text-right">
@@ -149,13 +146,13 @@ const ProductSelectionModal = ({ openModalvariant, closeModal, onSelectProduct }
         </div>
 
         <div className="px-6 py-4 border-t border-gray-200 flex gap-3">
-          <button onClick={handleCloseModal} className="flex-1 px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+          <button onClick={handleCloseModal} className="flex-1 px-4 py-2 cursor-pointer text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
             Batal
           </button>
           <button
             onClick={handleConfirmSelection}
             disabled={!selectedProduct}
-            className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${selectedProduct ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}
+            className={`flex-1 px-4 py-2 text-sm font-medium cursor-pointer rounded-lg transition-colors ${selectedProduct ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}
           >
             Buat
           </button>

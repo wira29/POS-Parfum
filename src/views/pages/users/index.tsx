@@ -8,6 +8,7 @@ import Swal from "sweetalert2";
 import { ReactNode } from "react";
 import { UserFilterModal } from "@/views/components/filter/UserFilter";
 import { Filter } from "@/views/components/Filter";
+import { LoadingCards } from "@/views/components/Loading";
 
 type User = {
   [x: string]: ReactNode;
@@ -44,9 +45,16 @@ export default function UserPage() {
   });
 
   const [showFilter, setShowFilter] = useState(false);
+
+  // filter aktif
   const [selectedRole, setSelectedRole] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+
+  // filter draft (sementara di modal)
+  const [draftRole, setDraftRole] = useState("");
+  const [draftStartDate, setDraftStartDate] = useState("");
+  const [draftEndDate, setDraftEndDate] = useState("");
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -96,6 +104,8 @@ export default function UserPage() {
     return matchSearch && matchRole && matchStartDate && matchEndDate;
   });
 
+  const isFilterActive = selectedRole !== "" || startDate !== "" || endDate !== "";
+
   const handleDropdownToggle = (id: string) => {
     setDropdownOpenId(dropdownOpenId === id ? null : id);
   };
@@ -106,26 +116,6 @@ export default function UserPage() {
 
   const handleEdit = (user: User) => {
     navigate(`/users/${user.id}/edit`);
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpenId(null);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const deleteUser = async (id: string) => {
-    try {
-      await apiClient.delete(`/users/${id}`);
-      Swal.fire("Terhapus!", "User berhasil dihapus.", "success");
-      fetchUsers(1);
-    } catch (error) {
-      Swal.fire("Gagal!", "Gagal menghapus User.", "error");
-    }
   };
 
   const confirmDelete = (id: string) => {
@@ -141,6 +131,26 @@ export default function UserPage() {
     });
   };
 
+  const deleteUser = async (id: string) => {
+    try {
+      await apiClient.delete(`/users/${id}`);
+      Swal.fire("Terhapus!", "User berhasil dihapus.", "success");
+      fetchUsers(1);
+    } catch (error) {
+      Swal.fire("Gagal!", "Gagal menghapus User.", "error");
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpenId(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString("id-ID", {
@@ -150,21 +160,38 @@ export default function UserPage() {
     });
   };
 
+  const handleApplyFilter = () => {
+    setSelectedRole(draftRole);
+    setStartDate(draftStartDate);
+    setEndDate(draftEndDate);
+    setShowFilter(false);
+  };
+
+  useEffect(() => {
+    if (showFilter) {
+      setDraftRole(selectedRole);
+      setDraftStartDate(startDate);
+      setDraftEndDate(endDate);
+    }
+  }, [showFilter]);
+
   return (
     <div className="p-6 space-y-6">
-      <Breadcrumb
-        title="Daftar Pengguna"
-        desc="Kelola daftar akun pengguna pada sistem."
-      />
+      <Breadcrumb title="Daftar Pengguna" desc="Kelola daftar akun pengguna pada sistem." />
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
         <div className="flex items-center gap-2 mb-4 w-full sm:w-auto max-w-lg">
           <SearchInput value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-          <Filter onClick={() => setShowFilter(true)} />
+          <div className="relative">
+            {isFilterActive && (
+              <span className="absolute -top-1 -left-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white z-10" />
+            )}
+            <Filter onClick={() => setShowFilter(true)} />
+          </div>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
           <button
-            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 px-4 py-2 rounded-lg font-medium"
+            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 px-4 py-2 rounded-lg font-medium cursor-pointer"
             onClick={() => navigate("/users/create")}
           >
             <FiPlus /> Tambah Akun
@@ -173,7 +200,7 @@ export default function UserPage() {
       </div>
 
       {loading ? (
-        <div className="text-gray-600">Memuat data pengguna...</div>
+        <LoadingCards />
       ) : filteredUsers.length === 0 ? (
         <div className="text-gray-500">Tidak ada pengguna ditemukan.</div>
       ) : (
@@ -186,28 +213,24 @@ export default function UserPage() {
               >
                 <div className="flex items-center gap-4">
                   <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
-                    <img
-                      src={user.image}
-                      alt={user.name}
-                      className="w-full h-full object-cover"
-                    />
+                    <img src={user.image} alt={user.name} className="w-full h-full object-cover" />
                   </div>
                   <div ref={dropdownOpenId === user.id ? dropdownRef : null}>
                     <button
-                      className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-100"
+                      className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-100 cursor-pointer"
                       onClick={() => handleDropdownToggle(user.id)}
                     >
                       <FiMoreHorizontal size={22} />
                     </button>
                     {dropdownOpenId === user.id && (
                       <div className="absolute right-2 top-10 w-36 bg-white border rounded shadow-lg z-20">
-                        <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" onClick={() => { setDropdownOpenId(null); handleDetail(user); }}>
+                        <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm cursor-pointer" onClick={() => { setDropdownOpenId(null); handleDetail(user); }}>
                           Detail
                         </button>
-                        <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" onClick={() => { setDropdownOpenId(null); handleEdit(user); }}>
+                        <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm cursor-pointer" onClick={() => { setDropdownOpenId(null); handleEdit(user); }}>
                           Edit
                         </button>
-                        <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-red-600" onClick={() => { setDropdownOpenId(null); confirmDelete(user.id); }}>
+                        <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-red-600 cursor-pointer" onClick={() => { setDropdownOpenId(null); confirmDelete(user.id); }}>
                           Hapus
                         </button>
                       </div>
@@ -241,11 +264,7 @@ export default function UserPage() {
                 <button
                   disabled={pagination.current_page === 1}
                   onClick={() => fetchUsers(pagination.current_page - 1)}
-                  className={`px-3 py-1 border rounded text-sm ${
-                    pagination.current_page === 1
-                      ? "cursor-not-allowed opacity-50"
-                      : "hover:bg-gray-100 text-gray-700"
-                  }`}
+                  className={`px-3 py-1 border rounded text-sm ${pagination.current_page === 1 ? "cursor-not-allowed opacity-50" : "hover:bg-gray-100 text-gray-700"}`}
                 >
                   &laquo;
                 </button>
@@ -253,11 +272,7 @@ export default function UserPage() {
                   <button
                     key={idx + 1}
                     onClick={() => fetchUsers(idx + 1)}
-                    className={`px-3 py-1 border rounded text-sm ${
-                      pagination.current_page === idx + 1
-                        ? "bg-blue-600 text-white"
-                        : "hover:bg-gray-100 text-gray-700"
-                    }`}
+                    className={`px-3 py-1 border rounded text-sm ${pagination.current_page === idx + 1 ? "bg-blue-600 text-white" : "hover:bg-gray-100 text-gray-700"}`}
                   >
                     {idx + 1}
                   </button>
@@ -265,11 +280,7 @@ export default function UserPage() {
                 <button
                   disabled={pagination.current_page === pagination.last_page}
                   onClick={() => fetchUsers(pagination.current_page + 1)}
-                  className={`px-3 py-1 border rounded text-sm ${
-                    pagination.current_page === pagination.last_page
-                      ? "cursor-not-allowed opacity-50"
-                      : "hover:bg-gray-100 text-gray-700"
-                  }`}
+                  className={`px-3 py-1 border rounded text-sm ${pagination.current_page === pagination.last_page ? "cursor-not-allowed opacity-50" : "hover:bg-gray-100 text-gray-700"}`}
                 >
                   &raquo;
                 </button>
@@ -282,13 +293,14 @@ export default function UserPage() {
       <UserFilterModal
         open={showFilter}
         onClose={() => setShowFilter(false)}
-        selectedRole={selectedRole}
-        setSelectedRole={setSelectedRole}
+        selectedRole={draftRole}
+        setSelectedRole={setDraftRole}
         availableRoles={Array.from(new Set(users.flatMap(u => u.roles?.map(r => r.name) || [])))}
-        startDate={startDate}
-        setStartDate={setStartDate}
-        endDate={endDate}
-        setEndDate={setEndDate}
+        startDate={draftStartDate}
+        setStartDate={setDraftStartDate}
+        endDate={draftEndDate}
+        setEndDate={setDraftEndDate}
+        onApply={handleApplyFilter}
       />
     </div>
   );

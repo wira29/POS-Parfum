@@ -8,6 +8,7 @@ import { useApiClient } from "@/core/helpers/ApiClient";
 import Swal from "sweetalert2";
 import { format } from "date-fns";
 import { Filter } from "@/views/components/Filter";
+import { LoadingColumn } from "@/views/components/Loading";
 
 function UnitFilter({ open, onClose, onFilter, initialFilter }) {
   const [dateFrom, setDateFrom] = useState(initialFilter.dateFrom || "");
@@ -102,17 +103,18 @@ export default function UnitPage() {
   const fetchUnits = async () => {
     setLoading(true);
     try {
-      const query = new URLSearchParams({
+      const params = new URLSearchParams({
         page: currentPage.toString(),
         per_page: itemsPerPage.toString(),
-        search: searchTerm,
-        date_from: filters.dateFrom,
-        date_to: filters.dateTo,
-        min_user: filters.minUser,
-        max_user: filters.maxUser,
       });
 
-      const { data } = await ApiClient.get(`/unit?${query.toString()}`);
+      if (searchTerm) params.append("search", searchTerm);
+      if (filters.dateFrom) params.append("start_date", filters.dateFrom);
+      if (filters.dateTo) params.append("end_date", filters.dateTo);
+      if (filters.minUser) params.append("min_user", filters.minUser);
+      if (filters.maxUser) params.append("max_user", filters.maxUser);
+
+      const { data } = await ApiClient.get(`/unit?${params.toString()}`);
 
       const mapped = data.data.map((unit) => ({
         id: unit.id,
@@ -131,6 +133,7 @@ export default function UnitPage() {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     fetchUnits();
@@ -158,7 +161,7 @@ export default function UnitPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <Breadcrumb title="Unit" desc="Unit" />
+      <Breadcrumb title="Data Unit" desc="Halaman ini menampilkan daftar unit yang terdaftar." />
 
       <div className="bg-white shadow-md rounded-2xl overflow-hidden">
         <div className="p-6 border-b border-gray-200">
@@ -173,7 +176,7 @@ export default function UnitPage() {
               <Filter onClick={() => setFilterOpen(true)} />
             </div>
             <button
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-600"
+              className="bg-blue-500 text-white px-4 py-2 cursor-pointer rounded-lg flex items-center gap-2 hover:bg-blue-600"
               onClick={() => setModalOpen(true)}
             >
               <Plus className="w-4 h-4" />
@@ -197,7 +200,7 @@ export default function UnitPage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-6 text-gray-500">Memuat data...</td>
+                  <td colSpan={6} className="text-center py-6 text-gray-500"><LoadingColumn column={3} /></td>
                 </tr>
               ) : units.length === 0 ? (
                 <tr>
@@ -218,13 +221,13 @@ export default function UnitPage() {
                             setEditUnit(unit);
                             setEditModalOpen(true);
                           }}
-                          className="p-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+                          className="p-2 bg-orange-500 cursor-pointer text-white rounded-lg hover:bg-orange-600"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(unit.id)}
-                          className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                          className="p-2 bg-red-500 text-white cursor-pointer rounded-lg hover:bg-red-600"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -254,8 +257,8 @@ export default function UnitPage() {
                 key={page}
                 onClick={() => setCurrentPage(page)}
                 className={`px-3 py-1 text-sm border rounded-md ${currentPage === page
-                    ? "bg-blue-500 text-white border-blue-500"
-                    : "border-gray-300 hover:bg-gray-100"
+                  ? "bg-blue-500 text-white border-blue-500"
+                  : "border-gray-300 hover:bg-gray-100"
                   }`}
               >
                 {page}

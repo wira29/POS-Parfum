@@ -1,6 +1,12 @@
-export function ImageHelper(NameFile: string | undefined | null) {
-  if (!NameFile) {
+export function ImageHelper(NameFile: string | File | undefined | null) {
+  if (!NameFile || NameFile === "default/Default.jpeg") {
     return "/images/dummy-image.jpg";
   }
-  return `${import.meta.env.VITE_API_BASE_URL}${NameFile}`;
+  if (typeof NameFile === "string") {
+    return `${import.meta.env.VITE_API_BASE_URL}${NameFile.startsWith('/') ? NameFile.slice(1) : NameFile}`;
+  }
+  if (typeof File !== "undefined" && NameFile instanceof File) {
+    return URL.createObjectURL(NameFile);
+  }
+  return "/images/dummy-image.jpg";
 }

@@ -121,7 +121,7 @@ export default function RetailDetail() {
 
           <button
             onClick={() => navigate("/retails")}
-            className="mt-8 text-blue-600 border border-blue-600 px-3 py-1.5 rounded-md flex items-center hover:bg-blue-600 hover:text-white"
+            className="mt-8 text-blue-600 border border-blue-600 px-3 py-1.5 rounded-md flex items-center hover:bg-blue-600 hover:text-white cursor-pointer"
           >
             <ArrowLeft className="w-5 mr-2" /> Kembali
           </button>
@@ -134,7 +134,7 @@ export default function RetailDetail() {
             </h2>
             <button
               onClick={() => fetchDetail(pagination.current_page)}
-              className="text-sm text-green-600 bg-green-100 border-0 p-2 rounded-xl flex items-center hover:bg-green-200 hover:text-green-700"
+              className="text-sm text-green-600 bg-green-100 border-0 p-2 rounded-xl flex items-center hover:bg-green-200 hover:text-green-700 cursor-pointer"
             >
               <RefreshCw size={32}/>
             </button>

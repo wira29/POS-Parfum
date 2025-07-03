@@ -1,43 +1,20 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Toaster } from "@/core/helpers/BaseAlert";
-import { Plus, X, Info } from "lucide-react";
+import { Plus, X, Info, Image as ImageIcon } from "lucide-react";
 import VariantSelectModal from "./modal/VariantSelectModal";
-
-const DUMMY_PRODUCTS = [
-  {
-    id: 1,
-    name: "Parfum Mawar",
-    variants: [
-      { id: 101, name: "Mawar 100ml" },
-      { id: 102, name: "Mawar 50ml" },
-    ],
-  },
-  {
-    id: 2,
-    name: "Parfum Melati",
-    variants: [
-      { id: 201, name: "Melati 100ml" },
-      { id: 202, name: "Melati 50ml" },
-    ],
-  },
-  {
-    id: 3,
-    name: "Parfum Lavender",
-    variants: [
-      { id: 301, name: "Lavender 100ml" },
-      { id: 302, name: "Lavender 50ml" },
-    ],
-  },
-];
+import InputOneImage from "@/views/components/Input-v2/InputOneImage";
+import { ImageHelper } from "@/core/helpers/ImageHelper";
 
 export default function BundlingEdit() {
   const navigate = useNavigate();
   const apiClient = useApiClient();
+  const { id } = useParams();
 
   const [categories, setCategories] = useState([]);
+  const [products, setProducts] = useState([]);
   const [images, setImages] = useState([]);
   const [productName, setProductName] = useState("");
   const [productCode, setProductCode] = useState("");
@@ -47,24 +24,19 @@ export default function BundlingEdit() {
   const [errors, setErrors] = useState({});
   const [composition, setComposition] = useState([]);
   const [description, setDescription] = useState("");
+  const [materials, setMaterials] = useState([]);
 
   const [showModal, setShowModal] = useState(false);
   const [selectedVariants, setSelectedVariants] = useState([]);
   const [expandedProducts, setExpandedProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredProducts, setFilteredProducts] = useState(DUMMY_PRODUCTS);
+  const [filteredProducts, setFilteredProducts] = useState([]);
 
-  useEffect(() => {
-    if (!searchTerm) {
-      setFilteredProducts(DUMMY_PRODUCTS);
-    } else {
-      setFilteredProducts(
-        DUMMY_PRODUCTS.filter((p) =>
-          p.name.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      );
-    }
-  }, [searchTerm]);
+  const [categorySearch, setCategorySearch] = useState("");
+  const [categoryDropdown, setCategoryDropdown] = useState(false);
+  const [showComposition, setShowComposition] = useState(true);
+  const [compositionAnim, setCompositionAnim] = useState("opened");
+  const categoryRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -76,11 +48,90 @@ export default function BundlingEdit() {
         })) || [];
         setCategories(mapped);
       } catch (error) {
-        console.error("Failed to fetch categories:", error);
+        setCategories([]);
       }
     };
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await apiClient.get("/products/no-paginate");
+        const mapped = res.data?.data?.map((p) => ({
+          id: p.id,
+          name: p.name,
+          variants: (p.product_detail || []).map((v) => ({
+            id: v.id,
+            name: v.variant_name || "Default",
+            stock: v.stock,
+            price: v.price,
+            product_code: v.product_code,
+            product_image: v.product_image,
+          })),
+        }));
+        setProducts(mapped);
+        setFilteredProducts(mapped);
+      } catch (error) {
+        setProducts([]);
+        setFilteredProducts([]);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    if (!searchTerm) {
+      setFilteredProducts(products);
+    } else {
+      setFilteredProducts(
+        products.filter((p) =>
+          p.name.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      );
+    }
+  }, [searchTerm, products]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (categoryRef.current && !categoryRef.current.contains(event.target as Node)) {
+        setCategoryDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const fetchBundling = async () => {
+      if (!id) return;
+      try {
+        const res = await apiClient.get(`/product-bundling/${id}`);
+        const data = res.data?.data;
+        setProductName(data.name || "");
+        setProductCode(data.kode_Bundling || "");
+        setPrice(data.harga || 0);
+        setStock(data.stock || 0);
+        setDescription(data.description || "");
+        setCategory(
+          categories.find((cat) => cat.label === data.category)?.value || ""
+        );
+        setComposition(
+          (data.bundling_material || []).map(
+            (mat) => mat.variant_name || ""
+          )
+        );
+        setMaterials(
+          (data.bundling_material || []).map((mat) => ({
+            product_detail_id: mat.product_detail_id,
+          }))
+        );
+      } catch (error) {
+        Toaster("error", "Gagal mengambil data bundling");
+      }
+    };
+    fetchBundling();
+  }, [id, categories]);
 
   useEffect(() => {
     const handler = (e) => {
@@ -91,41 +142,73 @@ export default function BundlingEdit() {
           return !(pName === productName && vName === variantName);
         })
       );
+      setMaterials((prev) =>
+        prev.filter((mat) => {
+          const prod = products.find((p) => p.name === productName);
+          const variant = prod?.variants.find((v) => v.name === variantName);
+          return !(mat.product_detail_id === variant?.id);
+        })
+      );
     };
     window.addEventListener("remove-composition", handler);
     return () => window.removeEventListener("remove-composition", handler);
-  }, []);
+  }, [products]);
+
+  // Animation logic for slide in/out
+  const handleToggleComposition = () => {
+    if (showComposition) {
+      setCompositionAnim("closing");
+      setTimeout(() => {
+        setShowComposition(false);
+        setCompositionAnim("closed");
+      }, 250);
+    } else {
+      setShowComposition(true);
+      setCompositionAnim("opening");
+      setTimeout(() => {
+        setCompositionAnim("opened");
+      }, 10);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const formData = new FormData();
-    formData.append("name", productName);
-    formData.append("unit_type", "weight");
-    formData.append("category_id", category);
-    formData.append("description", description);
-    composition.forEach((item, idx) => {
-      formData.append(`composition[${idx}]`, item);
-    });
-    formData.append("product_details[0][category_id]", category);
-    formData.append("product_details[0][stock]", String(stock));
-    formData.append("product_details[0][price]", String(price));
-    formData.append("product_details[0][product_code]", productCode);
-    formData.append("product_details[0][variant_name]", "Default");
-    if (images.length > 0) {
-      formData.append("product_details[0][product_image]", images[0]);
-    }
-    try {
-      await apiClient.post("/products", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+
+    if (!materials.length || materials.some(mat => !mat.product_detail_id)) {
+      setErrors({
+        ...errors,
+        details: [
+          {
+            product_detail_id: ["Product detail ID wajib diisi."]
+          }
+        ]
       });
-      navigate("/products");
-      Toaster("success", "Product berhasil dibuat");
+      Toaster("error", "Pilih minimal satu varian produk bundling.");
+      return;
+    }
+
+    const body = {
+      name: productName,
+      quantity: stock,
+      harga: price,
+      kode_Blend: productCode,
+      deskripsi: description,
+      category_id: category,
+      details: materials.map((mat) => ({
+        product_detail_id: mat.product_detail_id,
+      })),
+    };
+
+    try {
+      await apiClient.put(`/product-bundling/${id}`, body);
+      navigate("/bundlings");
+      Toaster("success", "Bundling berhasil diupdate");
     } catch (error) {
       if (error?.response?.data?.data) {
         setErrors(error.response.data.data);
         Toaster("error", "Validasi gagal. Cek inputan Anda.");
       } else {
-        Toaster("error", "Terjadi kesalahan saat menyimpan produk.");
+        Toaster("error", "Terjadi kesalahan saat update bundling.");
       }
     }
   };
@@ -137,14 +220,24 @@ export default function BundlingEdit() {
   };
 
   const toggleSelectVariant = (productId, productName, variantId, variantName) => {
-    const exists = selectedVariants.some(
-      (v) => v.productId === productId && v.variantId === variantId
-    );
+    const exists = materials.some((mat) => mat.product_detail_id === variantId);
     if (exists) {
+      setMaterials((prev) => prev.filter((mat) => mat.product_detail_id !== variantId));
+      setComposition((prev) =>
+        prev.filter((item) => item !== `${productName} - ${variantName}`)
+      );
       setSelectedVariants((prev) =>
         prev.filter((v) => !(v.productId === productId && v.variantId === variantId))
       );
     } else {
+      setMaterials((prev) => [
+        ...prev,
+        { product_detail_id: variantId },
+      ]);
+      setComposition((prev) => [
+        ...prev,
+        `${productName} - ${variantName}`,
+      ]);
       setSelectedVariants((prev) => [
         ...prev,
         { productId, productName, variantId, variantName },
@@ -153,25 +246,55 @@ export default function BundlingEdit() {
   };
 
   const handleAddSelectedVariants = () => {
-    const newComps = [
-      ...composition,
-      ...selectedVariants.map(
-        (v) => `${v.productName} - ${v.variantName}`
-      ),
-    ];
-    setComposition(newComps);
     setSelectedVariants([]);
     setShowModal(false);
   };
 
   const handleRemoveComposition = (index) => {
+    const item = composition[index];
+    const [productName, variantName] = item.split(" - ");
+    const prod = products.find((p) => p.name === productName);
+    const variant = prod?.variants.find((v) => v.name === variantName);
     setComposition((prev) => prev.filter((_, i) => i !== index));
+    setMaterials((prev) =>
+      prev.filter((mat) => mat.product_detail_id !== variant?.id)
+    );
   };
 
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
 
+  const filteredCategories = categories.filter((cat) =>
+    cat.label.toLowerCase().includes(categorySearch.toLowerCase())
+  );
+
   return (
     <div className="p-6 space-y-6">
+      <style>
+        {`
+        .slide-composition {
+          overflow: hidden;
+          transition: max-height 0.25s cubic-bezier(0.4,0,0.2,1), opacity 0.25s cubic-bezier(0.4,0,0.2,1);
+          max-height: 1000px;
+          opacity: 1;
+        }
+        .slide-composition.opening {
+          max-height: 1000px;
+          opacity: 1;
+        }
+        .slide-composition.opened {
+          max-height: 1000px;
+          opacity: 1;
+        }
+        .slide-composition.closing {
+          max-height: 0;
+          opacity: 0;
+        }
+        .slide-composition.closed {
+          max-height: 0;
+          opacity: 0;
+        }
+        `}
+      </style>
       <Breadcrumb title="Edit Bundling Produk" desc="Data Bundling Produk" />
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-8">
@@ -193,42 +316,164 @@ export default function BundlingEdit() {
                 />
               </div>
 
-              <div>
-                <label className={`${labelClass} flex items-center gap-1`}>
-                  Produk Dibundling<span className="text-red-500">*</span>
-                  <button
-                    type="button"
-                    className="text-blue-600 text-sm ml-auto flex items-center gap-1"
-                    onClick={() => setShowModal(true)}
-                  >
-                    <Plus size={16} /> Tambah Bundling
-                  </button>
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {composition.length === 0 && (
-                    <div className="text-gray-400 italic">Belum ada produk bundling dipilih</div>
-                  )}
-                  {composition.map((item, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        className="flex-1 px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
-                        placeholder="Produk Bundling"
-                        value={item}
-                        readOnly
-                        onClick={() => handleRemoveComposition(index)}
-                        title="Klik untuk hapus varian ini"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveComposition(index)}
-                        className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
-                        title="Hapus"
-                      >
-                        <X size={16} />
-                      </button>
+              <div ref={categoryRef} className="relative">
+                <label className="block mb-1 text-sm text-gray-700">Kategori</label>
+                <div
+                  className={`w-full border ${errors.category_id ? "border-red-500" : "border-gray-300"
+                    } rounded-md px-3 py-2 text-sm text-gray-700 bg-white cursor-pointer`}
+                  onClick={() => setCategoryDropdown((v) => !v)}
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      setCategoryDropdown((v) => !v);
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  {categories.find((cat) => cat.value === category)?.label || "Pilih kategori"}
+                </div>
+                {categoryDropdown && (
+                  <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg">
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 text-sm border-b border-gray-200 focus:outline-none"
+                      placeholder="Cari kategori..."
+                      value={categorySearch}
+                      onChange={(e) => setCategorySearch(e.target.value)}
+                      autoFocus
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <div className="max-h-40 overflow-y-auto">
+                      {filteredCategories.length === 0 && (
+                        <div className="px-3 py-2 text-gray-400 text-sm">
+                          Tidak ditemukan
+                        </div>
+                      )}
+                      {filteredCategories.map((cat, index) => (
+                        <div
+                          key={`${cat.value}-${index}`}
+                          className={`px-3 py-2 text-sm hover:bg-blue-50 cursor-pointer ${cat.value === category ? "bg-blue-100" : ""
+                            }`}
+                          onClick={() => {
+                            setCategory(cat.value);
+                            setCategoryDropdown(false);
+                            setCategorySearch("");
+                          }}
+                        >
+                          {cat.label}
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+                )}
+                {errors.category_id && <div className="text-red-500 text-sm mt-1">{errors.category_id}</div>}
+              </div>
+
+              <div>
+                <div className="bg-white rounded-lg shadow-none mt-2">
+                  <div className="flex justify-between items-center px-2 pt-2 pb-1 border-b border-gray-100 bg-gray-100">
+                    <span className="text-blue-600 font-semibold cursor-pointer text-base">
+                      Produk Dibundling
+                    </span>
+                    <button
+                      type="button"
+                      className="ml-2"
+                      onClick={handleToggleComposition}
+                    >
+                      <svg width="30" height="30" viewBox="0 0 20 20">
+                        <polygon
+                          points="10,7 15,13 5,13"
+                          fill="#0066FF"
+                          style={{
+                            transform: showComposition ? "rotate(180deg)" : "none",
+                            transformOrigin: "50% 60%",
+                            transition: "transform 0.2s",
+                          }}
+                          className="cursor-pointer"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className={`slide-composition ${showComposition ? compositionAnim : compositionAnim}`}>
+                    {showComposition && (
+                      <>
+                        <div className="space-y-4 py-4 max-h-75 overflow-y-auto mb-4">
+                          {composition.length === 0 && (
+                            <div className="text-gray-400 italic px-4 py-6 text-center">
+                              Belum ada produk bundling dipilih
+                            </div>
+                          )}
+                          {composition.map((item, index) => {
+                            const [productName, variantName] = item.split(" - ");
+                            const prod = products.find((p) => p.name === productName);
+                            const variant = prod?.variants.find((v) => v.name === variantName);
+                            const categoryLabel = categories.find((cat) => cat.value === prod?.category_id)?.label || "-";
+                            return (
+                              <div
+                                key={index}
+                                className="flex flex-col md:flex-row md:items-center justify-between border border-gray-200 rounded-xl px-5 py-4 bg-white"
+                                style={{ boxShadow: "0 0 0 1px #E5E7EB" }}
+                              >
+                                <div className="flex items-center gap-4 flex-1">
+                                  <img
+                                    src={ImageHelper(variant?.product_image)}
+                                    alt={productName}
+                                    className="w-14 h-14 rounded bg-gray-100 object-cover border border-gray-200"
+                                  />
+                                  <div className="flex flex-col gap-1">
+                                    <div className="font-semibold text-base">{productName}</div>
+                                    <div className="text-xs text-gray-500 flex flex-col">
+                                      Varian <span className="font-medium text-gray-700">{variantName}</span>
+                                    </div>
+                                  </div>
+                                  <div className="flex flex-wrap gap-15 mt-1 text-xs ml-5">
+                                    <div className="flex flex-col">
+                                      <span className="text-gray-500 text-sm font-semibold">Harga</span>
+                                      <span className="font-medium text-gray-700 mt-1">
+                                        Rp {variant?.price?.toLocaleString("id-ID") || "-"}
+                                      </span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                      <span className="text-gray-500 text-sm font-semibold">Stok</span>
+                                      <span className="font-medium text-gray-700 mt-1">
+                                        {variant?.stock || "-"} G
+                                      </span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                      <span className="text-gray-500 text-sm font-semibold">Kategori</span>
+                                      <span className="font-medium text-gray-700 mt-1">
+                                        {categoryLabel}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="mt-3 md:mt-0">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveComposition(index)}
+                                    className="bg-red-500 text-white px-5 py-2 rounded font-semibold hover:bg-red-600 cursor-pointer"
+                                  >
+                                    Hapus
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <div className="flex justify-between items-center px-4 py-3 bg-[#F7F7F7] rounded-b-lg border-t border-gray-100">
+                          <span className="text-gray-400 text-base">{composition.length} Produk Ditambah</span>
+                          <button
+                            type="button"
+                            className="bg-blue-600 text-white px-4 py-2 rounded font-semibold hover:bg-blue-700 cursor-pointer"
+                            onClick={() => setShowModal(true)}
+                          >
+                            Tambah Produk
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  {errors.category_id && <div className="text-red-500 text-sm mt-1">{errors.category_id}</div>}
                 </div>
               </div>
 
@@ -248,6 +493,7 @@ export default function BundlingEdit() {
                     />
                   </div>
                 </div>
+
                 <div>
                   <label className={`${labelClass} flex items-center gap-1`}>
                     Stok<span className="text-red-500">*</span>
@@ -264,22 +510,46 @@ export default function BundlingEdit() {
                   </div>
                 </div>
               </div>
-
-              <div className="flex justify-center gap-4 pt-6">
-                <button
-                  type="button"
-                  onClick={() => navigate("/bundlings")}
-                  className="px-8 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Simpan
-                </button>
+              <div className="space-y-2">
+                <label className={labelClass}>Deskripsi<span className="text-red-500">*</span></label>
+                <textarea
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Masukkan Deskripsi Produk"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
               </div>
+            </div>
+          </div>
+
+          <div className="bg-white shadow rounded-2xl p-6 mt-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-blue-600">
+              <ImageIcon size={18} /> Gambar Produk
+            </h3>
+            <InputOneImage
+              images={images.length ? [images[0]] : []}
+              onImageUpload={(e) => {
+                const file = e.target.files?.[0];
+                if (file) setImages([file]);
+              }}
+              onRemoveImage={() => setImages([])}
+              label="Unggah"
+            />
+            <div className="flex justify-end gap-4 pt-6">
+              <button
+                type="button"
+                onClick={() => navigate("/bundlings")}
+                className="px-8 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+              >
+                Simpan
+              </button>
             </div>
           </div>
         </div>
@@ -328,7 +598,7 @@ export default function BundlingEdit() {
         compositions={
           composition.map((item) => {
             const [productName, variantName] = item.split(" - ");
-            const product = DUMMY_PRODUCTS.find((p) => p.name === productName);
+            const product = products.find((p) => p.name === productName);
             const variant = product?.variants.find((v) => v.name === variantName);
             return { id: product && variant ? `${product.id}-${variant.id}` : "" };
           })

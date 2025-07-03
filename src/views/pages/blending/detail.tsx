@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { ArrowLeft, Calendar } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useApiClient } from "@/core/helpers/ApiClient";
+import { Breadcrumb } from "@/views/components/Breadcrumb";
+import { LoadingCards } from "@/views/components/Loading";
 
 interface BlendDetail {
   variant_name: string;
@@ -50,7 +52,7 @@ export const BlendingDetail = () => {
     fetchBlendData();
   }, [id]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <LoadingCards/>;
   if (error) return <div>Error: {error}</div>;
   if (!blendData) return <div>Tidak ada data ditemukan.</div>;
 
@@ -64,6 +66,10 @@ export const BlendingDetail = () => {
 
   return (
     <div className="p-4 space-y-4">
+      <Breadcrumb
+        title="Detail Blending Produk"
+        desc="Informasi lengkap mengenai komposisi dan status blending produk"
+      />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="bg-white rounded-lg p-4 space-y-4">
           <h2 className="font-semibold text-lg text-gray-800 border-b border-gray-300 pb-2">
@@ -97,13 +103,13 @@ export const BlendingDetail = () => {
             </div>
           </div>
 
-            <button
-              onClick={() => navigate(-1)}
-              className="flex items-center text-sm rounded-lg p-3 w-full justify-center bg-blue-700 text-white font-medium hover:bg-blue-500 cursor-pointer"
-            >
-            <ArrowLeft/>
-              Kembali ke tabel
-            </button>
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center text-sm rounded-lg p-3 w-full justify-center bg-blue-700 text-white font-medium hover:bg-blue-500 cursor-pointer"
+          >
+            <ArrowLeft />
+            Kembali ke tabel
+          </button>
         </div>
 
         <div className="lg:col-span-2 bg-white rounded-lg p-4 space-y-6">

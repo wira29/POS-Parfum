@@ -1,551 +1,269 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
-import { Pagination } from "@/views/components/Pagination";
 import AddButton from "@/views/components/AddButton";
 import { SearchInput } from "@/views/components/SearchInput";
 import { Filter } from "@/views/components/Filter";
-import DeleteIcon from "@/views/components/DeleteIcon";
-import { EditIcon } from "@/views/components/EditIcon";
-import Swal from "sweetalert2";
-import { Toaster } from "@/core/helpers/BaseAlert";
-import { ViewIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useApiClient } from "@/core/helpers/ApiClient";
+import { ImageHelper } from "@/core/helpers/ImageHelper";
+import { FilterModal } from "@/views/components/filter/RestockFilterModal";
 
-function SearchableSelect({
-  label,
-  options,
-  value,
-  onChange,
-  placeholder,
-}: {
-  label: string;
-  options: string[];
-  value: string;
-  onChange: (val: string) => void;
-  placeholder?: string;
-}) {
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const filteredOptions = options.filter((opt) =>
-    opt.toLowerCase().includes(search.toLowerCase())
-  );
-
-  return (
-    <div className="relative" ref={ref}>
-      <label className="block mb-1 text-sm text-gray-700">{label}</label>
-      <div
-        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 bg-white cursor-pointer"
-        onClick={() => setOpen((v) => !v)}
-        tabIndex={0}
-      >
-        {value || placeholder || "Pilih"}
-      </div>
-      {open && (
-        <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg">
-          <input
-            type="text"
-            className="w-full px-3 py-2 text-sm border-b border-gray-200 focus:outline-none"
-            placeholder={`Cari ${label.toLowerCase()}...`}
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            autoFocus
-            onClick={e => e.stopPropagation()}
-          />
-          <div className="max-h-40 overflow-y-auto">
-            {filteredOptions.length === 0 && (
-              <div className="px-3 py-2 text-gray-400 text-sm">Tidak ditemukan</div>
-            )}
-            {filteredOptions.map((opt, idx) => (
-              <div
-                key={idx}
-                className={`px-3 py-2 text-sm hover:bg-blue-50 cursor-pointer ${opt === value ? "bg-blue-100" : ""}`}
-                onClick={() => {
-                  onChange(opt);
-                  setOpen(false);
-                  setSearch("");
-                }}
-              >
-                {opt}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function RestockModal({
-  open,
-  onClose,
-  initialData,
-  onSubmit,
-}: {
-  open: boolean;
-  onClose: () => void;
-  initialData?: RestockItem | null;
-  onSubmit: (data: { warehouse: string; produk: string; qty: string }) => void;
-}) {
-  const warehouseOptions = ["Gudang A", "Gudang B"];
-  const produkOptions = ["Parfum A", "Parfum B", "Parfum C"];
-
-  const [warehouse, setWarehouse] = useState(initialData?.warehouse || "");
-  const [produk, setProduk] = useState(initialData?.produk || "");
-  const [qty, setQty] = useState(initialData?.qty || "");
-
-  useEffect(() => {
-    setWarehouse(initialData?.warehouse || "");
-    setProduk(initialData?.produk || "");
-    setQty(initialData?.qty || "");
-  }, [initialData, open]);
-
-  if (!open) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-      <div className="bg-white rounded-lg shadow-lg p-6 min-w-[400px]">
-        <div className="font-semibold text-lg mb-4">
-          {initialData ? "Edit Restock" : "Tambah Restock"}
-        </div>
-        <form
-          onSubmit={e => {
-            e.preventDefault();
-            onSubmit({ warehouse, produk, qty });
-          }}
-          className="space-y-4"
-        >
-          <SearchableSelect
-            label="Warehouse"
-            options={warehouseOptions}
-            value={warehouse}
-            onChange={setWarehouse}
-            placeholder="Pilih Warehouse"
-          />
-          <SearchableSelect
-            label="Produk"
-            options={produkOptions}
-            value={produk}
-            onChange={setProduk}
-            placeholder="Pilih Produk"
-          />
-          <div>
-            <label className="block mb-1 text-sm text-gray-700">Quantity</label>
-            <input
-              type="number"
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700"
-              value={qty}
-              onChange={e => setQty(e.target.value)}
-              placeholder="Masukkan jumlah"
-              min={0}
-              required
-            />
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              className="px-4 py-2 rounded border border-gray-300"
-              onClick={onClose}
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              className={initialData ? "px-4 py-2 rounded  bg-yellow-600 text-white hover:bg-yellow-700" : "px-4 py-2 rounded  bg-blue-600 text-white hover:bg-blue-700"}
-            >
-              {initialData ? "Simpan" : "Tambah"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-const FilterModal = ({
-  open,
-  onClose,
-  statusFilter,
-  warehouseFilter,
-  setwarehouseFilter,
-  produkFilter,
-  setProdukFilter,
-  setStatusFilter,
-  kategoriFilter,
-  setKategoriFilter,
-  kategoriOptions,
-  produkOptions,
-  warehouseOptions,
-}: {
-  open: boolean;
-  onClose: () => void;
-  warehouseFilter: string;
-  setwarehouseFilter: (val: string) => void;
-  produkFilter: string;
-  setProdukFilter: (val: string) => void;
-  statusFilter: string;
-  setStatusFilter: (val: string) => void;
-  kategoriFilter: string;
-  setKategoriFilter: (val: string) => void;
-  kategoriOptions: string[];
-  produkOptions: string[];
-  warehouseOptions: string[];
-}) => {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-      <div className="bg-white rounded-lg shadow-lg p-6 min-w-[700px] min-h-[600px]">
-        <div className="font-semibold text-lg mb-4">Filter Restock Produk</div>
-        <div className="mb-4">
-          <label className="block mb-1 text-sm">Status</label>
-          <select
-            className="border rounded px-2 py-1 w-full"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="">Semua Status</option>
-            <option value="Menunggu">Menunggu</option>
-            <option value="Diproses">Diproses</option>
-            <option value="Dikirim">Dikirim</option>
-            <option value="Selesai">Selesai</option>
-          </select>
-        </div>
-        <div className="mb-4">
-          <label className="block mb-1 text-sm">Kategori Produk</label>
-          <select
-            className="border rounded px-2 py-1 w-full"
-            value={kategoriFilter}
-            onChange={(e) => setKategoriFilter(e.target.value)}
-          >
-            <option value="">Semua Kategori</option>
-            {kategoriOptions.map((kat, idx) => (
-              <option key={idx} value={kat}>
-                {kat}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="mb-4">
-          <label className="block mb-1 text-sm">Warehouse</label>
-          <select
-            className="border rounded px-2 py-1 w-full"
-            value={warehouseFilter}
-            onChange={(e) => setwarehouseFilter(e.target.value)}
-          >
-            <option value="">Semua Warehouse</option>
-            {warehouseOptions.map((wh, idx) => (
-              <option key={idx} value={wh}>
-                {wh}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="mb-4">
-          <label className="block mb-1 text-sm">Produk</label>
-          <select
-            className="border rounded px-2 py-1 w-full"
-            value={produkFilter}
-            onChange={(e) => setProdukFilter(e.target.value)}
-          >
-            <option value="">Semua Produk</option>
-            {produkOptions.map((prod, idx) => (
-              <option key={idx} value={prod}>
-                {prod}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex justify-end gap-2">
-          <button
-            className="px-3 py-1 rounded border border-gray-300"
-            onClick={onClose}
-          >
-            Tutup
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+const statusMap = {
+  Menunggu: {
+    label: "Menunggu",
+    className: "bg-gray-100 text-gray-600",
+  },
+  Diproses: {
+    label: "Diproses",
+    className: "bg-yellow-100 text-yellow-700",
+  },
+  Dikirim: {
+    label: "Dikirim",
+    className: "bg-blue-100 text-blue-600",
+  },
+  approved: {
+    label: "Disetujui",
+    className: "bg-green-100 text-green-700",
+  },
+  rejected: {
+    label: "Ditolak",
+    className: "bg-red-100 text-red-700",
+  },
 };
-
-interface RestockItem {
-  id: number;
-  warehouse: string;
-  tanggal: string;
-  produk: string;
-  kategori: string;
-  stok: string;
-  qty: string;
-  status: "Menunggu" | "Diproses" | "Dikirim" | "Selesai";
-}
 
 export const RestockIndex = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingData, setEditingData] = useState<RestockItem | null>(null);
   const [showFilter, setShowFilter] = useState(false);
+
   const [statusFilter, setStatusFilter] = useState("");
   const [kategoriFilter, setKategoriFilter] = useState("");
   const [warehouseFilter, setwarehouseFilter] = useState("");
   const [produkFilter, setProdukFilter] = useState("");
-  const [inputWarehouse, setInputWarehouse] = useState("");
-  const [inputProduct, setInputProduct] = useState("");
-  const itemsPerPage = 5;
-  const nav = useNavigate();
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [minRequest, setMinRequest] = useState("");
+  const [maxRequest, setMaxRequest] = useState("");
 
-  const mockData: RestockItem[] = [
-    {
-      id: 1,
-      warehouse: "Gudang A",
-      tanggal: "19/01/2025",
-      produk: "Parfum A",
-      kategori: "Parfum Siang",
-      stok: "200 Gram",
-      qty: "2000 Gram",
-      status: "Menunggu",
-    },
-    {
-      id: 2,
-      warehouse: "Gudang A",
-      tanggal: "19/01/2025",
-      produk: "Parfum A",
-      kategori: "Parfum Siang",
-      stok: "200 Gram",
-      qty: "2000 Gram",
-      status: "Diproses",
-    },
-    {
-      id: 3,
-      warehouse: "Gudang A",
-      tanggal: "19/01/2025",
-      produk: "Parfum A",
-      kategori: "Parfum Siang",
-      stok: "200 Gram",
-      qty: "2000 Gram",
-      status: "Dikirim",
-    },
-    {
-      id: 4,
-      warehouse: "Gudang A",
-      tanggal: "19/01/2025",
-      produk: "Parfum A",
-      kategori: "Parfum Siang",
-      stok: "200 Gram",
-      qty: "2000 Gram",
-      status: "Selesai",
-    },
-    {
-      id: 5,
-      warehouse: "Gudang A",
-      tanggal: "20/01/2025",
-      produk: "Parfum B",
-      kategori: "Parfum Malam",
-      stok: "100 Gram",
-      qty: "1000 Gram",
-      status: "Menunggu",
-    },
-    {
-      id: 6,
-      warehouse: "Gudang B",
-      tanggal: "21/01/2025",
-      produk: "Parfum C",
-      kategori: "Parfum Sore",
-      stok: "150 Gram",
-      qty: "1200 Gram",
-      status: "Selesai",
-    },
-  ];
+  const [pendingStatusFilter, setPendingStatusFilter] = useState("");
+  const [pendingKategoriFilter, setPendingKategoriFilter] = useState("");
+  const [pendingWarehouseFilter, setPendingWarehouseFilter] = useState("");
+  const [pendingProdukFilter, setPendingProdukFilter] = useState("");
+  const [pendingDateFrom, setPendingDateFrom] = useState("");
+  const [pendingDateTo, setPendingDateTo] = useState("");
+  const [pendingMinRequest, setPendingMinRequest] = useState("");
+  const [pendingMaxRequest, setPendingMaxRequest] = useState("");
 
-  const kategoriOptions = Array.from(new Set(mockData.map((d) => d.kategori)));
-  const produkOptions = Array.from(new Set(mockData.map((d) => d.produk)));
-  const warehouseOptions = Array.from(
-    new Set(mockData.map((d) => d.warehouse))
-  );
+  const [data, setData] = useState([]);
+  const [pagination, setPagination] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const apiClient = useApiClient();
+  const isFilterActive = !!(dateTo || minRequest || maxRequest || dateFrom || statusFilter || kategoriFilter || warehouseFilter || produkFilter || statusFilter);
 
-  const filteredData = mockData.filter((item) => {
-    const q = searchQuery.toLowerCase();
-    const matchSearch =
-      item.produk.toLowerCase().includes(q) ||
-      item.kategori.toLowerCase().includes(q) ||
-      item.warehouse.toLowerCase().includes(q) ||
-      item.status.toLowerCase().includes(q) ||
-      item.tanggal.toLowerCase().includes(q) ||
-      item.stok.toLowerCase().includes(q) ||
-      item.qty.toLowerCase().includes(q);
+  const kategoriOptions = ["Parfum Siang", "Parfum Malam", "Parfum Sore"];
+  const produkOptions = ["Parfum A", "Parfum B", "Parfum C"];
+  const warehouseOptions = ["Warehouse A", "Warehouse B"];
 
-    const matchStatus = statusFilter ? item.status === statusFilter : true;
-    const matchKategori = kategoriFilter
-      ? item.kategori === kategoriFilter
-      : true;
-    const matchWarehouse = warehouseFilter
-      ? item.warehouse === warehouseFilter
-      : true;
-    const matchProduk = produkFilter ? item.produk === produkFilter : true;
+  const fetchData = async (params: any = {}) => {
+    setLoading(true);
+    try {
+      const query = new URLSearchParams();
+      query.append("per_page", "5");
+      if (params.page) query.append("page", params.page);
+      if (searchQuery) query.append("search", searchQuery);
+      if (statusFilter) query.append("status", statusFilter);
+      if (warehouseFilter) query.append("warehouse", warehouseFilter);
+      if (produkFilter) query.append("produk", produkFilter);
+      if (kategoriFilter) query.append("kategori", kategoriFilter);
+      if (dateFrom) query.append("date_from", dateFrom);
+      if (dateTo) query.append("date_to", dateTo);
+      if (minRequest) query.append("min_request", minRequest);
+      if (maxRequest) query.append("max_request", maxRequest);
 
-    return (
-      matchSearch &&
-      matchStatus &&
-      matchKategori &&
-      matchWarehouse &&
-      matchProduk
-    );
-  });
-
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const paginatedData = filteredData.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const handleRestockModalSubmit = (data: {
-    warehouse: string;
-    produk: string;
-    qty: string;
-  }) => {
-    setModalOpen(false);
-    setEditingData(null);
+      const res = await apiClient.get(`/stock-request?${query.toString()}`);
+      setData(Array.isArray(res.data.data) ? res.data.data : []);
+      setPagination(res.data.pagination);
+    } catch (err) {
+      setData([]);
+    }
+    setLoading(false);
   };
-  function dellete() {
-    Swal.fire({
-      title: "Apakah anda yakin?",
-      text: "Data restock akan dihapus!",
-      icon: "question",
-    }).then((result) => {
-      if (!result.isConfirmed) {
-        return;
-      }
-      if (result.isConfirmed) {
-        Toaster("success", "Restock berhasil dihapus");
-      }
-    });
-  }
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [searchQuery]);
+
+  const handleApplyFilter = () => {
+    setStatusFilter(pendingStatusFilter);
+    setKategoriFilter(pendingKategoriFilter);
+    setwarehouseFilter(pendingWarehouseFilter);
+    setProdukFilter(pendingProdukFilter);
+    setDateFrom(pendingDateFrom);
+    setDateTo(pendingDateTo);
+    setMinRequest(pendingMinRequest);
+    setMaxRequest(pendingMaxRequest);
+    fetchData();
+  };
+
+  const handlePageChange = (page: string) => {
+    fetchData({ page });
+  };
 
   return (
     <div className="p-6 space-y-6">
-      <Breadcrumb
-        title="Restock Produk"
-        desc="Menampilkan daftar restock dari gudang"
-      />
+      <Breadcrumb title="Restock Produk" desc="Menampilkan daftar restock dari gudang" />
 
-      <div className="bg-white shadow-md p-4 rounded-md flex flex-col gap-6">
+      <div className="p-4 flex flex-col gap-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2 mb-4 w-full sm:w-auto max-w-lg">
-            <SearchInput
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-            />
-            <Filter onClick={() => setShowFilter(true)} />
+            <SearchInput value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+            <div className="relative">
+              <Filter onClick={() => setShowFilter(true)} />
+              {isFilterActive && (
+                <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-white" />
+              )}
+            </div>
           </div>
           <div className="w-full sm:w-auto">
-            <AddButton onClick={() => {
-              setEditingData(null);
-              setModalOpen(true);
-            }}>
+            <AddButton onClick={() => navigate("/restock/create")}>
               Tambah Restock
             </AddButton>
           </div>
         </div>
-
-        <div className="overflow-x-auto rounded-lg">
-          <table className="min-w-full border border-gray-300 rounded-lg text-sm text-left">
-            <thead className="bg-gray-100 border border-gray-300 text-gray-700">
-              <tr>
-                <th className="px-6 py-4 font-medium">Tanggal</th>
-                <th className="px-6 py-4 font-medium">Produk</th>
-                <th className="px-6 py-4 font-medium">Kategori</th>
-                <th className="px-6 py-4 font-medium">Varian</th>
-                <th className="px-6 py-4 font-medium">Quantity</th>
-                <th className="px-6 py-4 font-medium">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedData.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={8}
-                    className="px-6 py-4 text-center text-gray-500"
-                  >
-                    Tidak ada data ditemukan.
-                  </td>
-                </tr>
-              ) : (
-                paginatedData.map((item) => (
-                  <tr
-                    key={item.id}
-                    className="border-b border-gray-200 text-gray-700 hover:bg-gray-50"
-                  >
-                    <td className="px-6 py-4">{item.tanggal}</td>
-                    <td className="px-6 py-4">{item.produk}</td>
-                    <td className="px-6 py-4">{item.kategori}</td>
-                    <td className="px-6 py-4">biasalah</td>
-                    <td className="px-6 py-4">{item.qty}</td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${item.status === "Menunggu"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : item.status === "Diproses"
-                            ? "bg-blue-100 text-blue-700"
-                            : item.status === "Dikirim"
-                              ? "bg-purple-100 text-purple-700"
-                              : "bg-green-100 text-green-700"
-                          }`}
-                      >
-                        {item.status}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="flex">
-                        <ViewIcon
-                            to={``}
-                          className="text-blue-500 hover:text-blue-700"
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 text-sm text-muted-foreground">
-          <span className="text-gray-700">{filteredData.length} Data</span>
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={(page) => setCurrentPage(page)}
-          />
-        </div>
       </div>
+
+      {loading ? (
+        <div className="text-center text-gray-400 py-10">Loading...</div>
+      ) : data.length > 0 ? (
+        <>
+          {data.map((card: any) => (
+            <div key={card.id} className="bg-white shadow-md p-6 rounded-xl flex flex-col md:flex-row gap-6 items-stretch mb-6">
+              <div className="flex-1 flex flex-col gap-2 justify-between">
+                <div className="border border-gray-200 rounded-xl p-4">
+                  {card.requested_stock.slice(0, 2).map((prod: any, idx2: number) => (
+                    <div key={idx2} className={`flex flex-col md:flex-row md:items-center md:justify-between py-2 ${idx2 !== 0 ? "border-t border-dashed border-gray-300 mt-2 pt-4" : ""}`}>
+                      <div>
+                        <div className="font-semibold">Product</div>
+                        <div className="text-gray-500 text-sm">{prod.variant_name || `Varian ${idx2 + 1}`}</div>
+                      </div>
+                      <div className="flex flex-col md:items-end gap-1 mt-2 md:mt-0">
+                        <div className="font-semibold text-sm">Varian Dipilih</div>
+                        <div className="text-gray-800">123 Varian</div>
+                      </div>
+                      <div className="flex flex-col md:items-end gap-1 mt-2 md:mt-0">
+                        <div className="font-semibold text-sm">Jumlah Request</div>
+                        <div className="text-green-600">{prod.requested_stock} Gram</div>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="text-center text-gray-400 text-sm mt-4">
+                    {card.requested_stock.length > 2 && `+${card.requested_stock.length - 2} Produk Lainnya`}
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-col items-center justify-center min-w-[220px]">
+                <img
+                  src={ImageHelper(card.warehouse.image)}
+                  alt=""
+                  className="w-44 h-28 object-cover rounded-lg mb-2"
+                />
+                <div className="font-semibold text-lg">{card.warehouse?.name}</div>
+                <div className="text-green-600 text-sm mb-4">
+                  Request pada : {new Date(card.requested_at).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}
+                </div>
+                <div className="flex gap-3 w-full justify-center">
+                  <button className={`${statusMap[card.status]?.className || "bg-gray-100 text-gray-600"} px-5 py-2 rounded-md font-semibold`}>
+                    {statusMap[card.status]?.label || card.status}
+                  </button>
+                  <button className="bg-blue-600 text-white px-5 py-2 rounded-md font-semibold cursor-pointer" onClick={() => navigate(`/restock/${card.id}/details`)}>
+                    Detail
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+          {pagination && (
+            <div className="flex justify-end mt-4">
+              <div className="flex items-center gap-1">
+                <button
+                  className={`px-3 py-1 rounded border cursor-pointer ${!pagination.prev_page_url ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-white text-gray-700 hover:bg-blue-50"}`}
+                  disabled={!pagination.prev_page_url}
+                  onClick={() => {
+                    if (pagination.prev_page_url) {
+                      const url = new URL(pagination.prev_page_url);
+                      const page = url.searchParams.get("page");
+                      handlePageChange(page || "1");
+                    }
+                  }}
+                >
+                  &laquo;
+                </button>
+                {pagination.links
+                  .filter((l: any) => /^\d+$/.test(l.label))
+                  .map((link: any, idx: number) => (
+                    <button
+                      key={idx}
+                      className={`px-3 py-1 rounded border cursor-pointer ${link.active ? "bg-blue-600 text-white" : "bg-white text-gray-700 hover:bg-blue-50"}`}
+                      disabled={link.active}
+                      onClick={() => {
+                        if (link.url) {
+                          const url = new URL(link.url);
+                          const page = url.searchParams.get("page");
+                          handlePageChange(page || "1");
+                        }
+                      }}
+                    >
+                      {link.label}
+                    </button>
+                  ))}
+                <button
+                  className={`px-3 py-1 rounded border cursor-pointer ${!pagination.next_page_url ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-white text-gray-700 hover:bg-blue-50"}`}
+                  disabled={!pagination.next_page_url}
+                  onClick={() => {
+                    if (pagination.next_page_url) {
+                      const url = new URL(pagination.next_page_url);
+                      const page = url.searchParams.get("page");
+                      handlePageChange(page || "1");
+                    }
+                  }}
+                >
+                  &raquo;
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="text-center text-gray-400 py-10">Tidak ada data</div>
+      )}
+
       <FilterModal
         open={showFilter}
         onClose={() => setShowFilter(false)}
-        statusFilter={statusFilter}
-        setStatusFilter={(val) => setStatusFilter(val)}
-        kategoriFilter={kategoriFilter}
-        setKategoriFilter={(val) => setKategoriFilter(val)}
-        kategoriOptions={kategoriOptions}
-        warehouseFilter={warehouseFilter}
-        setwarehouseFilter={(val) => setwarehouseFilter(val)}
-        produkFilter={produkFilter}
-        setProdukFilter={(val) => setProdukFilter(val)}
+        statusFilter={pendingStatusFilter}
+        setStatusFilter={setPendingStatusFilter}
+        kategoriFilter={pendingKategoriFilter}
+        setKategoriFilter={setPendingKategoriFilter}
+        warehouseFilter={pendingWarehouseFilter}
+        setwarehouseFilter={setPendingWarehouseFilter}
+        produkFilter={pendingProdukFilter}
+        setProdukFilter={setPendingProdukFilter}
+        dateFrom={pendingDateFrom}
+        setDateFrom={setPendingDateFrom}
+        dateTo={pendingDateTo}
+        setDateTo={setPendingDateTo}
+        minRequest={pendingMinRequest}
+        setMinRequest={setPendingMinRequest}
+        maxRequest={pendingMaxRequest}
+        setMaxRequest={setPendingMaxRequest}
         produkOptions={produkOptions}
         warehouseOptions={warehouseOptions}
+        kategoriOptions={kategoriOptions}
+        onApply={handleApplyFilter}
       />
     </div>
   );
