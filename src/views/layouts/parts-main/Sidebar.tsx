@@ -83,13 +83,13 @@ const menuItems = [
   {
     label: "Produk",
     children: [
-      { label: "Kategori", icon: <FiLayers />, path: "/categories", roles: ["warehouse", "outlet"] },
+      { label: "Kategori", icon: <FiLayers />, path: "/categories", roles: ["warehouse", "outlet", "owner"] },
       { label: "Produk", icon: <FiBox />, path: "/products", roles: ["owner", "warehouse", "outlet"] },
       { label: "Bundling", icon: <ShoppingCart size={16} />, path: "/bundlings", roles: ["owner", "warehouse", "outlet"] },
-      { label: "Blending Produk", icon: <FiCoffee />, path: "/blendings", roles: ["warehouse"] },
-      { label: "Request Stock", icon: <FaBoxesPacking />, path: "/restock", roles: ["outlet"] },
-      { label: "Unit", icon: <LayoutGrid />, path: "/units", roles: ["admin", "warehouse", "outlet"] },
-      { label: "Audit", icon: <AiOutlineFileSearch />, path: "/audit", roles: ["admin", "outlet"] },
+      { label: "Blending Produk", icon: <FiCoffee />, path: "/blendings", roles: ["warehouse", "owner"] },
+      { label: "Request Stock", icon: <FaBoxesPacking />, path: "/restock", roles: ["outlet", "owner"] },
+      { label: "Unit", icon: <LayoutGrid />, path: "/units", roles: ["admin", "warehouse", "outlet", "owner"] },
+      { label: "Audit", icon: <AiOutlineFileSearch />, path: "/audit", roles: ["admin", "outlet", "owner"] },
       { label: "Diskon", icon: <FiPercent />, path: "/discounts", roles: ["owner", "warehouse", "outlet"] },
     ],
     more: [
