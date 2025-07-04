@@ -1,9 +1,19 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, LayoutGrid, RefreshCw, Tag, User, Users, Warehouse } from "lucide-react";
+import {
+  ArrowLeft,
+  Calendar,
+  LayoutGrid,
+  RefreshCw,
+  Tag,
+  User,
+  Users,
+  Warehouse,
+} from "lucide-react";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { TbMoneybag } from "react-icons/tb";
+import { ImageHelper } from "@/core/helpers/ImageHelper";
 
 export default function RetailDetail() {
   const { id } = useParams();
@@ -19,6 +29,8 @@ export default function RetailDetail() {
     total: 0,
     links: [],
   });
+
+  const IMAGE_BASE_URL = "https://core-parfum.mijurnal.com/storage/";
 
   const fetchDetail = async (page = 1) => {
     try {
@@ -59,25 +71,39 @@ export default function RetailDetail() {
 
       <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
         <div className="p-6 space-y-2 bg-blue-100 rounded-2xl min-w-70">
-          <p className="flex items-center text-blue-600 text-xs gap-2.5"><User size={20} />Pemilik Retail</p>
+          <p className="flex items-center text-blue-600 text-xs gap-2.5">
+            <User size={20} />
+            Pemilik Retail
+          </p>
           <h2 className="text-blue-600">{outlet?.owner || "-"}</h2>
         </div>
         <div className="p-6 space-y-2 bg-purple-100 rounded-2xl min-w-70">
-          <p className="flex items-center text-purple-600 text-xs gap-2.5"><Users size={20} />Jumlah Pegawai</p>
+          <p className="flex items-center text-purple-600 text-xs gap-2.5">
+            <Users size={20} />
+            Jumlah Pegawai
+          </p>
           <h2 className="text-purple-600">{outlet?.worker_count ?? 0} Pegawai</h2>
         </div>
         <div className="p-6 space-y-2 bg-orange-100 rounded-2xl min-w-70">
-          <p className="flex items-center text-orange-600 text-xs gap-2.5"><TbMoneybag size={20} />Total Transaksi</p>
+          <p className="flex items-center text-orange-600 text-xs gap-2.5">
+            <TbMoneybag size={20} />
+            Total Transaksi
+          </p>
           <h2 className="text-orange-600">{outlet?.transaction_count ?? 0} Transaksi</h2>
         </div>
         <div className="p-6 space-y-2 bg-green-100 rounded-2xl min-w-70">
-          <p className="flex items-center text-green-600 text-xs gap-2.5"><LayoutGrid size={20} />Status Retail</p>
-          <h2 className="text-green-600">{outlet?.status === "Active" ? "Aktif" : outlet?.status || "-"}</h2>
+          <p className="flex items-center text-green-600 text-xs gap-2.5">
+            <LayoutGrid size={20} />
+            Status Retail
+          </p>
+          <h2 className="text-green-600">
+            {outlet?.status === "Active" ? "Aktif" : outlet?.status || "-"}
+          </h2>
         </div>
       </div>
 
       <div className="p-6 space-y-4 flex flex-col lg:flex-row gap-6">
-        <div className="p-6 space-y-4 shadow-md rounded-2xl bg-white ">
+        <div className="p-6 space-y-4 shadow-md rounded-2xl bg-white">
           <div className="flex justify-between items-center border-b-2 border-gray-200 pb-4 mb-4">
             <h2 className="text-gray-800 font-semibold text-2xl flex items-center gap-2">
               <Warehouse size={26} className="text-blue-700 p-1 bg-blue-200" />
@@ -87,35 +113,51 @@ export default function RetailDetail() {
 
           <div className="flex flex-col gap-4 w-80">
             <img
-              src={outlet?.image ? `/${outlet.image}` : "/images/backgrounds/bgm.jpg"}
+              src={ImageHelper(outlet?.image)}
               alt={outlet?.name}
               className="w-full h-30 rounded-lg object-cover mb-4"
             />
             <div className="flex-1 space-y-1 text-sm text-gray-700">
               <h2 className="font-semibold">Nama Retail</h2>
-              <p className="bg-gray-100 border border-gray-300 rounded-xs font-semibold p-2">{outlet?.name || "-"}</p>
+              <p className="bg-gray-100 border border-gray-300 rounded-xs font-semibold p-2">
+                {outlet?.name || "-"}
+              </p>
             </div>
             <div className="flex-1 space-y-1 text-sm text-gray-700">
               <h2 className="font-semibold">Pemilik Retail</h2>
-              <p className="bg-gray-100 border border-gray-300 rounded-xs font-semibold p-2">{outlet?.owner || "-"}</p>
+              <p className="bg-gray-100 border border-gray-300 rounded-xs font-semibold p-2">
+                {outlet?.owner || "-"}
+              </p>
             </div>
             <div className="flex-1 space-y-1 text-sm text-gray-700">
               <h2 className="font-semibold">Nomor Retail</h2>
               <div className="flex items-center">
-                <p className="bg-blue-100 border-r-0 border border-blue-300 text-blue-700 rounded-xs font-semibold p-2">+62</p>
-                <p className="bg-gray-100 border-l-0 border border-gray-300 rounded-xs font-semibold p-2 w-full">{outlet?.telp || "-"}</p>
+                <p className="bg-blue-100 border-r-0 border border-blue-300 text-blue-700 rounded-xs font-semibold p-2">
+                  +62
+                </p>
+                <p className="bg-gray-100 border-l-0 border border-gray-300 rounded-xs font-semibold p-2 w-full">
+                  {outlet?.telp || "-"}
+                </p>
               </div>
             </div>
             <div className="flex-1 space-y-1 text-sm text-gray-700">
               <h2 className="font-semibold">Dibuat Tanggal</h2>
               <p className="bg-gray-100 border border-gray-300 rounded-xs font-semibold p-2 flex items-center gap-2">
                 <Calendar size={16} />
-                {outlet?.created_at ? new Date(outlet.created_at).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" }) : "-"}
+                {outlet?.created_at
+                  ? new Date(outlet.created_at).toLocaleDateString("id-ID", {
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                  })
+                  : "-"}
               </p>
             </div>
             <div className="flex-1 space-y-1 text-sm text-gray-700">
               <h2 className="font-semibold">Alamat Retail</h2>
-              <p className="bg-gray-100 border border-gray-300 rounded-xs font-semibold p-2 flex items-star gap-2 min-h-20">{outlet?.address || "-"}</p>
+              <p className="bg-gray-100 border border-gray-300 rounded-xs font-semibold p-2 flex items-star gap-2 min-h-20">
+                {outlet?.address || "-"}
+              </p>
             </div>
           </div>
 
@@ -126,6 +168,7 @@ export default function RetailDetail() {
             <ArrowLeft className="w-5 mr-2" /> Kembali
           </button>
         </div>
+
         <div className="bg-white rounded-xl p-6 shadow space-y-6 w-full">
           <div className="flex justify-between items-center border-b-2 border-gray-200 pb-4 mb-4">
             <h2 className="text-gray-800 font-semibold text-2xl flex items-center gap-2">
@@ -136,7 +179,7 @@ export default function RetailDetail() {
               onClick={() => fetchDetail(pagination.current_page)}
               className="text-sm text-green-600 bg-green-100 border-0 p-2 rounded-xl flex items-center hover:bg-green-200 hover:text-green-700 cursor-pointer"
             >
-              <RefreshCw size={32}/>
+              <RefreshCw size={32} />
             </button>
           </div>
 
@@ -154,7 +197,9 @@ export default function RetailDetail() {
               <tbody className="bg-[#FBFBFB]">
                 {transactions.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-6 text-gray-400">Tidak ada transaksi</td>
+                    <td colSpan={5} className="text-center py-6 text-gray-400">
+                      Tidak ada transaksi
+                    </td>
                   </tr>
                 ) : (
                   transactions.map((tx) => {
@@ -173,8 +218,8 @@ export default function RetailDetail() {
                         <td className="px-4 py-4">
                           <span
                             className={`px-3 py-1 rounded text-sm font-medium border ${tx.transaction_status === "Success"
-                              ? "bg-green-50 text-green-600 border-green-200"
-                              : "bg-gray-100 text-gray-500 border-gray-300"
+                                ? "bg-green-50 text-green-600 border-green-200"
+                                : "bg-gray-100 text-gray-500 border-gray-300"
                               }`}
                           >
                             {tx.transaction_status}
@@ -206,8 +251,8 @@ export default function RetailDetail() {
                     }}
                     disabled={!link.url}
                     className={`px-3 py-1 text-sm rounded border ${link.active
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "border-gray-300 hover:bg-gray-100"
+                        ? "bg-blue-600 text-white border-blue-600"
+                        : "border-gray-300 hover:bg-gray-100"
                       }`}
                   >
                     {label}
