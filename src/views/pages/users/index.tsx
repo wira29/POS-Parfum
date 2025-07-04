@@ -45,13 +45,12 @@ export default function UserPage() {
   });
 
   const [showFilter, setShowFilter] = useState(false);
+  const [myRole, setMyRole] = useState<string | null>(null);
 
-  // filter aktif
   const [selectedRole, setSelectedRole] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  // filter draft (sementara di modal)
   const [draftRole, setDraftRole] = useState("");
   const [draftStartDate, setDraftStartDate] = useState("");
   const [draftEndDate, setDraftEndDate] = useState("");
@@ -61,9 +60,11 @@ export default function UserPage() {
   const apiClient = useApiClient();
 
   const fetchUsers = async (page = 1) => {
+    if (!myRole) return;
+
     setLoading(true);
     try {
-      const response = await apiClient.get(`/users?page=${page}&per_page=8`);
+      const response = await apiClient.get(`/users?page=${page}&per_page=8&role=${myRole}`);
       const usersData = response.data.data;
       const mappedUsers: User[] = usersData.map((item: any) => ({
         id: item.id,
@@ -91,9 +92,28 @@ export default function UserPage() {
     }
   };
 
+
   useEffect(() => {
-    fetchUsers(1);
+    const fetchMyRole = async () => {
+      try {
+        const res = await apiClient.get("/me");
+        const roles = res.data.data.roles;
+        if (roles && roles.length > 0) {
+          setMyRole(roles[0].name);
+        }
+      } catch (error) {
+        console.error("Gagal mengambil data user login:", error);
+      }
+    };
+
+    fetchMyRole();
   }, []);
+
+  useEffect(() => {
+    if (myRole) {
+      fetchUsers(1);
+    }
+  }, [myRole]);
 
   const filteredUsers = users.filter((user) => {
     const matchSearch = `${user.name} ${user.email}`.toLowerCase().includes(searchQuery.toLowerCase());
@@ -175,6 +195,7 @@ export default function UserPage() {
     }
   }, [showFilter]);
 
+  console.log(users)
   return (
     <div className="p-6 space-y-6">
       <Breadcrumb title="Daftar Pengguna" desc="Kelola daftar akun pengguna pada sistem." />

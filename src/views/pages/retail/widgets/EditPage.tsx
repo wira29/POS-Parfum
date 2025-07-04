@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Toaster } from "@/core/helpers/BaseAlert";
 import InputOneImage from "@/views/components/Input-v2/InputOneImage";
+import { LoadingCards } from "@/views/components/Loading";
 
 export default function RetailEdit() {
   const navigate = useNavigate();
@@ -97,11 +98,11 @@ export default function RetailEdit() {
     try {
       await apiClient.post
         ? await apiClient.post(`/outlets/${id}`, payload, {
-            headers: { "Content-Type": "multipart/form-data" },
-          })
+          headers: { "Content-Type": "multipart/form-data" },
+        })
         : await apiClient.put(`/outlets/${id}`, payload, {
-            headers: { "Content-Type": "multipart/form-data" },
-          });
+          headers: { "Content-Type": "multipart/form-data" },
+        });
       Toaster("success", "Retail berhasil diperbarui");
       navigate("/retails");
     } catch (error: any) {
@@ -122,7 +123,11 @@ export default function RetailEdit() {
   };
 
   if (loading) {
-    return <div className="p-6">Loading...</div>;
+    return (
+      <div className="p-6">
+        <LoadingCards />
+      </div>
+    )
   }
 
   return (

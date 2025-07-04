@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Toaster } from "@/core/helpers/BaseAlert";
 import InputOneImage from "@/views/components/Input-v2/InputOneImage";
+import { LoadingCards } from "@/views/components/Loading";
 
 export default function RetailCreate() {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ export default function RetailCreate() {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -34,7 +36,9 @@ export default function RetailCreate() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     const newErrors: Record<string, string> = {};
+
     if (!formData.name.trim()) newErrors.name = "Nama retail wajib diisi";
     if (!formData.telp.trim()) newErrors.telp = "Nomor telepon wajib diisi";
     else if (!/^[0-9+\-()\s]+$/.test(formData.telp))
@@ -43,6 +47,7 @@ export default function RetailCreate() {
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       Toaster("error", "Harap perbaiki input terlebih dahulu");
+      setIsLoading(false);
       return;
     }
 
@@ -103,6 +108,8 @@ export default function RetailCreate() {
         Toaster("error", "Gagal menambahkan retail");
         console.error(error);
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -110,88 +117,93 @@ export default function RetailCreate() {
     <div className="p-6 space-y-6">
       <Breadcrumb title="Tambah Retail" desc="Tambahkan Retail baru." />
       <div className="bg-white rounded-xl p-6 shadow">
+        {isLoading && <LoadingCards className="mb-4" />}
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <label className="block text-sm font-medium">
-              Gambar <span className="text-red-500">*</span>
-            </label>
-            <InputOneImage
-              images={formData.image ? [formData.image] : []}
-              onImageUpload={handleFileChange}
-              onRemoveImage={() => {
-                setFormData({ ...formData, image: null });
-              }}
-              className="w-full"
-              error={errors.image}
-            />
-
-            {errors.image && (
-              <p className="text-red-500 text-sm">{errors.image}</p>
-            )}
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <fieldset disabled={isLoading} className="space-y-6">
             <div className="space-y-2">
               <label className="block text-sm font-medium">
-                Nama Retail <span className="text-red-500">*</span>
+                Gambar <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                className="w-full border border-slate-300 rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Masukkan nama retail"
+              <InputOneImage
+                images={formData.image ? [formData.image] : []}
+                onImageUpload={handleFileChange}
+                onRemoveImage={() => {
+                  setFormData({ ...formData, image: null });
+                }}
+                className="w-full"
+                error={errors.image}
               />
-              {errors.name && (
-                <p className="text-red-500 text-sm">{errors.name}</p>
+              {errors.image && (
+                <p className="text-red-500 text-sm">{errors.image}</p>
               )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">
+                  Nama Retail <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="w-full border border-slate-300 rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Masukkan nama retail"
+                />
+                {errors.name && (
+                  <p className="text-red-500 text-sm">{errors.name}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">
+                  No Telp <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="telp"
+                  value={formData.telp}
+                  onChange={handleInputChange}
+                  className="w-full border border-slate-300 rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="No telepon retail"
+                />
+                {errors.telp && (
+                  <p className="text-red-500 text-sm">{errors.telp}</p>
+                )}
+              </div>
             </div>
 
             <div className="space-y-2">
               <label className="block text-sm font-medium">
-                No Telp <span className="text-red-500">*</span>
+                Alamat <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
-                name="telp"
-                value={formData.telp}
+              <textarea
+                name="address"
+                value={formData.address}
                 onChange={handleInputChange}
-                className="w-full border border-slate-300 rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="No telepon retail"
+                rows={4}
+                className="border border-gray-300 w-full rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Masukkan alamat"
               />
-              {errors.telp && (
-                <p className="text-red-500 text-sm">{errors.telp}</p>
-              )}
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm font-medium">
-              Alamat <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              name="address"
-              value={formData.address}
-              onChange={handleInputChange}
-              rows={4}
-              className="border border-gray-300 w-full rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Masukkan alamat"
-            />
-          </div>
+          </fieldset>
 
           <div className="flex justify-end space-x-2 pt-4">
             <button
               type="button"
               className="px-4 py-2 bg-gray-400 hover:bg-gray-600 text-white rounded-md cursor-pointer"
               onClick={() => navigate("/retails")}
+              disabled={isLoading}
             >
               Kembali
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md cursor-pointer"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md cursor-pointer disabled:opacity-50"
+              disabled={isLoading}
             >
-              Tambah
+              {isLoading ? "Memproses..." : "Tambah"}
             </button>
           </div>
         </form>

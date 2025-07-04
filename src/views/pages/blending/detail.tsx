@@ -137,7 +137,7 @@ export const BlendingDetail = () => {
                   <tr>
                     <th className="px-4 py-2">Produk</th>
                     <th className="px-4 py-2">Varian Produk</th>
-                    <th className="px-4 py-2">Qty Digunakan</th>
+                    <th className="px-4 py-2">Jumlah Yang Digunakan</th>
                   </tr>
                 </thead>
                 <tbody>

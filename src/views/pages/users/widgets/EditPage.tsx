@@ -5,34 +5,12 @@ import InputOneImage from "@/views/components/Input-v2/InputOneImage";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-const roleOptionsMap: Record<string, { value: string; label: string }[]> = {
-  admin: [
-    { value: "warehouse", label: "Warehouse" },
-    { value: "outlet", label: "Outlet" },
-    { value: "admin", label: "Admin" },
-    { value: "staff_outlet", label: "Karyawan Outlet" },
-    { value: "staff_warehouse", label: "Karyawan Warehouse" },
-  ],
-  warehouse: [
-    { value: "warehouse", label: "Warehouse" },
-    { value: "staff_warehouse", label: "Karyawan Warehouse" },
-  ],
-  outlet: [
-    { value: "outlet", label: "Outlet" },
-    { value: "staff_outlet", label: "Karyawan Outlet" },
-  ],
-  owner: [
-    { value: "warehouse", label: "Warehouse" },
-    { value: "outlet", label: "Outlet" },
-    { value: "admin", label: "Admin" },
-    { value: "staff_outlet", label: "Karyawan Outlet" },
-    { value: "staff_warehouse", label: "Karyawan Warehouse" },
-  ],
-  manager: [
-    { value: "staff_outlet", label: "Karyawan Outlet" },
-  ],
-  auditor: [],
+const allowedRoleMap: Record<string, string[]> = {
+  outlet: ["cashier", "employee", "outlet"],
+  warehouse: ["cashier", "employee", "warehouse"],
+  owner: [],
 };
+
 
 export default function UserEdit() {
   const api = useApiClient();
@@ -51,7 +29,6 @@ export default function UserEdit() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Agar data hanya diambil sekali
   const fetchedRef = useRef(false);
 
   useEffect(() => {
@@ -60,7 +37,6 @@ export default function UserEdit() {
 
     const fetchAll = async () => {
       try {
-        // Ambil detail user
         const response = await api.get(`/users/${id}`);
         const user = response.data?.data;
         setUserData({
@@ -73,27 +49,39 @@ export default function UserEdit() {
           setImages([`https://core-parfum.mijurnal.com/storage/users/${user.image}`]);
         }
 
-        // Ambil role user login (untuk menentukan role yang bisa dipilih)
-        const res = await api.get("/me");
-        const roles = res.data.data.roles.map((r: any) => r.name);
-        setUserRoles(roles);
-        const mergedRoles: Record<string, boolean> = {};
-        roles.forEach((r: string) => {
-          (roleOptionsMap[r] || []).forEach((opt) => {
-            mergedRoles[opt.value] = true;
-          });
+        const meRes = await api.get("/me");
+        const currentUserRoles = meRes.data.data.roles.map((r: any) => r.name);
+        setUserRoles(currentUserRoles);
+
+        const roleRes = await api.get("/roles?per_page=100");
+        const allRoles = roleRes.data.data;
+
+        let allowedSet = new Set<string>();
+
+        currentUserRoles.forEach((role) => {
+          if (role === "owner") {
+            allRoles.forEach((r: any) => allowedSet.add(r.name));
+          } else {
+            const allowed = allowedRoleMap[role] || [];
+            allowed.forEach((r) => allowedSet.add(r));
+          }
         });
-        const finalRoleList = Object.keys(mergedRoles).map((val) => {
-          const found = Object.values(roleOptionsMap).flat().find((r) => r.value === val);
-          return found || { value: val, label: val };
-        });
-        setAvailableRoles(finalRoleList);
+
+        const filteredRoles = allRoles
+          .filter((role: any) => allowedSet.has(role.name))
+          .map((role: any) => ({
+            value: role.name,
+            label: role.name.charAt(0).toUpperCase() + role.name.slice(1),
+          }));
+
+        setAvailableRoles(filteredRoles);
       } catch (error) {
         Toaster("error", "Gagal mengambil data user");
       } finally {
         setLoading(false);
       }
     };
+
 
     fetchAll();
   }, [api, id]);
@@ -187,13 +175,18 @@ export default function UserEdit() {
       />
       <div className="bg-white rounded-xl p-6 shadow space-y-6">
         <div className="flex items-center gap-4">
-          <InputOneImage
-            images={images}
-            onImageUpload={handleImageUpload}
-            onRemoveImage={handleRemoveImage}
-            label="Foto User"
-            className="w-32 h-32"
-          />
+          <div className="space-y-2 flex-col">
+            <label className="block text-sm font-medium">
+              Gambar <span className="text-red-500">*</span>
+            </label>
+            <InputOneImage
+              images={images}
+              onImageUpload={handleImageUpload}
+              onRemoveImage={handleRemoveImage}
+              label="Foto User"
+              className="w-32 h-32"
+            />
+          </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>

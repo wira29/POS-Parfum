@@ -98,6 +98,7 @@ export default function BlendingIndex() {
   useEffect(() => {
     getData();
   }, [currentPage, filters]);
+  
 
   const paginatedData = blendingData;
   const totalPages = Math.ceil(totalData / itemsPerPage);

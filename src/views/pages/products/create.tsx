@@ -19,8 +19,8 @@ export const ProductCreate = () => {
   const [productName, setProductName] = useState("");
   const [productCode, setProductCode] = useState("");
   const [category, setCategory] = useState("");
-  const [price, setPrice] = useState(0);
-  const [stock, setStock] = useState(0);
+  const [price, setPrice] = useState();
+  const [stock, setStock] = useState();
   const [globalPrice, setGlobalPrice] = useState("");
   const [globalStock, setGlobalStock] = useState("");
   const [globalCode, setGlobalCode] = useState("");
@@ -181,42 +181,56 @@ export const ProductCreate = () => {
       return;
     }
 
-    const payload = {
-      name: productName,
-      category_id: category,
-      description,
-      product_details: [],
-    };
+    const formData = new FormData();
+
+    formData.append('name', productName);
+    formData.append('category_id', category);
+    formData.append('description', description);
+
+    if (images.length > 0) {
+      formData.append('image', images[0]);
+    }
 
     if (!hasVariant) {
-      payload.product_details.push({
-        product_code: productCode,
-        category_id: category,
-        price: price,
-        stock: stock,
-        variant: "Default",
-        opsi: "",
-      });
+      formData.append('product_details[0][product_code]', productCode);
+      formData.append('product_details[0][category_id]', category);
+      formData.append('product_details[0][price]', price);
+      formData.append('product_details[0][stock]', stock);
+      formData.append('product_details[0][variant]', 'Default');
+      formData.append('product_details[0][opsi]', '');
     } else {
       variantMatrix.forEach((variant, i) => {
-        (variant.volumes && variant.volumes.length > 0
-          ? variant.volumes
+        (variant.volumes && variant.volumes.filter(Boolean).length > 0
+          ? variant.volumes.filter(Boolean)
           : [null]
         ).forEach((option, j) => {
-          payload.product_details.push({
-            product_code: variant.codes?.[j] || "",
-            category_id: category,
-            price: Number(variant.prices?.[j] || 0),
-            stock: Number(variant.stocks?.[j] || 0),
-            variant: variant.aroma || `Varian ${i + 1}`,
-            opsi: option || "",
-          });
+          const index = i * variant.volumes.length + j;
+          formData.append(`product_details[${index}][product_code]`, variant.codes?.[j] || "");
+          formData.append(`product_details[${index}][category_id]`, category);
+          formData.append(`product_details[${index}][price]`, Number(variant.prices?.[j] || 0));
+          formData.append(`product_details[${index}][stock]`, Number(variant.stocks?.[j] || 0));
+          formData.append(`product_details[${index}][variant]`, variant.aroma || `Varian ${i + 1}`);
+          formData.append(`product_details[${index}][opsi]`, option || "");
+
+          if (variantImages[i]?.[0]) {
+            formData.append(`product_details[${index}][product_image]`, variantImages[i][0]);
+          }
         });
       });
     }
 
+    variantImages.forEach((imgArray, i) => {
+      if (imgArray && imgArray[0]) {
+        formData.append(`variant_images_${i}`, imgArray[0]);
+      }
+    });
+
     try {
-      await apiClient.post("/products", payload);
+      await apiClient.post("/products", formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
       navigate("/products");
       Toaster("success", "Produk berhasil dibuat");
     } catch (error) {
@@ -229,7 +243,7 @@ export const ProductCreate = () => {
     }
   };
 
-  const labelClass = "block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2";
+  const labelClass = "block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2 mt-5";
 
   return (
     <div className="p-4 md:p-6">
@@ -274,7 +288,7 @@ export const ProductCreate = () => {
                   label="Atur Harga Produk"
                   labelClass={labelClass}
                   value={price}
-                  onChange={(e) => setPrice(+e.target.value)}
+                  onChange={(e) => setPrice(e.target.value === "" ? "" : +e.target.value)}
                   placeholder="500.000"
                   prefix="Rp"
                 />
@@ -282,7 +296,7 @@ export const ProductCreate = () => {
                   label="Jumlah Stok"
                   labelClass={labelClass}
                   value={stock}
-                  onChange={(e) => setStock(+e.target.value)}
+                  onChange={(e) => setStock(e.target.value === "" ? "" : +e.target.value)}
                   placeholder="500"
                   prefix="Pcs"
                 />

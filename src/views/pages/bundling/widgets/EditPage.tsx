@@ -7,6 +7,7 @@ import { Plus, X, Info, Image as ImageIcon } from "lucide-react";
 import VariantSelectModal from "./modal/VariantSelectModal";
 import InputOneImage from "@/views/components/Input-v2/InputOneImage";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
+import ModalQuantity from "./modal/ModalQuantity";
 
 export default function BundlingEdit() {
   const navigate = useNavigate();
@@ -37,6 +38,11 @@ export default function BundlingEdit() {
   const [showComposition, setShowComposition] = useState(true);
   const [compositionAnim, setCompositionAnim] = useState("opened");
   const categoryRef = useRef<HTMLDivElement>(null);
+  const [units, setUnits] = useState<{ id: string; name: string; code: string }[]>([]);
+  const [selectedUnit, setSelectedUnit] = useState<string>("");
+
+  const [showQtyModal, setShowQtyModal] = useState(false);
+  const [activeQtyId, setActiveQtyId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -55,11 +61,24 @@ export default function BundlingEdit() {
   }, []);
 
   useEffect(() => {
+    const fetchUnits = async () => {
+      try {
+        const res = await apiClient.get("/unit/no-paginate");
+        setUnits(res.data?.data || []);
+      } catch (error) {
+        setUnits([]);
+      }
+    };
+    fetchUnits();
+  }, []);
+
+  useEffect(() => {
     const fetchProducts = async () => {
       try {
         const res = await apiClient.get("/products/no-paginate");
         const mapped = res.data?.data?.map((p) => ({
           id: p.id,
+          category: p.category,
           name: p.name,
           variants: (p.product_detail || []).map((v) => ({
             id: v.id,
@@ -154,7 +173,6 @@ export default function BundlingEdit() {
     return () => window.removeEventListener("remove-composition", handler);
   }, [products]);
 
-  // Animation logic for slide in/out
   const handleToggleComposition = () => {
     if (showComposition) {
       setCompositionAnim("closing");
@@ -187,6 +205,12 @@ export default function BundlingEdit() {
       return;
     }
 
+    const isQtyInvalid = materials.some((mat) => !mat.quantity || !mat.unit_id);
+    if (isQtyInvalid) {
+      Toaster("error", "Semua varian harus memiliki quantity dan unit.");
+      return;
+    }
+
     const body = {
       name: productName,
       quantity: stock,
@@ -196,6 +220,8 @@ export default function BundlingEdit() {
       category_id: category,
       details: materials.map((mat) => ({
         product_detail_id: mat.product_detail_id,
+        quantity: mat.quantity,
+        unit_id: mat.unit_id,
       })),
     };
 
@@ -407,55 +433,80 @@ export default function BundlingEdit() {
                             const [productName, variantName] = item.split(" - ");
                             const prod = products.find((p) => p.name === productName);
                             const variant = prod?.variants.find((v) => v.name === variantName);
-                            const categoryLabel = categories.find((cat) => cat.value === prod?.category_id)?.label || "-";
+                            const quantity = materials.find(mat => mat.product_detail_id === variant?.id)?.quantity;
+
+                            const handleSetQuantity = () => {
+                              const input = prompt("Masukkan quantity dalam G:", quantity || "");
+                              if (input !== null) {
+                                setMaterials(prev =>
+                                  prev.map(mat =>
+                                    mat.product_detail_id === variant?.id
+                                      ? { ...mat, quantity: input }
+                                      : mat
+                                  )
+                                );
+                              }
+                            };
+
                             return (
                               <div
                                 key={index}
-                                className="flex flex-col md:flex-row md:items-center justify-between border border-gray-200 rounded-xl px-5 py-4 bg-white"
-                                style={{ boxShadow: "0 0 0 1px #E5E7EB" }}
+                                className="flex items-center justify-between border border-gray-200 rounded-xl bg-white px-4 py-3"
                               >
-                                <div className="flex items-center gap-4 flex-1">
+                                <div className="flex items-center gap-4">
                                   <img
                                     src={ImageHelper(variant?.product_image)}
                                     alt={productName}
-                                    className="w-14 h-14 rounded bg-gray-100 object-cover border border-gray-200"
+                                    className="w-12 h-12 rounded bg-gray-100 object-cover border border-gray-200"
                                   />
-                                  <div className="flex flex-col gap-1">
-                                    <div className="font-semibold text-base">{productName}</div>
-                                    <div className="text-xs text-gray-500 flex flex-col">
-                                      Varian <span className="font-medium text-gray-700">{variantName}</span>
-                                    </div>
-                                  </div>
-                                  <div className="flex flex-wrap gap-15 mt-1 text-xs ml-5">
-                                    <div className="flex flex-col">
-                                      <span className="text-gray-500 text-sm font-semibold">Harga</span>
-                                      <span className="font-medium text-gray-700 mt-1">
-                                        Rp {variant?.price?.toLocaleString("id-ID") || "-"}
-                                      </span>
-                                    </div>
-                                    <div className="flex flex-col">
-                                      <span className="text-gray-500 text-sm font-semibold">Stok</span>
-                                      <span className="font-medium text-gray-700 mt-1">
-                                        {variant?.stock || "-"} G
-                                      </span>
-                                    </div>
-                                    <div className="flex flex-col">
-                                      <span className="text-gray-500 text-sm font-semibold">Kategori</span>
-                                      <span className="font-medium text-gray-700 mt-1">
-                                        {categoryLabel}
-                                      </span>
-                                    </div>
+                                  <div>
+                                    <div className="text-sm font-semibold text-gray-800">{productName}</div>
+                                    <div className="text-xs text-gray-500">Varian</div>
+                                    <div className="text-xs font-medium text-gray-700">{variantName}</div>
                                   </div>
                                 </div>
-                                <div className="mt-3 md:mt-0">
+
+                                <div className="flex items-center gap-6">
+                                  <div className="text-sm text-gray-700">
+                                    <div className="text-xs text-gray-500">Harga</div>
+                                    <div>Rp {variant?.price?.toLocaleString("id-ID") || "-"}</div>
+                                  </div>
+                                  <div className="text-sm text-gray-700">
+                                    <div className="text-xs text-gray-500">Quantity</div>
+                                    {quantity ? (
+                                      <div className="text-sm">
+                                        {quantity}{" "}
+                                        {
+                                          units.find(
+                                            (unit) =>
+                                              unit.id ===
+                                              materials.find((mat) => mat.product_detail_id === variant?.id)?.unit_id
+                                          )?.code || "-"
+                                        }
+                                      </div>
+                                    ) : (
+                                      <div className="text-sm text-gray-400">-</div>
+                                    )}
+                                  </div>
                                   <button
                                     type="button"
-                                    onClick={() => handleRemoveComposition(index)}
-                                    className="bg-red-500 text-white px-5 py-2 rounded font-semibold hover:bg-red-600 cursor-pointer"
+                                    onClick={() => {
+                                      setActiveQtyId(variant?.id ?? null);
+                                      setShowQtyModal(true);
+                                    }}
+                                    className={`text-white px-3 py-1.5 rounded text-xs font-semibold transition-colors  ${quantity
+                                      ? "bg-yellow-400 hover:bg-yellow-500"
+                                      : "bg-blue-600 hover:bg-blue-700"}`}
                                   >
-                                    Hapus
+                                    Atur Quantity
                                   </button>
                                 </div>
+                                <button
+                                  onClick={() => handleRemoveComposition(index)}
+                                  className="w-8 h-8 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-full"
+                                >
+                                  ✕
+                                </button>
                               </div>
                             );
                           })}
@@ -473,7 +524,6 @@ export default function BundlingEdit() {
                       </>
                     )}
                   </div>
-                  {errors.category_id && <div className="text-red-500 text-sm mt-1">{errors.category_id}</div>}
                 </div>
               </div>
 
@@ -489,23 +539,7 @@ export default function BundlingEdit() {
                       className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="500.000"
                       value={price}
-                      onChange={(e) => setPrice(+e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className={`${labelClass} flex items-center gap-1`}>
-                    Stok<span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500">Pcs</span>
-                    <input
-                      type="number"
-                      className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="200"
-                      value={stock}
-                      onChange={(e) => setStock(+e.target.value)}
+                      onChange={(e) => setPrice(e.target.value === "" ? "" : +e.target.value)}
                     />
                   </div>
                 </div>
@@ -604,6 +638,41 @@ export default function BundlingEdit() {
           })
         }
       />
+
+      <ModalQuantity
+        open={showQtyModal}
+        onClose={() => {
+          setShowQtyModal(false);
+          setActiveQtyId(null);
+        }}
+        onSubmit={(qty, unitId) => {
+          setMaterials((prev) =>
+            prev.map((mat) =>
+              mat.product_detail_id === activeQtyId
+                ? { ...mat, quantity: qty, unit_id: unitId }
+                : mat
+            )
+          );
+        }}
+        initialValue={
+          materials.find((mat) => mat.product_detail_id === activeQtyId)?.quantity || ""
+        }
+        units={units}
+        selectedUnit={
+          materials.find((mat) => mat.product_detail_id === activeQtyId)?.unit_id || ""
+        }
+        setSelectedUnit={(unitId) => {
+          setMaterials((prev) =>
+            prev.map((mat) =>
+              mat.product_detail_id === activeQtyId
+                ? { ...mat, unit_id: unitId }
+                : mat
+            )
+          );
+        }}
+      />
+
+
     </div>
   );
 }

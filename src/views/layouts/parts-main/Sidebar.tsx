@@ -18,7 +18,7 @@ const ownerMenu = [
   {
     label: "Owner",
     children: [
-      { label: "Beranda", icon: <FiHome />, path: "/dashboard" },
+      { label: "Beranda", icon: <FiHome />, path: "/dashboard-owner" },
       { label: "Warehouse", icon: <FaShop />, path: "/warehouses" },
     ],
   },
@@ -32,14 +32,14 @@ const ownerMenu = [
       { label: "Blending", icon: <FiCoffee />, path: "/blendings" },
       { label: "Unit", icon: <LayoutGrid />, path: "/units" },
       { label: "Diskon", icon: <FiPercent />, path: "/discounts" },
-      { label: "Laba Rugi", icon: <FaMoneyBillTransfer />, path: "/laba-rugi" },
+      //{ label: "Laba Rugi", icon: <FaMoneyBillTransfer />, path: "/laba-rugi" },
       { label: "Retail", icon: <FaShop />, path: "/retails" },
       { label: "Pengguna", icon: <FiUsers />, path: "/users" },
       { label: "Role", icon: <FaUserTag />, path: "/roles" },
     ],
     more: [
       { label: "Audit", icon: <AiOutlineFileSearch />, path: "/audit" },
-      { label: "Pengeluaran", icon: <Wallet2Icon />, path: "/pengeluaran" },
+      //{ label: "Pengeluaran", icon: <Wallet2Icon />, path: "/pengeluaran" },
       { label: "Riwayat Transaksi", icon: <FiTag />, path: "/riwayat-penjualan" },
     ],
   },
@@ -67,7 +67,7 @@ const menuItems = [
     icon: <TbShoppingCart />,
     path: "/outlets",
     isDropdown: true,
-    roles: ["warehouse"],
+    roles: ["warehouse", "owner"],
     children: [
       { label: "Kasir", icon: <TbShoppingCart />, path: "/outlets" },
       { label: "Riwayat Penjualan", icon: <FiTag />, path: "/riwayat-penjualan" },
@@ -78,18 +78,18 @@ const menuItems = [
     label: "Request Pembelian",
     icon: <FiTag />,
     path: "/request-stock",
-    roles: ["warehouse"],
+    roles: ["warehouse", "owner"],
   },
   {
     label: "Produk",
     children: [
-      { label: "Kategori", icon: <FiLayers />, path: "/categories", roles: ["warehouse", "outlet"] },
+      { label: "Kategori", icon: <FiLayers />, path: "/categories", roles: ["warehouse", "outlet", "owner"] },
       { label: "Produk", icon: <FiBox />, path: "/products", roles: ["owner", "warehouse", "outlet"] },
       { label: "Bundling", icon: <ShoppingCart size={16} />, path: "/bundlings", roles: ["owner", "warehouse", "outlet"] },
-      { label: "Blending Produk", icon: <FiCoffee />, path: "/blendings", roles: ["warehouse"] },
-      { label: "Request Stock", icon: <FaBoxesPacking />, path: "/restock", roles: ["outlet"] },
-      { label: "Unit", icon: <LayoutGrid />, path: "/units", roles: ["admin", "warehouse", "retail"] },
-      { label: "Audit", icon: <AiOutlineFileSearch />, path: "/audit", roles: ["admin", "outlet"] },
+      { label: "Blending Produk", icon: <FiCoffee />, path: "/blendings", roles: ["warehouse", "owner"] },
+      { label: "Request Stock", icon: <FaBoxesPacking />, path: "/restock", roles: ["outlet", "owner"] },
+      { label: "Unit", icon: <LayoutGrid />, path: "/units", roles: ["admin", "warehouse", "outlet", "owner"] },
+      { label: "Audit", icon: <AiOutlineFileSearch />, path: "/audit", roles: ["admin", "outlet", "owner"] },
       { label: "Diskon", icon: <FiPercent />, path: "/discounts", roles: ["owner", "warehouse", "outlet"] },
     ],
     more: [
@@ -101,7 +101,7 @@ const menuItems = [
     label: "Lainnya",
     children: [
       { label: "Retail", icon: <FaShop />, path: "/retails", roles: ["owner", "warehouse"] },
-      { label: "Laporan Laba Rugi", icon: <FaMoneyBillTransfer />, path: "/laba-rugi", roles: ["retail", "outlet"] },
+      { label: "Laporan Laba Rugi", icon: <FaMoneyBillTransfer />, path: "/laba-rugi", roles: ["outlet","warehouse"] },
       { label: "Warehouse", icon: <FaShop />, path: "/warehouses", roles: ["owner", "admin"] },
       { label: "Tambah Pengguna", icon: <FiUsers />, path: "/users", roles: ["owner", "warehouse", "outlet"] },
       { label: "Role", icon: <FaUserTag />, path: "/roles", roles: ["owner", "warehouse", "retail"] },

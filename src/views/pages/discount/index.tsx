@@ -57,7 +57,7 @@ const FilterModal = ({
                   onChange={(e) => setJenisFilter(e.target.value)}
                 >
                   <option value="">Semua</option>
-                  <option value="persentage">Persen (%)</option>
+                  <option value="percentage">Persen (%)</option>
                   <option value="nominal">Nominal (Rp)</option>
                 </select>
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">

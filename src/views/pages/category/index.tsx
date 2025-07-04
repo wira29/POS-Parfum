@@ -317,7 +317,6 @@ export const CategoryIndex = () => {
                 <th className="px-6 py-4 font-medium">Nama Kategori</th>
                 <th className="px-6 py-4 font-medium">Jumlah Item</th>
                 <th className="px-6 py-4 font-medium">Dibuat Tanggal</th>
-                <th className="px-6 py-4 font-medium">Status</th>
                 <th className="px-6 py-4 font-medium text-center">Aksi</th>
               </tr>
             </thead>
@@ -353,7 +352,6 @@ export const CategoryIndex = () => {
                           year: "numeric",
                         })}
                       </td>
-                      <td className="px-6 py-4">Aktif</td>
                       <td className="px-6 py-4">
                         <div className="flex justify-center gap-2">
                           <button onClick={() => openEditModal(item)}>

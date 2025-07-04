@@ -5,35 +5,6 @@ import InputOneImage from "@/views/components/Input-v2/InputOneImage";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const roleOptionsMap: Record<string, { value: string; label: string }[]> = {
-    admin: [
-        { value: "warehouse", label: "Warehouse" },
-        { value: "outlet", label: "Outlet" },
-        { value: "admin", label: "Admin" },
-        { value: "staff_outlet", label: "Karyawan Outlet" },
-        { value: "staff_warehouse", label: "Karyawan Warehouse" },
-    ],
-    warehouse: [
-        { value: "warehouse", label: "Warehouse" },
-        { value: "staff_warehouse", label: "Karyawan Warehouse" },
-    ],
-    outlet: [
-        { value: "outlet", label: "Outlet" },
-        { value: "staff_outlet", label: "Karyawan Outlet" },
-    ],
-    owner: [
-        { value: "warehouse", label: "Warehouse" },
-        { value: "outlet", label: "Outlet" },
-        { value: "admin", label: "Admin" },
-        { value: "staff_outlet", label: "Karyawan Outlet" },
-        { value: "staff_warehouse", label: "Karyawan Warehouse" },
-    ],
-    manager: [
-        { value: "staff_outlet", label: "Karyawan Outlet" },
-    ],
-    auditor: [],
-};
-
 export default function UserCreateSelect() {
     const api = useApiClient();
     const navigate = useNavigate();
@@ -57,25 +28,34 @@ export default function UserCreateSelect() {
 
     const fetchUserRole = async () => {
         try {
-            const res = await api.get("/me");
-            const roles = res.data.data.roles.map((r: any) => r.name);
-            setUserRoles(roles);
+            const meRes = await api.get("/me");
+            const currentUserRoles = meRes.data.data.roles.map((r: any) => r.name);
+            setUserRoles(currentUserRoles);
 
-            const mergedRoles: Record<string, boolean> = {};
-            roles.forEach((r: string) => {
-                (roleOptionsMap[r] || []).forEach((opt) => {
-                    mergedRoles[opt.value] = true;
-                });
+            const roleRes = await api.get("/roles?per_page=100");
+            const allRoles = roleRes.data.data;
+
+            const allowedRoleMap: Record<string, string[]> = {
+                outlet: ["cashier", "employee", "outlet"],
+                warehouse: ["cashier", "employee", "warehouse"],
+                owner: allRoles.map((r: any) => r.name),
+            };
+
+            const allowedRoleSet = new Set<string>();
+            currentUserRoles.forEach((role) => {
+                (allowedRoleMap[role] || []).forEach((r) => allowedRoleSet.add(r));
             });
 
-            const finalRoleList = Object.keys(mergedRoles).map((val) => {
-                const found = Object.values(roleOptionsMap).flat().find((r) => r.value === val);
-                return found || { value: val, label: val };
-            });
+            const filteredRoles = allRoles
+                .filter((role: any) => allowedRoleSet.has(role.name))
+                .map((role: any) => ({
+                    value: role.name,
+                    label: role.name.charAt(0).toUpperCase() + role.name.slice(1),
+                }));
 
-            setAvailableRoles(finalRoleList);
+            setAvailableRoles(filteredRoles);
         } catch (err) {
-            console.error("Gagal mengambil role user:", err);
+            console.error("Gagal mengambil data role:", err);
         }
     };
 
@@ -83,7 +63,7 @@ export default function UserCreateSelect() {
         const file = e.target.files?.[0];
         if (file) setImages([file]);
     };
-    const handleRemoveImage = (index: number) => {
+    const handleRemoveImage = () => {
         setImages([]);
     };
 
@@ -131,11 +111,14 @@ export default function UserCreateSelect() {
             const formData = new FormData();
             formData.append("name", userData.username);
             formData.append("email", userData.email);
-            formData.append("role", JSON.stringify(rolesFiltered));
+            rolesFiltered.forEach((role, index) => {
+                formData.append(`role[${index}]`, role);
+            });
             formData.append("password", userData.password);
             if (images.length > 0 && images[0] instanceof File) {
                 formData.append("image", images[0]);
             }
+
             await api.post("/users", formData, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
@@ -168,13 +151,18 @@ export default function UserCreateSelect() {
             <Breadcrumb title="Tambah Pengguna" desc="Isi informasi dasar untuk menambahkan pengguna baru." />
             <div className="bg-white rounded-xl p-6 shadow space-y-6">
                 <div className="flex items-center gap-4">
-                    <InputOneImage
-                        images={images}
-                        onImageUpload={handleImageUpload}
-                        onRemoveImage={handleRemoveImage}
-                        label="Foto User"
-                        className="w-32 h-32"
-                    />
+                    <div className="space-y-2 flex-col">
+                        <label className="block text-sm font-medium">
+                            Gambar <span className="text-red-500">*</span>
+                        </label>
+                        <InputOneImage
+                            images={images}
+                            onImageUpload={handleImageUpload}
+                            onRemoveImage={handleRemoveImage}
+                            label="Foto User"
+                            className="w-32 h-32"
+                        />
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
