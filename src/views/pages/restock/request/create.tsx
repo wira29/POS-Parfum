@@ -9,7 +9,7 @@ import { toast } from "sonner";
 
 const PRODUCTS_PER_PAGE = 10;
 
-export const RestockCreate = () => {
+export const RequsetCreate = () => {
   const [showProductModal, setShowProductModal] = useState(false);
   const [showVariantModal, setShowVariantModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -29,19 +29,6 @@ export const RestockCreate = () => {
   const productModalRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const apiClient = useApiClient();
-  const [units, setUnits] = useState([]);
-
-  useEffect(() => {
-    const fetchUnits = async () => {
-      try {
-        const res = await apiClient.get("/unit/no-paginate");
-        setUnits(res.data.data || []);
-      } catch (error) {
-        console.error("Gagal mengambil data unit:", error);
-      }
-    };
-    fetchUnits();
-  }, []);
 
   useEffect(() => {
     const fetchWarehouses = async () => {
@@ -130,12 +117,7 @@ export const RestockCreate = () => {
       ...prev,
       {
         product: selectedProduct,
-        variants: variants.map((v) => ({
-          ...v,
-          qty: "",
-          unit: units[0]?.id || "", 
-        })),
-
+        variants: variants.map((v) => ({ ...v, qty: "", unit: "G" })),
         showTable: false,
       },
     ]);
@@ -161,11 +143,11 @@ export const RestockCreate = () => {
       prev.map((p) =>
         p.product.id === productId
           ? {
-            ...p,
-            variants: p.variants.map((v: any) =>
-              v.id === variantId ? { ...v, qty: value } : v
-            ),
-          }
+              ...p,
+              variants: p.variants.map((v: any) =>
+                v.id === variantId ? { ...v, qty: value } : v
+              ),
+            }
           : p
       )
     );
@@ -176,11 +158,11 @@ export const RestockCreate = () => {
       prev.map((p) =>
         p.product.id === productId
           ? {
-            ...p,
-            variants: p.variants.map((v: any) =>
-              v.id === variantId ? { ...v, unit: value } : v
-            ),
-          }
+              ...p,
+              variants: p.variants.map((v: any) =>
+                v.id === variantId ? { ...v, unit: value } : v
+              ),
+            }
           : p
       )
     );
@@ -343,7 +325,7 @@ export const RestockCreate = () => {
                         className={`border rounded-lg p-2 shadow transition cursor-pointer ${isSelected
                           ? "border-green-600 bg-green-50 ring-2 ring-green-200 opacity-70 pointer-events-none"
                           : "border-gray-200 hover:shadow-md bg-white"
-                          }`}
+                        }`}
                         onClick={() => !isSelected && handleAddProduct(product)}
                         title={isSelected ? "Sudah dipilih" : ""}
                       >
@@ -458,23 +440,11 @@ export const RestockCreate = () => {
                                 className="w-full border border-gray-300 rounded-l-lg px-3 py-2"
                                 placeholder="Masukan Jumlah"
                                 value={variant.qty}
-                                onChange={(e) =>
-                                  handleVariantQtyChange(item.product.id, variant.id, e.target.value)
-                                }
+                                onChange={(e) => handleVariantQtyChange(item.product.id, variant.id, e.target.value)}
                               />
-                              <select
-                                className="border border-gray-300 border-l-0 rounded-r-lg text-sm px-2 py-[0.6rem] bg-white"
-                                value={variant.unit}
-                                onChange={(e) =>
-                                  handleVariantUnitChange(item.product.id, variant.id, e.target.value)
-                                }
-                              >
-                                {units.map((unit: any) => (
-                                  <option key={unit.id} value={unit.id}>
-                                    {unit.name}
-                                  </option>
-                                ))}
-                              </select>
+                              <span className="px-3 py-2 border border-gray-300 border-l-0 rounded-r-lg bg-gray-300 text-sm">
+                                Gram
+                              </span>
                             </div>
                           </div>
                         </td>
