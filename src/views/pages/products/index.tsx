@@ -86,6 +86,7 @@ export const ProductIndex = () => {
       setProducts(res.data.data);
       setPage(pagination.current_page);
       setLastPage(pagination.last_page);
+      console.log("Products fetched:", res);
     } catch (error) {
       Toaster("error", "Gagal memuat data produk");
     } finally {
@@ -231,7 +232,7 @@ export const ProductIndex = () => {
                             <div className="text-gray-500 text-xs">ID Produk: {product.code || "-"}</div>
                           </div>
                         </td>
-                        <td className="p-4 align-top">{product.category?.name ?? "-"}</td>
+                        <td className="p-4 align-top">{product.category ?? "-"}</td>
                         <td className="p-4 align-top">{singleVariant ? singleVariant.penjualan : (product.sales ?? "-")}</td>
                         <td className="p-4 align-top">Rp {singleVariant ? singleVariant.price.toLocaleString("id-ID") : (product.price?.toLocaleString("id-ID") ?? "-")}</td>
                         <td className="p-4 align-top">
@@ -296,7 +297,7 @@ export const ProductIndex = () => {
                                             <div className="font-medium">{variant.name}</div>
                                             <div className="text-xs text-gray-500">Kode Varian: {variant.code}</div>
                                           </div>
-                                          <div className="w-1/2 md:w-2/12">{variant.category?.name ?? "-"}</div>
+                                          <div className="w-1/2 md:w-2/12">{variant.category ?? "-"}</div>
                                           <div className="w-1/2 md:w-2/16">{variant.penjualan}</div>
                                           <div className="w-1/2 md:w-2/13">Rp {variant.price.toLocaleString("id-ID")}</div>
                                           <div className="w-1/2 md:w-2/12">{variant.stock} G</div>

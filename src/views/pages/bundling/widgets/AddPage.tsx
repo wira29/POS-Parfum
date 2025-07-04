@@ -19,7 +19,7 @@ export default function BundlingCreate() {
   const [productName, setProductName] = useState("");
   const [productCode, setProductCode] = useState("");
   const [category, setCategory] = useState("");
-  const [price, setPrice] = useState(0);
+  const [price, setPrice] = useState();
   const [stock, setStock] = useState(0);
   const [errors, setErrors] = useState({});
   const [composition, setComposition] = useState([]);
