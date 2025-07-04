@@ -12,7 +12,7 @@ type VariantSelectModalProps = {
   filteredProducts: Array<{
     id: string;
     name: string;
-    category?: string;
+    category: string;
     totalStock?: number;
     unit?: string;
     variants: Array<{
@@ -20,6 +20,7 @@ type VariantSelectModalProps = {
       name: string;
       stock?: number;
       unit?: string;
+      category?: string;
     }>;
   }>;
   toggleExpand: (productId: string) => void;
@@ -48,17 +49,6 @@ const VariantSelectModal: React.FC<VariantSelectModalProps> = ({
 }) => {
   if (!showModal) return null;
 
-  // Handler untuk hapus composition dari parent lewat event
-  const removeComposition = (productId: string, variantId: string, productName: string, variantName: string) => {
-    if (typeof window !== "undefined" && window.dispatchEvent) {
-      window.dispatchEvent(
-        new CustomEvent("remove-composition", {
-          detail: { productId, variantId, productName, variantName }
-        })
-      );
-    }
-  };
-
   return (
     <div
       className="fixed inset-0 bg-black/50 flex justify-center items-center z-50"
@@ -84,8 +74,8 @@ const VariantSelectModal: React.FC<VariantSelectModalProps> = ({
           </div>
           <button
             onClick={handleAddSelectedVariants}
-            className="ml-4 flex items-center gap-2 bg-blue-600 cursor-pointer text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={!selectedVariants || selectedVariants.length === 0}
+            className="ml-4 flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            disabled={selectedVariants.length === 0}
           >
             <PlusCircle className="w-4 h-4" />
             Tambahkan
@@ -103,147 +93,148 @@ const VariantSelectModal: React.FC<VariantSelectModalProps> = ({
               </tr>
             </thead>
             <tbody>
-              {filteredProducts.map((product, i) => (
-                <React.Fragment key={product.id}>
-                  <tr
-                    className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
-                    onClick={() => toggleExpand(product.id)}
-                  >
-                    <td className="px-6 py-4 text-sm text-gray-900">{i + 1}.</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                          <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path
-                              fillRule="evenodd"
-                              d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </div>
-                        <div>
-                          <div className="font-medium text-sm text-gray-900">{product.name}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">{product.category || "-"}</td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {typeof product.totalStock === "number"
-                        ? product.totalStock.toLocaleString()
-                        : "N/A"}{" "}
-                      {product.unit || ""}
-                    </td>
-                  </tr>
+              {filteredProducts.map((product, i) => {
+                const hasOneVariant = product.variants.length === 1;
+                const variant = hasOneVariant ? product.variants[0] : null;
+                const compositionId = variant ? `${product.id}-${variant.id}` : "";
 
-                  {expandedProducts.includes(product.id) &&
-                    product.variants.map((variant) => {
-                      const compositionId = `${product.id}-${variant.id}`;
-                      const isAlreadyAdded = Array.isArray(compositions)
-                        ? compositions.some((comp) => comp.id === compositionId)
-                        : false;
-                      const isSelected = Array.isArray(selectedVariants)
-                        ? selectedVariants.some(
-                            (v) =>
-                              String(v.variantId) === String(variant.id) &&
-                              String(v.productId) === String(product.id)
-                          )
-                        : false;
+                const isAlreadyAdded =
+                  !!variant && compositions.some((comp) => comp.id === compositionId);
 
-                      // Handler: jika sudah di composition, hapus dari composition di parent, jika belum toggle select
-                      const handleVariantClick = () => {
-                        if (isAlreadyAdded) {
-                          removeComposition(product.id, variant.id, product.name, variant.name);
+                const isSelected =
+                  !!variant &&
+                  selectedVariants.some(
+                    (v) => v.variantId === variant.id && v.productId === product.id
+                  );
+
+                return (
+                  <React.Fragment key={product.id}>
+                    <tr
+                      className={`border-b border-gray-100 cursor-pointer ${
+                        isAlreadyAdded
+                          ? "bg-red-50 text-red-500"
+                          : isSelected
+                          ? "bg-blue-50 text-blue-600"
+                          : "hover:bg-gray-50"
+                      }`}
+                      onClick={() => {
+                        if (hasOneVariant && variant) {
+                          toggleSelectVariant(product.id, product.name, variant.id, variant.name);
                         } else {
-                          toggleSelectVariant(
-                            product.id,
-                            product.name,
-                            variant.id,
-                            variant.name
-                          );
+                          toggleExpand(product.id);
                         }
-                      };
+                      }}
+                    >
+                      <td className="px-6 py-4 text-sm">{i + 1}.</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+                            <svg
+                              className="w-6 h-6 text-gray-400"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </div>
+                          <div className="font-medium text-sm">{product.name}</div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm">{product.category || "-"}</td>
+                      <td className="px-6 py-4 text-sm">
+                        {product.totalStock?.toLocaleString() || "N/A"} {product.unit || ""}
+                      </td>
+                    </tr>
 
-                      return (
-                        <tr
-                          key={variant.id}
-                          className={`border-b border-gray-100 cursor-pointer ${
-                            isAlreadyAdded
-                              ? "bg-red-50 text-red-500"
-                              : isSelected
-                              ? "bg-blue-50 border-blue-200 text-blue-600"
-                              : "hover:bg-gray-50"
-                          }`}
-                          onClick={handleVariantClick}
-                        >
-                          <td className="px-6 py-3"></td>
-                          <td className="px-6 py-3">
-                            <div className="flex items-center gap-3 pl-6">
-                              <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
-                                <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                              </div>
-                              <div
-                                className={`text-sm font-medium ${
-                                  isSelected
-                                    ? "text-blue-600"
-                                    : isAlreadyAdded
-                                    ? "text-red-500"
-                                    : "text-gray-900"
-                                }`}
-                              >
-                                {variant.name}
-                                {isAlreadyAdded && (
-                                  <span className="text-xs text-red-500 ml-2">
-                                    (Klik untuk hapus)
-                                  </span>
-                                )}
-                                {isSelected && !isAlreadyAdded && (
-                                  <span className="text-xs text-blue-500 ml-2">
-                                    (Klik untuk batal)
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-3 text-sm">{product.category || "-"}</td>
-                          <td className="px-6 py-3 text-sm">
-                            {typeof variant.stock === "number"
-                              ? variant.stock.toLocaleString()
-                              : "N/A"}{" "}
-                            {variant.unit || ""}
+                    {product.variants.length > 1 && expandedProducts.includes(product.id) && (
+                      <>
+                        {product.variants.map((variant) => {
+                          const variantId = `${product.id}-${variant.id}`;
+                          const isSelected = selectedVariants.some(
+                            (v) => v.variantId === variant.id && v.productId === product.id
+                          );
+                          const isAlreadyAdded = compositions.some((c) => c.id === variantId);
+
+                          return (
+                            <tr
+                              key={variant.id}
+                              className={`border-b border-gray-100 cursor-pointer ${
+                                isAlreadyAdded
+                                  ? "bg-red-50 text-red-500"
+                                  : isSelected
+                                  ? "bg-blue-50 border-blue-200 text-blue-600"
+                                  : "hover:bg-gray-50"
+                              }`}
+                              onClick={() =>
+                                toggleSelectVariant(
+                                  product.id,
+                                  product.name,
+                                  variant.id,
+                                  variant.name
+                                )
+                              }
+                            >
+                              <td className="px-6 py-3"></td>
+                              <td className="px-6 py-3">
+                                <div className="flex items-center gap-3 pl-6">
+                                  <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
+                                    <svg
+                                      className="w-5 h-5 text-gray-400"
+                                      fill="currentColor"
+                                      viewBox="0 0 20 20"
+                                    >
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                  </div>
+                                  <div className="text-sm font-medium">{variant.name}</div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-3 text-sm">{variant.category || "-"}</td>
+                              <td className="px-6 py-3 text-sm">
+                                {variant.stock?.toLocaleString() || "N/A"} {variant.unit || ""}
+                              </td>
+                            </tr>
+                          );
+                        })}
+
+                        <tr className="border-b border-dashed border-gray-300">
+                          <td colSpan={4} className="px-6 py-2 text-center">
+                            <button
+                              onClick={() => toggleExpand(product.id)}
+                              className="text-gray-500 hover:text-gray-700 text-sm flex items-center justify-center w-full"
+                            >
+                              <FiChevronUp className="w-4 h-4 mr-1" />
+                              Tutup
+                            </button>
                           </td>
                         </tr>
-                      );
-                    })}
+                      </>
+                    )}
 
-                  <tr className="border-b border-dashed border-gray-300">
-                    <td colSpan={4} className="px-6 py-2 text-center">
-                      {expandedProducts.includes(product.id) ? (
-                        <button
-                          onClick={() => toggleExpand(product.id)}
-                          className="text-gray-500 hover:text-gray-700 text-sm flex items-center justify-center w-full"
-                        >
-                          <FiChevronUp className="w-4 h-4 mr-1" />
-                          Tutup
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => toggleExpand(product.id)}
-                          className="text-gray-500 hover:text-gray-700 text-sm flex items-center justify-center w-full cursor-pointer"
-                        >
-                          <FiChevronDown className="w-4 h-4 mr-1" />
-                          Buka {product.variants.length} variant
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                </React.Fragment>
-              ))}
+                    {product.variants.length > 1 && !expandedProducts.includes(product.id) && (
+                      <tr className="border-b border-dashed border-gray-300">
+                        <td colSpan={4} className="px-6 py-2 text-center">
+                          <button
+                            onClick={() => toggleExpand(product.id)}
+                            className="text-gray-500 hover:text-gray-700 text-sm flex items-center justify-center w-full"
+                          >
+                            <FiChevronDown className="w-4 h-4 mr-1" />
+                            Buka {product.variants.length} variant
+                          </button>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
             </tbody>
           </table>
         </div>
