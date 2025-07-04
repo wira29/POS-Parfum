@@ -111,11 +111,14 @@ export default function UserCreateSelect() {
             const formData = new FormData();
             formData.append("name", userData.username);
             formData.append("email", userData.email);
-            formData.append("role", JSON.stringify(rolesFiltered));
+            rolesFiltered.forEach((role, index) => {
+                formData.append(`role[${index}]`, role);
+            });
             formData.append("password", userData.password);
             if (images.length > 0 && images[0] instanceof File) {
                 formData.append("image", images[0]);
             }
+
             await api.post("/users", formData, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
