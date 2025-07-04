@@ -38,7 +38,7 @@ import {
   // BlendingEdit
 } from "@/views/pages/pages";
 import RequestStockIndex from "@/views/pages/request-stock";
-import { RequestRestockIndex } from "@/views/pages/restock/request";
+//import { RequestIndex } from "@/views/pages/restock/request";
 import DetailReqProduct from "@/views/pages/restock/request/DetailReqProduct";
 import ListReqProduct from "@/views/pages/restock/request/ListReqProduct";
 import { RestockIndex } from "@/views/pages/restock/restock";
@@ -220,7 +220,7 @@ export const router = createBrowserRouter([
           },
           {
             path: "request-stock",
-            element: <RequestRestockIndex />,
+            //element: <RequestRestockIndex />,
             children: [
               {
                 index: true,
