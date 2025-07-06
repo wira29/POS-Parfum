@@ -48,7 +48,7 @@ const ownerMenu = [
     children: [
       { label: "Kategori", icon: <FiLayers />, path: "/categories" },
       { label: "Produk", icon: <FiBox />, path: "/products" },
-      { label: "Request Stok", icon: <FaBoxesPacking />, path: "/restock" },
+      { label: "Request Stok", icon: <FaBoxesPacking />, path: "/request-stock" },
       { label: "Unit", icon: <LayoutGrid />, path: "/units" },
     ],
     more: [
@@ -87,7 +87,7 @@ const menuItems = [
       { label: "Produk", icon: <FiBox />, path: "/products", roles: ["owner", "warehouse", "outlet"] },
       { label: "Bundling", icon: <ShoppingCart size={16} />, path: "/bundlings", roles: ["owner", "warehouse", "outlet"] },
       { label: "Blending Produk", icon: <FiCoffee />, path: "/blendings", roles: ["warehouse", "owner"] },
-      { label: "Request Stock", icon: <FaBoxesPacking />, path: "/restock", roles: ["outlet", "owner"] },
+      { label: "Request Stock", icon: <FaBoxesPacking />, path: "/requeststock", roles: ["outlet", "owner"] },
       { label: "Unit", icon: <LayoutGrid />, path: "/units", roles: ["admin", "warehouse", "outlet", "owner"] },
       { label: "Audit", icon: <AiOutlineFileSearch />, path: "/audit", roles: ["admin", "outlet", "owner"] },
       { label: "Diskon", icon: <FiPercent />, path: "/discounts", roles: ["owner", "warehouse", "outlet"] },
