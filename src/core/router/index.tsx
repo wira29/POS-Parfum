@@ -37,7 +37,9 @@ import {
   DashboardOwner,
   // BlendingEdit
 } from "@/views/pages/pages";
-import RequestStockIndex from "@/views/pages/request-stock";
+import { RequestStockIndex } from "@/views/pages/request-stock";
+import { RequestStockCreate } from "@/views/pages/request-stock/create";
+import { RequestStockDetail } from "@/views/pages/request-stock/details";
 //import { RequestIndex } from "@/views/pages/restock/request";
 import DetailReqProduct from "@/views/pages/restock/request/DetailReqProduct";
 import ListReqProduct from "@/views/pages/restock/request/ListReqProduct";
@@ -233,16 +235,16 @@ export const router = createBrowserRouter([
             ],
           },
           {
-            path: "restock",
-            element: <RestockIndex />,
+            path: "requeststock",
+            element: <RequestStockIndex />,
           },
           {
-            path: "restock/:id/details",
-            element: <RestockDetail />,
+            path: "requeststock/:id/details",
+            element: <RequestStockDetail />,
           },
           {
-            path: "restock/create",
-            element: <RestockCreate />,
+            path: "requeststock/create",
+            element: <RequestStockCreate />,
           },
           {
             path: "units",
