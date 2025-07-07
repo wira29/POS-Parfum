@@ -415,11 +415,11 @@ export default function BundlingPage() {
                 <div className="mt-14 space-y-1 text-sm text-gray-700">
                   <div className="flex justify-between">
                     <span className="font-medium text-gray-600">Quantity Item:</span>
-                    <span className="font-semibold">{pkg.bundling_material_count} Item</span>
+                    <span className="font-semibold text-gray-400">{pkg.bundling_material_count} Item</span>
                   </div>
                   <div className="flex justify-between mt-5">
                     <span className="font-medium text-gray-600">Harga:</span>
-                    <span className="font-semibold">{formatPrice(pkg.harga)}</span>
+                    <span className="font-semibold text-gray-400">{formatPrice(pkg.harga)}</span>
                   </div>
                 </div>
               </div>
