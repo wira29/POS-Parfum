@@ -24,7 +24,7 @@ export const ProductEdit = () => {
     const [productCode, setProductCode] = useState("");
     const [category, setCategory] = useState("");
     const [price, setPrice] = useState();
-    const [stock, setStock] = useState();
+    const [stock, setStock] = useState("0");
     const [selectedUnit, setSelectedUnit] = useState("");
     const [globalPrice, setGlobalPrice] = useState("");
     const [globalStock, setGlobalStock] = useState("");
@@ -199,6 +199,17 @@ export const ProductEdit = () => {
         }
     }, [conversionGram, conversionMl, selectedUnitCode, isParfumCategory]);
 
+    const handleQuantityChange = (e) => {
+        const value = e.target.value;
+
+        if (Number(value) < 0) {
+            Toaster("error", "Jumlah stok tidak boleh negatif");
+            return;
+        }
+
+        setStock(value);
+    };
+
     useEffect(() => {
         const fetchProduct = async () => {
             try {
@@ -346,9 +357,11 @@ export const ProductEdit = () => {
 
         const formData = new FormData();
         formData.append("name", productName);
+
         if (images.length > 0 && typeof images[0] !== "string") {
             formData.append("image", images[0]);
         }
+
         formData.append("description", description);
         formData.append("category_id", category);
         formData.append("unit_id", selectedUnit);
@@ -364,14 +377,14 @@ export const ProductEdit = () => {
                 return;
             }
 
-            if (!stock || isNaN(stock)) {
-                setErrors({ message: ["Stok produk wajib diisi"] });
-                Toaster("error", "Stok produk wajib diisi");
+            if (stock === "" || isNaN(stock) || Number(stock) < 0) {
+                setErrors({ message: ["Stok produk tidak boleh kosong atau negatif"] });
+                Toaster("error", "Stok produk tidak valid");
                 return;
             }
 
             formData.append("product_details[0][category_id]", category);
-            formData.append("product_details[0][stock]", String(stock));
+            formData.append("product_details[0][stock]", stock);
             formData.append("product_details[0][price]", String(price));
             formData.append("product_details[0][product_code]", productCode || "");
             formData.append("product_details[0][unit_id]", selectedUnit);
@@ -387,19 +400,20 @@ export const ProductEdit = () => {
             }
         } else {
             let hasVariantError = false;
+
             variantMatrix.forEach((variant, i) => {
                 const options = variant.volumes?.filter(Boolean) || [null];
 
                 options.forEach((option, j) => {
-                    const price = Number(variant.prices?.[j]) || 0;
-                    const stock = Number(variant.stocks?.[j]) || 0;
+                    const variantPrice = Number(variant.prices?.[j]) || 0;
+                    const variantStock = Number(variant.stocks?.[j]) || 0;
 
-                    if (price <= 0) {
+                    if (variantPrice <= 0) {
                         hasVariantError = true;
                         setErrors({ message: [`Harga untuk varian ${variant.aroma} ${option || ""} tidak valid`] });
                     }
 
-                    if (stock < 0) {
+                    if (variantStock < 0) {
                         hasVariantError = true;
                         setErrors({ message: [`Stok untuk varian ${variant.aroma} ${option || ""} tidak valid`] });
                     }
@@ -561,7 +575,7 @@ export const ProductEdit = () => {
                                             placeholder="Masukan Quantity"
                                             className="w-full pl-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             value={stock}
-                                            onChange={(e) => setStock(e.target.value)}
+                                            onChange={handleQuantityChange}
                                         />
                                     </div>
                                 </div>
