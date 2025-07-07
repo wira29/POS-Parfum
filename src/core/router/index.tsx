@@ -48,16 +48,16 @@ import { AuditIndex } from "@/views/pages/audit/index";
 import { AuditDetail } from "@/views/pages/audit/detail";
 import { DiscountDetail } from "@/views/pages/discount/detail";
 import { createBrowserRouter } from "react-router-dom";
-import BlendingIndex from "@/views/pages/blending"
+import BlendingIndex from "@/views/pages/blending";
 import ProfitLossReportPage from "@/views/pages/laporan";
 import ExpenseManagement from "@/views/pages/pengeluaran";
 import CreateExpense from "@/views/pages/pengeluaran";
 import RetailDetail from "@/views/pages/retail/detail";
 import { BlendingDetail } from "@/views/pages/blending/detail";
-import { RestockDetail } from "@/views/pages/restock/restock/details";
-import { RestockCreate } from "@/views/pages/restock/restock/create";
 import RetailCreate from "@/views/pages/retail/widgets/AddPage";
 import RetailEdit from "@/views/pages/retail/widgets/EditPage";
+import { RestockCreate } from "@/views/pages/restock/restock/create";
+import { RestockDetail } from "@/views/pages/restock/restock/details";
 
 export const router = createBrowserRouter([
   {
@@ -78,7 +78,7 @@ export const router = createBrowserRouter([
         children: [
           {
             path: "dashboard",
-            element: <Dashboard />
+            element: <Dashboard />,
           },
           {
             path: "products",
@@ -130,15 +130,15 @@ export const router = createBrowserRouter([
           },
           {
             path: "blendings",
-            element: <BlendingIndex />
+            element: <BlendingIndex />,
           },
           {
             path: "blendings/:id/detail",
-            element: <BlendingDetail />
+            element: <BlendingDetail />,
           },
           {
             path: "blendings/create",
-            element: <BlendingCreate />
+            element: <BlendingCreate />,
           },
           // {
           //   path: "blendings/:id/edit",
@@ -221,7 +221,7 @@ export const router = createBrowserRouter([
             element: <DiscountDetail />,
           },
           {
-            path: "request-stock",
+            path: "request-pembelian",
             //element: <RequestRestockIndex />,
             children: [
               {
@@ -229,7 +229,7 @@ export const router = createBrowserRouter([
                 element: <ListReqProduct />,
               },
               {
-                path: ":id",
+                path: ":id/detail",
                 element: <DetailReqProduct />,
               },
             ],
@@ -247,16 +247,28 @@ export const router = createBrowserRouter([
             element: <RequestStockCreate />,
           },
           {
+            path: "restock",
+            element: <RestockIndex />,
+          },
+          {
+            path: "restock/create",
+            element: <RestockCreate />,
+          },
+          {
+            path: "restock/:id/details",
+            element: <RestockDetail />,
+          },
+          {
             path: "units",
-            element: < UnitPage />,
+            element: <UnitPage />,
           },
           {
             path: "audit",
-            element: <AuditIndex />
+            element: <AuditIndex />,
           },
           {
             path: "audit/:id/detail",
-            element: <AuditDetail />
+            element: <AuditDetail />,
           },
           {
             path: "laporan",
@@ -268,20 +280,20 @@ export const router = createBrowserRouter([
           },
           {
             path: "pengeluaran/create",
-            element: <CreateExpense/>,
+            element: <CreateExpense />,
           },
           {
             path: "/laba-rugi",
-            element: <LabaRugiIndex/>,
+            element: <LabaRugiIndex />,
           },
           {
             path: "/riwayat-penjualan/:id/detail",
-            element: <DetailRiwayatTransaksi/>,
+            element: <DetailRiwayatTransaksi />,
           },
           {
-            path:"/dashboard-owner",
-            element:<DashboardOwner/>
-          }
+            path: "/dashboard-owner",
+            element: <DashboardOwner />,
+          },
         ],
       },
     ],
@@ -300,5 +312,4 @@ export const router = createBrowserRouter([
     path: "*",
     element: <NotFoundPage />,
   },
-
 ]);

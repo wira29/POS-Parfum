@@ -14,7 +14,6 @@ export const RestockCreate = () => {
   const [showVariantModal, setShowVariantModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedVariants, setSelectedVariants] = useState([]);
-  const [showTable, setShowTable] = useState(false);
   const [warehouseDropdown, setWarehouseDropdown] = useState(false);
   const [warehouseSearch, setWarehouseSearch] = useState("");
   const [selectedWarehouse, setSelectedWarehouse] = useState(null);
@@ -256,21 +255,7 @@ export const RestockCreate = () => {
     <div className="p-5 y-6">
       <Breadcrumb title="Restock Produk" desc="Meminta restock dari gudang" />
       <div className="bg-white rounded-xl mt-6 shadow-md p-6">
-        <div ref={warehouseRef} className="relative mb-10">
-          <label className="block mb-1 text-sm text-gray-700">Warehouse</label>
-          <div
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 bg-white cursor-pointer"
-            onClick={() => setWarehouseDropdown((v) => !v)}
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                setWarehouseDropdown((v) => !v);
-                e.preventDefault();
-              }
-            }}
-          >
-            {warehouses.find((w) => w.id === selectedWarehouse)?.name || "Pilih warehouse"}
-          </div>
+        <div ref={warehouseRef} className="relative">
           {warehouseDropdown && (
             <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg">
               <input
@@ -523,7 +508,7 @@ export const RestockCreate = () => {
                 <div className="flex gap-2">
                   <button
                     onClick={() => {
-                      setShowVariantModal(false);
+                      setShowVariantModal(true);
                       setSelectedProduct(null);
                     }}
                     className="border border-gray-300 px-4 py-1.5 rounded-md hover:bg-gray-100 text-sm cursor-pointer"
@@ -548,7 +533,7 @@ export const RestockCreate = () => {
           </div>
         )}
         <div className="flex gap-5 w-full justify-end mt-10">
-          <button className="bg-gray-400 text-white p-2.5 w-25 rounded-sm cursor-pointer" onClick={() => navigate("/restock")}> Kembali</button>
+          <button className="bg-gray-400 text-white p-2.5 w-25 rounded-sm cursor-pointer" onClick={() => navigate("/restock")}> Batal</button>
           <button
             className="bg-blue-600 text-white p-2.5 w-25 rounded-sm cursor-pointer"
             disabled={loading}

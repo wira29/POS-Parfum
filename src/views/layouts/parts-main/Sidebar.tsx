@@ -1,9 +1,16 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  FiHome, FiBox, FiPercent, FiCoffee, FiTag,
-  FiUsers, FiLayers, FiChevronDown, FiChevronUp,
+  FiHome,
+  FiBox,
+  FiPercent,
+  FiCoffee,
+  FiTag,
+  FiUsers,
+  FiLayers,
+  FiChevronDown,
+  FiChevronUp,
 } from "react-icons/fi";
-import { LayoutGrid } from "lucide-react"
+import { ContainerIcon, LayoutGrid } from "lucide-react";
 import { FaMoneyBillTransfer, FaUserTag } from "react-icons/fa6";
 import { TbCoinTakaFilled, TbShoppingCart } from "react-icons/tb";
 import { FaBoxesPacking, FaShop } from "react-icons/fa6";
@@ -25,10 +32,14 @@ const ownerMenu = [
   {
     label: "Warehouse",
     children: [
-      { label: "Req Pembelian", icon: <FiTag />, path: "/request-stock" },
+      { label: "Req Pembelian", icon: <FiTag />, path: "/request-pembelian" },
       { label: "Kategori", icon: <FiLayers />, path: "/categories" },
       { label: "Produk", icon: <FiBox />, path: "/products" },
-      { label: "Bundling", icon: <ShoppingCart size={16} />, path: "/bundlings" },
+      {
+        label: "Bundling",
+        icon: <ShoppingCart size={16} />,
+        path: "/bundlings",
+      },
       { label: "Blending", icon: <FiCoffee />, path: "/blendings" },
       { label: "Unit", icon: <LayoutGrid />, path: "/units" },
       { label: "Diskon", icon: <FiPercent />, path: "/discounts" },
@@ -40,7 +51,11 @@ const ownerMenu = [
     more: [
       { label: "Audit", icon: <AiOutlineFileSearch />, path: "/audit" },
       //{ label: "Pengeluaran", icon: <Wallet2Icon />, path: "/pengeluaran" },
-      { label: "Riwayat Transaksi", icon: <FiTag />, path: "/riwayat-penjualan" },
+      {
+        label: "Riwayat Transaksi",
+        icon: <FiTag />,
+        path: "/riwayat-penjualan",
+      },
     ],
   },
   {
@@ -48,19 +63,32 @@ const ownerMenu = [
     children: [
       { label: "Kategori", icon: <FiLayers />, path: "/categories" },
       { label: "Produk", icon: <FiBox />, path: "/products" },
-      { label: "Request Stok", icon: <FaBoxesPacking />, path: "/request-stock" },
+      {
+        label: "Request Stok",
+        icon: <FaBoxesPacking />,
+        path: "/requeststock",
+      },
       { label: "Unit", icon: <LayoutGrid />, path: "/units" },
     ],
     more: [
       { label: "Laporan", icon: <TbCoinTakaFilled />, path: "/laporan" },
       { label: "Pengeluaran", icon: <Wallet2Icon />, path: "/pengeluaran" },
-      { label: "Riwayat Transaksi", icon: <FiTag />, path: "/riwayat-penjualan" },
+      {
+        label: "Riwayat Transaksi",
+        icon: <FiTag />,
+        path: "/riwayat-penjualan",
+      },
     ],
   },
 ];
 
 const menuItems = [
-  { label: "Beranda", icon: <FiHome />, path: "/dashboard", roles: ["admin", "warehouse", "owner", "outlet"] },
+  {
+    label: "Beranda",
+    icon: <FiHome />,
+    path: "/dashboard",
+    roles: ["admin", "warehouse", "owner", "outlet"],
+  },
   {
     group: "Transaksi",
     label: "Penjualan",
@@ -70,27 +98,77 @@ const menuItems = [
     roles: ["warehouse", "owner"],
     children: [
       { label: "Kasir", icon: <TbShoppingCart />, path: "/outlets" },
-      { label: "Riwayat Penjualan", icon: <FiTag />, path: "/riwayat-penjualan" },
+      {
+        label: "Riwayat Penjualan",
+        icon: <FiTag />,
+        path: "/riwayat-penjualan",
+      },
     ],
   },
   {
     group: "Transaksi",
     label: "Request Pembelian",
     icon: <FiTag />,
-    path: "/request-stock",
+    path: "/request-pembelian",
     roles: ["warehouse", "owner"],
   },
   {
     label: "Produk",
     children: [
-      { label: "Kategori", icon: <FiLayers />, path: "/categories", roles: ["warehouse", "outlet", "owner"] },
-      { label: "Produk", icon: <FiBox />, path: "/products", roles: ["owner", "warehouse", "outlet"] },
-      { label: "Bundling", icon: <ShoppingCart size={16} />, path: "/bundlings", roles: ["owner", "warehouse", "outlet"] },
-      { label: "Blending Produk", icon: <FiCoffee />, path: "/blendings", roles: ["warehouse", "owner"] },
-      { label: "Request Stock", icon: <FaBoxesPacking />, path: "/requeststock", roles: ["outlet", "owner"] },
-      { label: "Unit", icon: <LayoutGrid />, path: "/units", roles: ["admin", "warehouse", "outlet", "owner"] },
-      { label: "Audit", icon: <AiOutlineFileSearch />, path: "/audit", roles: ["admin", "outlet", "owner"] },
-      { label: "Diskon", icon: <FiPercent />, path: "/discounts", roles: ["owner", "warehouse", "outlet"] },
+      {
+        label: "Kategori",
+        icon: <FiLayers />,
+        path: "/categories",
+        roles: ["warehouse", "outlet", "owner"],
+      },
+      {
+        label: "Produk",
+        icon: <FiBox />,
+        path: "/products",
+        roles: ["owner", "warehouse", "outlet"],
+      },
+      {
+        label: "Bundling",
+        icon: <ShoppingCart size={16} />,
+        path: "/bundlings",
+        roles: ["owner", "warehouse", "outlet"],
+      },
+      {
+        label: "Blending Produk",
+        icon: <FiCoffee />,
+        path: "/blendings",
+        roles: ["warehouse", "owner"],
+      },
+      {
+        label: "Request Stock",
+        icon: <FaBoxesPacking />,
+        path: "/requeststock",
+        roles: ["outlet", "owner"],
+      },
+      {
+        label: "Restock",
+        icon: <ContainerIcon />,
+        path: "/restock",
+        roles: ["warehouse"],
+      },
+      {
+        label: "Unit",
+        icon: <LayoutGrid />,
+        path: "/units",
+        roles: ["admin", "warehouse", "outlet", "owner"],
+      },
+      {
+        label: "Audit",
+        icon: <AiOutlineFileSearch />,
+        path: "/audit",
+        roles: ["admin", "outlet", "owner"],
+      },
+      {
+        label: "Diskon",
+        icon: <FiPercent />,
+        path: "/discounts",
+        roles: ["owner", "warehouse", "outlet"],
+      },
     ],
     more: [
       { label: "Produk Lainnya", icon: <FiBox />, path: "/produk-lainnya" },
@@ -100,13 +178,48 @@ const menuItems = [
   {
     label: "Lainnya",
     children: [
-      { label: "Retail", icon: <FaShop />, path: "/retails", roles: ["owner", "warehouse"] },
-      { label: "Laporan Laba Rugi", icon: <FaMoneyBillTransfer />, path: "/laba-rugi", roles: ["outlet","warehouse"] },
-      { label: "Warehouse", icon: <FaShop />, path: "/warehouses", roles: ["owner", "admin"] },
-      { label: "Tambah Pengguna", icon: <FiUsers />, path: "/users", roles: ["owner", "warehouse", "outlet"] },
-      { label: "Role", icon: <FaUserTag />, path: "/roles", roles: ["owner", "warehouse", "retail"] },
-      { label: "Laporan", icon: <TbCoinTakaFilled />, path: "/laporan", roles: ["owner", "outlet"] },
-      { label: "Pengeluaran", icon: <Wallet2Icon />, path: "/pengeluaran", roles: ["owner", "outlet"] },
+      {
+        label: "Retail",
+        icon: <FaShop />,
+        path: "/retails",
+        roles: ["owner", "warehouse"],
+      },
+      {
+        label: "Laporan Laba Rugi",
+        icon: <FaMoneyBillTransfer />,
+        path: "/laba-rugi",
+        roles: ["outlet", "warehouse"],
+      },
+      {
+        label: "Warehouse",
+        icon: <FaShop />,
+        path: "/warehouses",
+        roles: ["owner", "admin"],
+      },
+      {
+        label: "Tambah Pengguna",
+        icon: <FiUsers />,
+        path: "/users",
+        roles: ["owner", "warehouse", "outlet"],
+      },
+      {
+        label: "Role",
+        icon: <FaUserTag />,
+        path: "/roles",
+        roles: ["owner", "warehouse", "retail"],
+      },
+      {
+        label: "Laporan",
+        icon: <TbCoinTakaFilled />,
+        path: "/laporan",
+        roles: ["owner", "outlet"],
+      },
+      {
+        label: "Pengeluaran",
+        icon: <Wallet2Icon />,
+        path: "/pengeluaran",
+        roles: ["owner", "outlet"],
+      },
     ],
     more: [
       { label: "Lainnya 1", icon: <FiTag />, path: "/lainnya-1" },
@@ -121,12 +234,16 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
   const isCollapsed = sidebar === "mini-sidebar";
   const [userRoles, setUserRoles] = useState<string[]>([]);
   const [showMore, setShowMore] = useState<{ [key: string]: boolean }>({});
-  const [openDropdowns, setOpenDropdowns] = useState<{ [key: string]: boolean }>({});
+  const [openDropdowns, setOpenDropdowns] = useState<{
+    [key: string]: boolean;
+  }>({});
+  const [loading, setLoading] = useState(false);
   const apiClient = useApiClient();
 
   useEffect(() => {
     const fetchUserRoles = async () => {
       try {
+        setLoading(true);
         const res = await apiClient.get("/me");
         const roles = res.data.data.roles.map((role: any) => role.name);
         setUserRoles(roles);
@@ -148,15 +265,23 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
         });
 
         const currentPath = location.pathname;
-        const match = allPaths.find((route) => currentPath.startsWith(route.path));
+        const match = allPaths.find((route) =>
+          currentPath.startsWith(route.path)
+        );
 
-        if (match && match.roles.length > 0 && !match.roles.some((role) => roles.includes(role))) {
+        if (
+          match &&
+          match.roles.length > 0 &&
+          !match.roles.some((role) => roles.includes(role))
+        ) {
           navigate("/dashboard", { replace: true });
           Toaster("error", "User tidak memiliki role yang sesuai.");
         }
       } catch (error) {
         navigate("/dashboard", { replace: true });
         Toaster("error", "Gagal mendapatkan role.");
+      } finally {
+        setLoading(false);
       }
     };
     fetchUserRoles();
@@ -171,7 +296,9 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
     .map((item) => {
       if (!hasAccess(item.roles)) return null;
       if (item.children) {
-        const filteredChildren = item.children.filter((child) => hasAccess(child.roles));
+        const filteredChildren = item.children.filter((child) =>
+          hasAccess(child.roles)
+        );
         if (filteredChildren.length === 0) return null;
         return { ...item, children: filteredChildren, more: item.more };
       }
@@ -181,7 +308,11 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
 
   if (userRoles.includes("owner")) {
     return (
-      <aside className={`h-screen fixed left-0 top-0 shadow-md z-20 transition-all duration-300 ${isCollapsed ? "w-20" : "w-64"} bg-white`}>
+      <aside
+        className={`h-screen fixed left-0 top-0 shadow-md z-20 transition-all duration-300 ${
+          isCollapsed ? "w-20" : "w-64"
+        } bg-white`}
+      >
         <div className="flex py-3 px-4">
           <div className="flex items-center justify-center mx-auto">
             <img
@@ -191,14 +322,24 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                   : "../../../../public/images/logos/logo-new.png"
               }
               alt="Logo"
-              className={`transition-all duration-300 ${isCollapsed ? "w-16 h-11" : "w-full h-12"}`}
+              className={`transition-all duration-300 ${
+                isCollapsed ? "w-16 h-11" : "w-full h-12"
+              }`}
             />
           </div>
         </div>
-        <nav className={`p-4 space-y-6 ${isCollapsed ? "overflow-visible" : "overflow-y-auto"} h-[calc(100vh-4rem)]`}>
+        <nav
+          className={`p-4 space-y-6 ${
+            isCollapsed ? "overflow-visible" : "overflow-y-auto"
+          } h-[calc(100vh-4rem)]`}
+        >
           {ownerMenu.map((section, idx) => (
             <div key={idx}>
-              <p className={`text-xs font-bold uppercase mb-2 text-gray-400 ${isCollapsed ? "text-center text-[10px]" : ""}`}>
+              <p
+                className={`text-xs font-bold uppercase mb-2 text-gray-400 ${
+                  isCollapsed ? "text-center text-[10px]" : ""
+                }`}
+              >
                 {section.label}
               </p>
               <ul className="space-y-1">
@@ -206,10 +347,11 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                   <li key={i}>
                     <Link
                       to={item.path}
-                      className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${location.pathname.startsWith(item.path)
-                        ? "bg-blue-600 text-white hover:bg-blue-600"
-                        : "text-gray-700"
-                        } ${isCollapsed ? "justify-center" : ""}`}
+                      className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${
+                        location.pathname.startsWith(item.path)
+                          ? "bg-blue-600 text-white hover:bg-blue-600"
+                          : "text-gray-700"
+                      } ${isCollapsed ? "justify-center" : ""}`}
                     >
                       <span className="text-lg">{item.icon}</span>
                       {!isCollapsed && item.label}
@@ -224,10 +366,11 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                           <li key={mi}>
                             <Link
                               to={moreItem.path}
-                              className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${location.pathname.startsWith(moreItem.path)
-                                ? "bg-blue-600 text-white hover:bg-blue-600"
-                                : "text-gray-700"
-                                } ${isCollapsed ? "justify-center" : ""}`}
+                              className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${
+                                location.pathname.startsWith(moreItem.path)
+                                  ? "bg-blue-600 text-white hover:bg-blue-600"
+                                  : "text-gray-700"
+                              } ${isCollapsed ? "justify-center" : ""}`}
                             >
                               <span className="text-lg">{moreItem.icon}</span>
                               {!isCollapsed && moreItem.label}
@@ -241,9 +384,16 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                         className="px-3 py-1 border border-gray-300 rounded text-xs text-gray-700 hover:bg-gray-100 transition w-fit mt-2"
                         style={{ minWidth: 100 }}
                         type="button"
-                        onClick={() => setShowMore((prev) => ({ ...prev, [section.label]: !prev[section.label] }))}
+                        onClick={() =>
+                          setShowMore((prev) => ({
+                            ...prev,
+                            [section.label]: !prev[section.label],
+                          }))
+                        }
                       >
-                        {showMore[section.label] ? "Sembunyikan" : "Selengkapnya"}
+                        {showMore[section.label]
+                          ? "Sembunyikan"
+                          : "Selengkapnya"}
                       </button>
                     </li>
                   </>
@@ -256,8 +406,18 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
     );
   }
 
+  if (loading) {
+    <h1 className="text-xl text-center animate-pulse font-semibold">
+      Memuat...
+    </h1>;
+  }
+
   return (
-    <aside className={`h-screen fixed left-0 top-0 shadow-md z-20 transition-all duration-300 ${isCollapsed ? "w-20" : "w-64"} bg-white`}>
+    <aside
+      className={`h-screen fixed left-0 top-0 shadow-md z-20 transition-all duration-300 ${
+        isCollapsed ? "w-20" : "w-64"
+      } bg-white`}
+    >
       <div className="flex py-3 px-4">
         <div className="flex items-center justify-center mx-auto">
           <img
@@ -267,21 +427,35 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                 : "../../../../public/images/logos/logo-new.png"
             }
             alt="Logo"
-            className={`transition-all duration-300 ${isCollapsed ? "w-16 h-11" : "w-full h-12"}`}
+            className={`transition-all duration-300 ${
+              isCollapsed ? "w-16 h-11" : "w-full h-12"
+            }`}
           />
         </div>
       </div>
-      <nav className={`p-4 space-y-2.5 ${isCollapsed ? "overflow-visible" : "overflow-y-auto"} h-[calc(100vh-4rem)]`}>
+      <nav
+        className={`p-4 space-y-2.5 ${
+          isCollapsed ? "overflow-visible" : "overflow-y-auto"
+        } h-[calc(100vh-4rem)]`}
+      >
         {filteredMenuItems.map((item, i) => (
           <div key={i}>
             {item.group ? (
               <div>
                 {!isCollapsed &&
-                  i === filteredMenuItems.findIndex((m: any) => m.group === item.group) && (
-                    <p className="text-xs font-bold uppercase mb-2 text-gray-400">{item.group}</p>
+                  i ===
+                    filteredMenuItems.findIndex(
+                      (m: any) => m.group === item.group
+                    ) && (
+                    <p className="text-xs font-bold uppercase mb-2 text-gray-400">
+                      {item.group}
+                    </p>
                   )}
                 {isCollapsed &&
-                  i === filteredMenuItems.findIndex((m: any) => m.group === item.group) && (
+                  i ===
+                    filteredMenuItems.findIndex(
+                      (m: any) => m.group === item.group
+                    ) && (
                     <p className="text-xs font-bold uppercase mb-2 text-center text-[10px] text-gray-400">
                       {item.group}
                     </p>
@@ -290,13 +464,22 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                 {item.isDropdown ? (
                   <div className="relative group">
                     <button
-                      onClick={() => !isCollapsed && setOpenDropdowns((prev) => ({ ...prev, [item.label]: !prev[item.label] }))}
-                      className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${location.pathname.startsWith(item.path) ||
+                      onClick={() =>
+                        !isCollapsed &&
+                        setOpenDropdowns((prev) => ({
+                          ...prev,
+                          [item.label]: !prev[item.label],
+                        }))
+                      }
+                      className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${
+                        location.pathname.startsWith(item.path) ||
                         (item.children &&
-                          item.children.some((child) => location.pathname.startsWith(child.path)))
-                        ? "bg-blue-600 text-white hover:bg-blue-600"
-                        : "text-gray-700"
-                        } ${isCollapsed ? "justify-center" : "justify-between"}`}
+                          item.children.some((child) =>
+                            location.pathname.startsWith(child.path)
+                          ))
+                          ? "bg-blue-600 text-white hover:bg-blue-600"
+                          : "text-gray-700"
+                      } ${isCollapsed ? "justify-center" : "justify-between"}`}
                     >
                       <div className="flex items-center gap-3">
                         <span className="text-lg">{item.icon}</span>
@@ -304,7 +487,11 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                       </div>
                       {!isCollapsed && (
                         <span className="text-lg">
-                          {openDropdowns[item.label] ? <FiChevronUp /> : <FiChevronDown />}
+                          {openDropdowns[item.label] ? (
+                            <FiChevronUp />
+                          ) : (
+                            <FiChevronDown />
+                          )}
                         </span>
                       )}
                     </button>
@@ -312,17 +499,24 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                     {!isCollapsed && openDropdowns[item.label] && (
                       <ul className="mt-2 space-y-1 ml-4">
                         {item.children?.map((child, idx) => {
-                          const isActive = location.pathname.startsWith(child.path);
+                          const isActive = location.pathname.startsWith(
+                            child.path
+                          );
                           return (
                             <li key={idx}>
                               <Link
                                 to={child.path}
-                                className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-50 text-sm transition-all duration-300 ${isActive ? "bg-blue-100 text-blue-600" : "text-gray-600"
-                                  }`}
+                                className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-50 text-sm transition-all duration-300 ${
+                                  isActive
+                                    ? "bg-blue-100 text-blue-600"
+                                    : "text-gray-600"
+                                }`}
                               >
                                 <span
-                                  className={`w-2.5 h-2.5 rounded-full bg-blue-500 border-2 border-blue-300 ${!isActive && "opacity-50 bg-white border-blue-300"
-                                    }`}
+                                  className={`w-2.5 h-2.5 rounded-full bg-blue-500 border-2 border-blue-300 ${
+                                    !isActive &&
+                                    "opacity-50 bg-white border-blue-300"
+                                  }`}
                                 ></span>
                                 {child.label}
                               </Link>
@@ -334,7 +528,12 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                             className="px-3 py-1 border border-gray-300 rounded text-xs text-gray-700 hover:bg-gray-100 transition w-fit mt-2"
                             style={{ minWidth: 100 }}
                             type="button"
-                            onClick={() => setOpenDropdowns((prev) => ({ ...prev, [item.label]: false }))}
+                            onClick={() =>
+                              setOpenDropdowns((prev) => ({
+                                ...prev,
+                                [item.label]: false,
+                              }))
+                            }
                           >
                             Sembunyikan
                           </button>
@@ -345,13 +544,18 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                     {isCollapsed && openDropdowns[item.label] && (
                       <div className="absolute left-full top-0 ml-2 bg-white shadow-lg rounded-lg z-[9999] min-w-48">
                         {item.children?.map((child, idx) => {
-                          const isActive = location.pathname.startsWith(child.path);
+                          const isActive = location.pathname.startsWith(
+                            child.path
+                          );
                           return (
                             <Link
                               key={idx}
                               to={child.path}
-                              className={`flex items-center gap-3 px-4 py-3 hover:bg-blue-50 text-sm transition-all duration-300 ${isActive ? "bg-blue-200 text-blue-600" : "text-gray-600"
-                                }`}
+                              className={`flex items-center gap-3 px-4 py-3 hover:bg-blue-50 text-sm transition-all duration-300 ${
+                                isActive
+                                  ? "bg-blue-200 text-blue-600"
+                                  : "text-gray-600"
+                              }`}
                             >
                               <span className="text-lg">{child.icon}</span>
                               {child.label}
@@ -362,7 +566,12 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                           className="px-3 py-1 border border-gray-300 rounded text-xs text-gray-700 hover:bg-gray-100 transition w-fit m-2"
                           style={{ minWidth: 100 }}
                           type="button"
-                          onClick={() => setOpenDropdowns((prev) => ({ ...prev, [item.label]: false }))}
+                          onClick={() =>
+                            setOpenDropdowns((prev) => ({
+                              ...prev,
+                              [item.label]: false,
+                            }))
+                          }
                         >
                           Sembunyikan
                         </button>
@@ -372,10 +581,11 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                 ) : (
                   <Link
                     to={item.path}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${location.pathname.startsWith(item.path)
-                      ? "bg-blue-600 text-white hover:bg-blue-600"
-                      : "text-gray-700"
-                      } ${isCollapsed ? "justify-center" : ""}`}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${
+                      location.pathname.startsWith(item.path)
+                        ? "bg-blue-600 text-white hover:bg-blue-600"
+                        : "text-gray-700"
+                    } ${isCollapsed ? "justify-center" : ""}`}
                   >
                     <span className="text-lg">{item.icon}</span>
                     {!isCollapsed && item.label}
@@ -385,8 +595,11 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
             ) : (
               <div>
                 <p
-                  className={`text-xs font-bold uppercase mb-2 transition-all duration-300 ${isCollapsed ? "text-gray-400 text-center text-[10px]" : "text-gray-400"
-                    }`}
+                  className={`text-xs font-bold uppercase mb-2 transition-all duration-300 ${
+                    isCollapsed
+                      ? "text-gray-400 text-center text-[10px]"
+                      : "text-gray-400"
+                  }`}
                 >
                   {item.label}
                 </p>
@@ -397,8 +610,11 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                       <li key={idx}>
                         <Link
                           to={child.path}
-                          className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${isActive ? "bg-blue-600 text-white hover:bg-blue-600" : "text-gray-700"
-                            } ${isCollapsed ? "justify-center" : ""}`}
+                          className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${
+                            isActive
+                              ? "bg-blue-600 text-white hover:bg-blue-600"
+                              : "text-gray-700"
+                          } ${isCollapsed ? "justify-center" : ""}`}
                         >
                           <span className="text-lg">{child.icon}</span>
                           {!isCollapsed && child.label}
