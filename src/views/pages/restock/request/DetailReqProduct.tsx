@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import Card from "@/views/components/Card/Card";
 import { useParams, useNavigate } from "react-router-dom";
 import { useApiClient } from "@/core/helpers/ApiClient";
-import { RetailRequestModal } from "@/views/components/UpdateStatusModal";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
 import { ModalReqPembelian } from "@/views/components/ModalReqPembelian";
 
@@ -105,7 +104,7 @@ const DetailReqProduct = () => {
               name: prod.product_name,
               code: prod.variant_code,
               qtyRequest: prod.requested_stock.toString(),
-              stock: prod.stock_warehouse ? prod.stock_warehouse.toString() : "-",
+              stock: prod.stock_warehouse ? prod.stock_warehouse.toString() : "0",
               qtyShipped: prod.sended_stock.toString(),
               unitPrice: prod.price ? prod.price.toString() : "0",
               subtotal: "0",
