@@ -292,8 +292,6 @@ export const BlendingCreate: React.FC = () => {
 
   const closeModal = () => {
     setShowModal(false);
-    setSelectedVariants([]);
-    setExpandedProducts([]);
     setSearchTerm("");
   };
 
