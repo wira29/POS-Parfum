@@ -5,7 +5,6 @@ import DeleteIcon from "@/views/components/DeleteIcon";
 import { useNavigate } from "react-router-dom";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import Swal from "sweetalert2";
-import { toast } from "sonner";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
 import {
   Product,
@@ -268,6 +267,9 @@ export const RestockCreate = () => {
     setLoading(true);
     try {
       const payload = {
+        store_name: storeName || undefined,
+        total_price: totalPrice ? parseInt(totalPrice) : undefined,
+        store_location: storeLocation || undefined,
         restock,
       };
       await apiClient.post("/warehouses/add/stock", payload);
@@ -316,63 +318,53 @@ export const RestockCreate = () => {
               />
             </div>
             <div className="p-5">
-              <div className="space-y-3">
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Nama Toko
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Nama Toko
+                    </label>
+                    <input
+                      type="text"
+                      value={storeName}
+                      onChange={(e) => setStoreName(e.target.value)}
+                      className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Masukan Nama Toko"
+                    />
+                  </div>
+                  <div className="mb-4 relative overflow-hidden">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Total Harga
+                    </label>
+                    <div className="mt-1 relative">
+                      <span className="absolute bg-slate-200 w-10 inset-y-0 left-0 flex items-center pl-3 text-gray-500 text-sm z-10">
+                        Rp
+                      </span>
+                      <input
+                        type="text"
+                        value={totalPrice}
+                        onChange={(e) => {
+                          let val = e.target.value.replace(/[^0-9]/g, "");
+                          setTotalPrice(val);
+                        }}
+                        className="block w-full pl-12 pr-3 py-2 border border-gray-300 rounded-md shadow-sm outline-none focus:ring-blue-500"
+                        placeholder="Masukan Total Harga"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">
+                    Lokasi Toko
                   </label>
-                  <input
-                    type="text"
-                    value={storeName}
-                    onChange={(e) => setStoreName(e.target.value)}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Masukan Nama Toko"
+                  <textarea
+                    value={storeLocation}
+                    rows={4}
+                    onChange={(e) => setStoreLocation(e.target.value)}
+                    className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Masukan Lokasi Toko"
                   />
                 </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Total Harga
-                  </label>
-                  <input
-                    type="text"
-                    value={totalPrice}
-                    onChange={(e) => {
-                      let val = e.target.value.replace(/[^0-9]/g, "");
-                      setTotalPrice(val);
-                    }}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Masukan Total Harga"
-                  />
-                </div>
-              </div>
-              
-                <label className="block text-sm font-medium text-gray-700">
-                  Lokasi Toko
-                </label>
-                <input
-                  type="text"
-                  value={storeLocation}
-                  onChange={(e) => setStoreLocation(e.target.value)}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Masukan Lokasi Toko"
-                />
-              
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={() => setActiveAddStore(false)}
-                  className="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600"
-                >
-                  Batal
-                </button>
-                <button
-                  onClick={() => {
-                    // Logika simpan di sini, misalnya kirim ke API
-                    setActiveAddStore(false);
-                  }}
-                  className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600"
-                >
-                  Simpan
-                </button>
               </div>
             </div>
           </div>
