@@ -295,7 +295,6 @@ export const BlendingCreate: React.FC = () => {
     setSelectedVariants([]);
     setExpandedProducts([]);
     setSearchTerm("");
-    setProducts([]);
   };
 
   const handleSubmit = async () => {
