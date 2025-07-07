@@ -384,7 +384,7 @@ export const ProductEdit = () => {
             }
 
             formData.append("product_details[0][category_id]", category);
-            formData.append("product_details[0][stock]", stock);
+            formData.append("product_details[0][stock]", String(stock));
             formData.append("product_details[0][price]", String(price));
             formData.append("product_details[0][product_code]", productCode || "");
             formData.append("product_details[0][unit_id]", selectedUnit);
