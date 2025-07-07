@@ -10,7 +10,7 @@ import {
   FiChevronDown,
   FiChevronUp,
 } from "react-icons/fi";
-import { ContainerIcon, LayoutGrid } from "lucide-react";
+import { ContainerIcon, LayoutGrid, Repeat } from "lucide-react";
 import { FaMoneyBillTransfer, FaUserTag } from "react-icons/fa6";
 import { TbCoinTakaFilled, TbShoppingCart } from "react-icons/tb";
 import { FaBoxesPacking, FaShop } from "react-icons/fa6";
@@ -185,7 +185,7 @@ const menuItems = [
       },
       {
         label: "Shift",
-        icon: <FaShop />,
+        icon: <Repeat size={16} />,
         path: "/shift",
         roles: ["outlet"],
       },

@@ -475,12 +475,12 @@ export const ProductEdit = () => {
     return (
         <div className="p-4 md:p-6">
             <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                {errors["message"] && (
-                    <div className="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg">
-                        {errors["message"][0]}
-                    </div>
-                )}
                 <div className="lg:col-span-8 space-y-6">
+                    {errors["message"] && (
+                        <div className="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg">
+                            {errors["message"][0]}
+                        </div>
+                    )}
                     <div className="bg-white shadow rounded-2xl p-6">
                         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-blue-600">
                             <Info size={18} /> Informasi Produk
@@ -606,7 +606,7 @@ export const ProductEdit = () => {
                                 <div className="relative w-full">
                                     <input
                                         type="number"
-                                        value={selectedUnitCode === "G" ? 1 : conversionGram}
+                                        value={selectedUnitCode === "G" ? 1 : density}
                                         readOnly={selectedUnitCode === "G"}
                                         onChange={(e) => setConversionGram(e.target.value)}
                                         placeholder="1"
@@ -622,7 +622,7 @@ export const ProductEdit = () => {
                                 <div className="relative w-full">
                                     <input
                                         type="number"
-                                        value={selectedUnitCode === "ML" ? 1 : conversionMl}
+                                        value={selectedUnitCode === "ML" ? 1 : density}
                                         readOnly={selectedUnitCode === "ML"}
                                         onChange={(e) => setConversionMl(e.target.value)}
                                         placeholder="10"

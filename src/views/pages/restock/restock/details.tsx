@@ -108,6 +108,9 @@ export const RestockDetail = () => {
     setOpenTable(openTable === productName ? null : productName);
   };
 
+  console.log(restockData);
+  
+
   const renderProductCard = (product: Product, index: number) => (
     <div
       key={`${product.product_name}-${index}`}

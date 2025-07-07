@@ -20,7 +20,7 @@ export const ProductCreate = () => {
   const [productCode, setProductCode] = useState("");
   const [category, setCategory] = useState("");
   const [price, setPrice] = useState();
-  const [stock, setStock] = useState();
+  const [stock, setStock] = useState(0);
   const [globalPrice, setGlobalPrice] = useState("");
   const [globalStock, setGlobalStock] = useState("");
   const [globalCode, setGlobalCode] = useState("");
