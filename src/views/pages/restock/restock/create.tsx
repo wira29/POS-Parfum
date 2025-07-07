@@ -7,8 +7,17 @@ import { useApiClient } from "@/core/helpers/ApiClient";
 import Swal from "sweetalert2";
 import { toast } from "sonner";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
-import { Product, Variant, Unit, Warehouse, SelectedProduct, SelectedVariant, ApiResponse } from "@/types/types";
+import {
+  Product,
+  Variant,
+  Unit,
+  Warehouse,
+  SelectedProduct,
+  SelectedVariant,
+  ApiResponse,
+} from "@/types/types";
 import { Toaster } from "@/core/helpers/BaseAlert";
+import { IoAddCircle, IoCloseCircle } from "react-icons/io5";
 
 const PRODUCTS_PER_PAGE = 10;
 
@@ -18,8 +27,11 @@ export const RestockCreate = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedVariants, setSelectedVariants] = useState<string[]>([]);
   const [warehouseSearch, setWarehouseSearch] = useState<string>("");
-  const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>(
+    []
+  );
   const [search, setSearch] = useState<string>("");
+  const [activeAddStore, setActiveAddStore] = useState(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -27,13 +39,18 @@ export const RestockCreate = () => {
   const [units, setUnits] = useState<Unit[]>([]);
   const variantModalRef = useRef<HTMLDivElement | null>(null);
   const productModalRef = useRef<HTMLDivElement | null>(null);
+  const [totalPrice, setTotalPrice] = useState("");
+  const [storeName, setStoreName] = useState("");
+  const [storeLocation, setStoreLocation] = useState("");
   const navigate = useNavigate();
   const apiClient = useApiClient();
 
   useEffect(() => {
     const fetchUnits = async () => {
       try {
-        const res = await apiClient.get<ApiResponse<Unit[]>>("/unit/no-paginate");
+        const res = await apiClient.get<ApiResponse<Unit[]>>(
+          "/unit/no-paginate"
+        );
         setUnits(res.data.data || []);
       } catch (error) {
         console.error("Gagal mengambil data unit:", error);
@@ -45,7 +62,9 @@ export const RestockCreate = () => {
   useEffect(() => {
     const fetchWarehouses = async () => {
       try {
-        const res = await apiClient.get<ApiResponse<Warehouse[]>>("/warehouses");
+        const res = await apiClient.get<ApiResponse<Warehouse[]>>(
+          "/warehouses"
+        );
         setWarehouses(res.data.data || []);
       } catch (e) {
         setWarehouses([]);
@@ -57,7 +76,9 @@ export const RestockCreate = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await apiClient.get<ApiResponse<Product[]>>("/products/no-paginate");
+        const res = await apiClient.get<ApiResponse<Product[]>>(
+          "/products/no-paginate"
+        );
         setProducts(res.data.data || []);
       } catch (e) {
         setProducts([]);
@@ -69,7 +90,10 @@ export const RestockCreate = () => {
   useEffect(() => {
     if (!showVariantModal) return;
     const handleClickOutside = (event: MouseEvent) => {
-      if (variantModalRef.current && !variantModalRef.current.contains(event.target as Node)) {
+      if (
+        variantModalRef.current &&
+        !variantModalRef.current.contains(event.target as Node)
+      ) {
         setShowVariantModal(false);
         setSelectedProduct(null);
       }
@@ -81,7 +105,10 @@ export const RestockCreate = () => {
   useEffect(() => {
     if (!showProductModal) return;
     const handleClickOutside = (event: MouseEvent) => {
-      if (productModalRef.current && !productModalRef.current.contains(event.target as Node)) {
+      if (
+        productModalRef.current &&
+        !productModalRef.current.contains(event.target as Node)
+      ) {
         setShowProductModal(false);
       }
     };
@@ -137,7 +164,9 @@ export const RestockCreate = () => {
   };
 
   const handleRemoveProduct = (productId: string) => {
-    setSelectedProducts((prev) => prev.filter((p) => p.product.id !== productId));
+    setSelectedProducts((prev) =>
+      prev.filter((p) => p.product.id !== productId)
+    );
   };
 
   const handleToggleTable = (productId: string) => {
@@ -148,7 +177,11 @@ export const RestockCreate = () => {
     );
   };
 
-  const handleVariantQtyChange = (productId: string, variantId: string, value: string) => {
+  const handleVariantQtyChange = (
+    productId: string,
+    variantId: string,
+    value: string
+  ) => {
     setSelectedProducts((prev) =>
       prev.map((p) =>
         p.product.id === productId
@@ -163,7 +196,11 @@ export const RestockCreate = () => {
     );
   };
 
-  const handleVariantUnitChange = (productId: string, variantId: string, value: string) => {
+  const handleVariantUnitChange = (
+    productId: string,
+    variantId: string,
+    value: string
+  ) => {
     setSelectedProducts((prev) =>
       prev.map((p) =>
         p.product.id === productId
@@ -235,13 +272,15 @@ export const RestockCreate = () => {
       };
       await apiClient.post("/warehouses/add/stock", payload);
       navigate("/restock");
-      Toaster("success","Request restock berhasil dibuat")
+      Toaster("success", "Request restock berhasil dibuat");
     } catch (e) {
       console.error("Error saat mengirim request restock:", e);
       Swal.fire({
         icon: "error",
         title: "Gagal membuat request",
-        text: e?.response?.data?.message || "Terjadi kesalahan saat membuat request restock.",
+        text:
+          e?.response?.data?.message ||
+          "Terjadi kesalahan saat membuat request restock.",
       });
     } finally {
       setLoading(false);
@@ -252,19 +291,102 @@ export const RestockCreate = () => {
     <div className="p-5 y-6">
       <Breadcrumb title="Restock Produk" desc="Meminta restock dari gudang" />
       <div className="bg-white rounded-xl mt-6 shadow-md p-6">
-        <button
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 cursor-pointer mt-4"
-          onClick={() => setShowProductModal(true)}
-        >
-          <Search /> Cari dan Pilih Produk
-        </button>
+        <div className="flex gap-4">
+          <button
+            className="bg-blue-100 hover:bg-blue-200 border border-blue-500 text-blue-500 px-4 py-2 rounded-lg text-sm flex items-center gap-2 cursor-pointer mt-4"
+            onClick={() => setShowProductModal(true)}
+          >
+            <Search /> Cari dan Pilih Produk
+          </button>
+          <button
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 cursor-pointer mt-4"
+            onClick={() => setActiveAddStore(true)}
+          >
+            <IoAddCircle className="text-xl" /> Tambah Nama Toko
+          </button>
+        </div>
+
+        {activeAddStore && (
+          <div className="bg-white shadow rounded-lg w-full px-5 mt-5">
+            <div className="flex items-center justify-between py-5 border-b border-b-slate-300">
+              <h1 className="text-lg font-semibold">Tambah Nama Toko</h1>
+              <IoCloseCircle
+                onClick={() => setActiveAddStore(false)}
+                className="text-2xl cursor-pointer"
+              />
+            </div>
+            <div className="p-5">
+              <div className="space-y-3">
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Nama Toko
+                  </label>
+                  <input
+                    type="text"
+                    value={storeName}
+                    onChange={(e) => setStoreName(e.target.value)}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Masukan Nama Toko"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Total Harga
+                  </label>
+                  <input
+                    type="text"
+                    value={totalPrice}
+                    onChange={(e) => {
+                      let val = e.target.value.replace(/[^0-9]/g, "");
+                      setTotalPrice(val);
+                    }}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Masukan Total Harga"
+                  />
+                </div>
+              </div>
+              
+                <label className="block text-sm font-medium text-gray-700">
+                  Lokasi Toko
+                </label>
+                <input
+                  type="text"
+                  value={storeLocation}
+                  onChange={(e) => setStoreLocation(e.target.value)}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Masukan Lokasi Toko"
+                />
+              
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setActiveAddStore(false)}
+                  className="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={() => {
+                    // Logika simpan di sini, misalnya kirim ke API
+                    setActiveAddStore(false);
+                  }}
+                  className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600"
+                >
+                  Simpan
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {showProductModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <div
               ref={productModalRef}
               className="bg-white w-full max-w-6xl rounded-xl shadow-lg overflow-hidden"
             >
-              <div className="p-4 border-b border-gray-200 font-semibold text-lg">Cari Produk</div>
+              <div className="p-4 border-b border-gray-200 font-semibold text-lg">
+                Cari Produk
+              </div>
               <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-200">
                 <div className="flex-1 relative">
                   <input
@@ -283,7 +405,9 @@ export const RestockCreate = () => {
               <div className="p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 max-h-[400px] overflow-y-auto">
                 {paginatedProducts.length > 0 ? (
                   paginatedProducts.map((product: Product) => {
-                    const isSelected = selectedProducts.some((p) => p.product.id === product.id);
+                    const isSelected = selectedProducts.some(
+                      (p) => p.product.id === product.id
+                    );
                     return (
                       <div
                         key={product.id}
@@ -297,7 +421,10 @@ export const RestockCreate = () => {
                       >
                         <div className="relative">
                           <img
-                            src={ImageHelper(product.image) || "/images/big/img8.jpg"}
+                            src={
+                              ImageHelper(product.image) ||
+                              "/images/big/img8.jpg"
+                            }
                             alt={product.name}
                             className="w-full h-32 object-contain"
                           />
@@ -305,10 +432,14 @@ export const RestockCreate = () => {
                             {product.product_detail?.length || 0} Varian
                           </span>
                           <span className="absolute top-1 right-1 bg-blue-600 text-white text-xs px-2 py-0.5 rounded">
-                            {product.category.length > 10 ? product.category.slice(0,100) + "..." : product.category}
+                            {product.category.length > 10
+                              ? product.category.slice(0, 100) + "..."
+                              : product.category}
                           </span>
                         </div>
-                        <div className="mt-2 text-sm font-medium">{product.name}</div>
+                        <div className="mt-2 text-sm font-medium">
+                          {product.name}
+                        </div>
                         {isSelected && (
                           <div className="mt-2 text-xs text-green-700 font-semibold text-center">
                             Sudah dipilih
@@ -318,39 +449,50 @@ export const RestockCreate = () => {
                     );
                   })
                 ) : (
-                  <div className="col-span-full text-center text-gray-500">Produk tidak ditemukan</div>
+                  <div className="col-span-full text-center text-gray-500">
+                    Produk tidak ditemukan
+                  </div>
                 )}
               </div>
               <div className="border-t border-gray-200 px-4 py-3 flex justify-between items-center">
                 <span className="text-sm text-gray-600">
-                  Menampilkan {paginatedProducts.length} dari {filteredProducts.length} produk
+                  Menampilkan {paginatedProducts.length} dari{" "}
+                  {filteredProducts.length} produk
                 </span>
                 <div className="flex items-center gap-2 flex-wrap">
                   <button
                     disabled={currentPage === 1}
                     onClick={() => goToPage(currentPage - 1)}
                     className={`text-sm px-3 py-1 border rounded-md cursor-pointer ${
-                      currentPage === 1 ? "border-gray-200 text-gray-400 cursor-not-allowed" : "border-gray-300 hover:bg-gray-100"
+                      currentPage === 1
+                        ? "border-gray-200 text-gray-400 cursor-not-allowed"
+                        : "border-gray-300 hover:bg-gray-100"
                     }`}
                   >
                     Previous
                   </button>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => goToPage(page)}
-                      className={`text-sm px-3 py-1 border rounded-md cursor-pointer ${
-                        page === currentPage ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 hover:bg-gray-100"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (page) => (
+                      <button
+                        key={page}
+                        onClick={() => goToPage(page)}
+                        className={`text-sm px-3 py-1 border rounded-md cursor-pointer ${
+                          page === currentPage
+                            ? "bg-blue-600 text-white border-blue-600"
+                            : "border-gray-300 hover:bg-gray-100"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    )
+                  )}
                   <button
                     disabled={currentPage === totalPages}
                     onClick={() => goToPage(currentPage + 1)}
                     className={`text-sm px-3 py-1 border rounded-md cursor-pointer ${
-                      currentPage === totalPages ? "border-gray-200 text-gray-400 cursor-not-allowed" : "border-gray-300 hover:bg-gray-100"
+                      currentPage === totalPages
+                        ? "border-gray-200 text-gray-400 cursor-not-allowed"
+                        : "border-gray-300 hover:bg-gray-100"
                     }`}
                   >
                     Next
@@ -368,7 +510,10 @@ export const RestockCreate = () => {
         )}
 
         {selectedProducts.map((item: SelectedProduct) => (
-          <div key={item.product.id} className="mt-6 border border-gray-300 rounded-md p-5">
+          <div
+            key={item.product.id}
+            className="mt-6 border border-gray-300 rounded-md p-5"
+          >
             <div className="flex gap-5">
               <img
                 src={ImageHelper(item.product.image) || "/images/big/img8.jpg"}
@@ -378,7 +523,10 @@ export const RestockCreate = () => {
               <div className="flex-1 space-y-4">
                 <div className="flex justify-between">
                   <h1 className="font-semibold text-xl">{item.product.name}</h1>
-                  <X onClick={() => handleRemoveProduct(item.product.id)} className="cursor-pointer" />
+                  <X
+                    onClick={() => handleRemoveProduct(item.product.id)}
+                    className="cursor-pointer"
+                  />
                 </div>
                 <div className="flex justify-between text-sm text-gray-700">
                   <div>
@@ -387,11 +535,18 @@ export const RestockCreate = () => {
                   </div>
                   <div>
                     <p className="text-xs text-gray-400">Varian Dipilih</p>
-                    <p className="font-semibold">{item.variants.length} Varian</p>
+                    <p className="font-semibold">
+                      {item.variants.length} Varian
+                    </p>
                   </div>
-                  <div className="cursor-pointer" onClick={() => handleToggleTable(item.product.id)}>
+                  <div
+                    className="cursor-pointer"
+                    onClick={() => handleToggleTable(item.product.id)}
+                  >
                     <p className="text-xs text-gray-400">Detail</p>
-                    <p className="font-semibold">{item.showTable ? <ChevronUp /> : <ChevronDown />}</p>
+                    <p className="font-semibold">
+                      {item.showTable ? <ChevronUp /> : <ChevronDown />}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -403,7 +558,9 @@ export const RestockCreate = () => {
                     <tr>
                       <th className="p-4 font-medium text-left">No</th>
                       <th className="p-4 font-medium text-left">Nama Varian</th>
-                      <th className="p-4 font-medium text-left">Jumlah Request Stock</th>
+                      <th className="p-4 font-medium text-left">
+                        Jumlah Request Stock
+                      </th>
                       <th className="p-4 font-medium text-left">Unit</th>
                       <th className="p-4 font-medium text-left">Aksi</th>
                     </tr>
@@ -412,7 +569,9 @@ export const RestockCreate = () => {
                     {item.variants.map((variant: SelectedVariant, i) => (
                       <tr key={variant.id} className="hover:bg-gray-50">
                         <td className="p-6 align-top">{i + 1}</td>
-                        <td className="p-6 align-top">{variant.variant_name || variant.name}</td>
+                        <td className="p-6 align-top">
+                          {variant.variant_name || variant.name}
+                        </td>
                         <td className="p-6 align-top">
                           <input
                             type="number"
@@ -420,7 +579,11 @@ export const RestockCreate = () => {
                             placeholder="Masukan Jumlah"
                             value={variant.qty}
                             onChange={(e) =>
-                              handleVariantQtyChange(item.product.id, variant.id, e.target.value)
+                              handleVariantQtyChange(
+                                item.product.id,
+                                variant.id,
+                                e.target.value
+                              )
                             }
                           />
                         </td>
@@ -429,7 +592,11 @@ export const RestockCreate = () => {
                             className="w-full max-w-[150px] border border-gray-300 rounded-lg px-3 py-2"
                             value={variant.unit}
                             onChange={(e) =>
-                              handleVariantUnitChange(item.product.id, variant.id, e.target.value)
+                              handleVariantUnitChange(
+                                item.product.id,
+                                variant.id,
+                                e.target.value
+                              )
                             }
                           >
                             {units.map((unit: Unit) => (
@@ -440,7 +607,11 @@ export const RestockCreate = () => {
                           </select>
                         </td>
                         <td className="p-6 align-top cursor-pointer">
-                          <DeleteIcon onClick={() => handleRemoveVariant(item.product.id, variant.id)} />
+                          <DeleteIcon
+                            onClick={() =>
+                              handleRemoveVariant(item.product.id, variant.id)
+                            }
+                          />
                         </td>
                       </tr>
                     ))}
@@ -457,38 +628,55 @@ export const RestockCreate = () => {
               ref={variantModalRef}
               className="bg-white w-full max-w-5xl rounded-xl shadow-lg overflow-hidden"
             >
-              <div className="p-4 border-b border-gray-200 font-semibold text-lg">Pilih Varian</div>
+              <div className="p-4 border-b border-gray-200 font-semibold text-lg">
+                Pilih Varian
+              </div>
               <div className="p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 max-h-[400px] overflow-y-auto">
-                {(selectedProduct.product_detail || []).map((variant: Variant) => {
-                  const isSelected = selectedVariants.includes(variant.id);
-                  return (
-                    <div
-                      key={variant.id}
-                      onClick={() =>
-                        setSelectedVariants((prev) =>
-                          prev.includes(variant.id)
-                            ? prev.filter((v) => v !== variant.id)
-                            : [...prev, variant.id]
-                        )
-                      }
-                      className={`border rounded-lg p-2 shadow cursor-pointer transition ${
-                        isSelected ? "border-blue-600 ring-2 ring-blue-200" : "border-gray-200 hover:shadow-md"
-                      }`}
-                    >
-                      <img
-                        src={ImageHelper(variant.product_image) || "/images/big/img8.jpg"}
-                        alt={variant.variant_name || variant.name}
-                        className="w-full h-32 object-contain"
-                      />
-                      <div className="mt-2 text-sm font-medium">{variant.variant_name || variant.name}</div>
-                      <div className="text-xs text-gray-500">{variant.product_code}</div>
-                      <div className="text-xs text-green-600">{variant.stock ? `${variant.stock} stok` : ""}</div>
-                    </div>
-                  );
-                })}
+                {(selectedProduct.product_detail || []).map(
+                  (variant: Variant) => {
+                    const isSelected = selectedVariants.includes(variant.id);
+                    return (
+                      <div
+                        key={variant.id}
+                        onClick={() =>
+                          setSelectedVariants((prev) =>
+                            prev.includes(variant.id)
+                              ? prev.filter((v) => v !== variant.id)
+                              : [...prev, variant.id]
+                          )
+                        }
+                        className={`border rounded-lg p-2 shadow cursor-pointer transition ${
+                          isSelected
+                            ? "border-blue-600 ring-2 ring-blue-200"
+                            : "border-gray-200 hover:shadow-md"
+                        }`}
+                      >
+                        <img
+                          src={
+                            ImageHelper(variant.product_image) ||
+                            "/images/big/img8.jpg"
+                          }
+                          alt={variant.variant_name || variant.name}
+                          className="w-full h-32 object-contain"
+                        />
+                        <div className="mt-2 text-sm font-medium">
+                          {variant.variant_name || variant.name}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {variant.product_code}
+                        </div>
+                        <div className="text-xs text-green-600">
+                          {variant.stock ? `${variant.stock} stok` : ""}
+                        </div>
+                      </div>
+                    );
+                  }
+                )}
               </div>
               <div className="border-t border-gray-200 px-4 py-3 flex justify-between items-center">
-                <span className="text-sm text-gray-600">Varian dipilih ({selectedVariants.length})</span>
+                <span className="text-sm text-gray-600">
+                  Varian dipilih ({selectedVariants.length})
+                </span>
                 <div className="flex gap-2">
                   <button
                     onClick={() => {
@@ -503,9 +691,9 @@ export const RestockCreate = () => {
                     className="bg-blue-600 text-white px-4 py-1.5 rounded-md text-sm hover:bg-blue-700 cursor-pointer"
                     disabled={selectedVariants.length === 0}
                     onClick={() => {
-                      const selected = (selectedProduct.product_detail || []).filter((v: Variant) =>
-                        selectedVariants.includes(v.id)
-                      );
+                      const selected = (
+                        selectedProduct.product_detail || []
+                      ).filter((v: Variant) => selectedVariants.includes(v.id));
                       handleAddVariants(selected);
                     }}
                   >
