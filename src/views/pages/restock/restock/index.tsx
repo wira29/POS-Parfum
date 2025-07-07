@@ -175,11 +175,8 @@ export const RestockIndex = () => {
                 <div className="text-green-600 text-sm mb-4">
                   Request pada : {new Date(card.requested_at).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}
                 </div>
-                <div className="flex gap-3 w-full justify-center">
-                  <button className={`${statusMap[card.status]?.className || "bg-gray-100 text-gray-600"} px-5 py-2 rounded-md font-semibold`}>
-                    {statusMap[card.status]?.label || card.status}
-                  </button>
-                  <button className="bg-blue-600 text-white px-5 py-2 rounded-md font-semibold cursor-pointer" onClick={() => navigate(`/restock/${card.id}/details`)}>
+                <div className="w-full">
+                  <button className="bg-blue-600 w-full hover:bg-blue-700 text-white px-5 py-2 rounded-md font-semibold cursor-pointer" onClick={() => navigate(`/restock/${card.id}/details`)}>
                     Detail
                   </button>
                 </div>

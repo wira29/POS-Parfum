@@ -114,7 +114,7 @@ const FinancialDashboard = () => {
   ];
 
   return (
-    <div className="mt-5 bg-gray-50 min-h-screen">
+    <div className="mt-5 bg-gray-50">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <div className="bg-white rounded-xl p-4 border border-slate-200">

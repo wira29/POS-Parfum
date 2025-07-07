@@ -2,6 +2,7 @@ import { SearchInput } from "@/views/components/SearchInput";
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { requests } from "@/core/data/requestRestock";
+import { Breadcrumb } from "@/views/components/Breadcrumb";
 
 const Card: React.FC<React.PropsWithChildren<{ className?: string }>> = ({
   children,
@@ -73,11 +74,12 @@ const ListReqProduct: React.FC = () => {
   });
 
   const HandleDetail = (id: number) => {
-    navigate(`/request-stock/${id}`);
+    navigate(`/request-pembelian/${id}/detail`);
   };
 
   return (
     <div className="flex flex-col gap-5 py-5">
+      <Breadcrumb title="Request Pembelian" desc="menampilkan request pembelian"/>
       <div className="w-1/4 mt-5">
         <SearchInput
           onChange={(e) => setSearch(e.target.value)}
@@ -174,10 +176,7 @@ const ListReqProduct: React.FC = () => {
 
                 {needDropdown && (
                   <div className="py-5 mt-4 border-t-2 border-dotted border-slate-300">
-                    <button
-                      onClick={() => toggle(req.id)}
-                      className="mt-4 w-full text-center text-sm font-medium text-gray-400 hover:text-gray-500 transition-colors cursor-pointer"
-                    >
+                    <button className="mt-4 w-full text-center text-sm font-medium text-gray-400 hover:text-gray-500 transition-colors cursor-pointer">
                       {showAll ? "Tutup" : `+${restCount} Barang Lainnya`}
                     </button>
                   </div>

@@ -44,7 +44,6 @@ const StatistikPendapatan: React.FC<StatistikPendapatanProps> = ({
     const maxValue = Math.max(...data);
     const maxIndex = data.indexOf(maxValue);
 
-
     return {
       series: [{ name: "Jumlah", data }],
       options: {
@@ -130,9 +129,13 @@ const StatistikPendapatan: React.FC<StatistikPendapatanProps> = ({
       } as ApexCharts.ApexOptions,
     };
   }, [chartData]);
- const years = Array.from({ length: 20 }, (_, i) => new Date().getFullYear() - i);
+  const years = Array.from(
+    { length: 20 },
+    (_, i) => new Date().getFullYear() - i
+  );
+
   return (
-   <div className="bg-white rounded-2xl shadow p-6">
+    <div className="bg-white rounded-2xl shadow p-6">
       <header className="flex items-center justify-between mb-5 gap-3 flex-wrap">
         <h1 className="text-3xl font-semibold">Statistik Pendapatan</h1>
         <select
