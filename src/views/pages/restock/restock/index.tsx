@@ -1,238 +1,276 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
 import AddButton from "@/views/components/AddButton";
 import { SearchInput } from "@/views/components/SearchInput";
 import { Filter } from "@/views/components/Filter";
 import { useNavigate } from "react-router-dom";
 import { useApiClient } from "@/core/helpers/ApiClient";
-import { ImageHelper } from "@/core/helpers/ImageHelper";
 import { FilterModal } from "@/views/components/filter/RestockFilterModal";
 
-const statusMap = {
-  Menunggu: {
-    label: "Menunggu",
-    className: "bg-gray-100 text-gray-600",
-  },
-  Diproses: {
-    label: "Diproses",
-    className: "bg-yellow-100 text-yellow-700",
-  },
-  Dikirim: {
-    label: "Dikirim",
-    className: "bg-blue-100 text-blue-600",
-  },
-  approved: {
-    label: "Disetujui",
-    className: "bg-green-100 text-green-700",
-  },
-  rejected: {
-    label: "Ditolak",
-    className: "bg-red-100 text-red-700",
-  },
-};
+interface VariantItem {
+  requested_stock: number;
+  unit_code: string;
+}
+
+interface ProductItem {
+  product_name: string;
+  variant_count: number;
+  variants: VariantItem[];
+}
+
+interface RestockHistoryItem {
+  created_at: string;
+  products: ProductItem[];
+}
+
+interface Pagination {
+  current_page: number;
+  last_page: number;
+}
 
 export const RestockIndex = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilter, setShowFilter] = useState(false);
-
-  const [statusFilter, setStatusFilter] = useState("");
-  const [kategoriFilter, setKategoriFilter] = useState("");
-  const [warehouseFilter, setwarehouseFilter] = useState("");
-  const [produkFilter, setProdukFilter] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const [minRequest, setMinRequest] = useState("");
-  const [maxRequest, setMaxRequest] = useState("");
-
-  const [pendingStatusFilter, setPendingStatusFilter] = useState("");
-  const [pendingKategoriFilter, setPendingKategoriFilter] = useState("");
-  const [pendingWarehouseFilter, setPendingWarehouseFilter] = useState("");
-  const [pendingProdukFilter, setPendingProdukFilter] = useState("");
+  const [minStock, setMinStock] = useState("");
+  const [maxStock, setMaxStock] = useState("");
   const [pendingDateFrom, setPendingDateFrom] = useState("");
   const [pendingDateTo, setPendingDateTo] = useState("");
-  const [pendingMinRequest, setPendingMinRequest] = useState("");
-  const [pendingMaxRequest, setPendingMaxRequest] = useState("");
-
-  const [data, setData] = useState([]);
-  const [pagination, setPagination] = useState<any>(null);
+  const [pendingMinStock, setPendingMinStock] = useState("");
+  const [pendingMaxStock, setPendingMaxStock] = useState("");
+  const [data, setData] = useState<RestockHistoryItem[]>([]);
+  const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading, setLoading] = useState(false);
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
   const apiClient = useApiClient();
-  const isFilterActive = !!(dateTo || minRequest || maxRequest || dateFrom || statusFilter || kategoriFilter || warehouseFilter || produkFilter || statusFilter);
 
-  const kategoriOptions = ["Parfum Siang", "Parfum Malam", "Parfum Sore"];
-  const produkOptions = ["Parfum A", "Parfum B", "Parfum C"];
-  const warehouseOptions = ["Warehouse A", "Warehouse B"];
+  const isFilterActive = !!(dateFrom || dateTo || minStock || maxStock);
 
-  const fetchData = async (params: any = {}) => {
+  useEffect(() => {
+    if (showFilter) {
+      setPendingDateFrom(dateFrom);
+      setPendingDateTo(dateTo);
+      setPendingMinStock(minStock);
+      setPendingMaxStock(maxStock);
+    }
+  }, [showFilter]);
+
+  const fetchData = useCallback(async (params: { page?: string } = {}) => {
     setLoading(true);
     try {
       const query = new URLSearchParams();
-      query.append("per_page", "5");
+      query.append("per_page", "8");
       if (params.page) query.append("page", params.page);
-      if (searchQuery) query.append("search", searchQuery);
-      if (statusFilter) query.append("status", statusFilter);
-      if (warehouseFilter) query.append("warehouse", warehouseFilter);
-      if (produkFilter) query.append("produk", produkFilter);
-      if (kategoriFilter) query.append("kategori", kategoriFilter);
-      if (dateFrom) query.append("date_from", dateFrom);
-      if (dateTo) query.append("date_to", dateTo);
-      if (minRequest) query.append("min_request", minRequest);
-      if (maxRequest) query.append("max_request", maxRequest);
+      if (searchQuery) query.append("search", searchQuery.trim());
+      if (dateFrom) query.append("from_date", dateFrom);
+      if (dateTo) query.append("until_date", dateTo);
+      if (minStock) query.append("min_stock", minStock);
+      if (maxStock) query.append("max_stock", maxStock);
 
-      const res = await apiClient.get(`/stock-request?${query.toString()}`);
+      const res = await apiClient.get<{ data: RestockHistoryItem[]; pagination: Pagination }>(
+        `/warehouses/history/stock?${query.toString()}`
+      );
+
       setData(Array.isArray(res.data.data) ? res.data.data : []);
-      setPagination(res.data.pagination);
+      setPagination(res.data.pagination || null);
     } catch (err) {
+      console.error("Error fetching restock history:", err);
       setData([]);
+      setPagination(null);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  };
+  }, [searchQuery, dateFrom, dateTo, minStock, maxStock]);
 
   useEffect(() => {
     fetchData();
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [searchQuery]);
+  }, [fetchData]);
 
   const handleApplyFilter = () => {
-    setStatusFilter(pendingStatusFilter);
-    setKategoriFilter(pendingKategoriFilter);
-    setwarehouseFilter(pendingWarehouseFilter);
-    setProdukFilter(pendingProdukFilter);
     setDateFrom(pendingDateFrom);
     setDateTo(pendingDateTo);
-    setMinRequest(pendingMinRequest);
-    setMaxRequest(pendingMaxRequest);
-    fetchData();
+    setMinStock(pendingMinStock);
+    setMaxStock(pendingMaxStock);
+    setShowFilter(false);
+  };
+
+  const handleResetFilter = () => {
+    setDateFrom("");
+    setDateTo("");
+    setMinStock("");
+    setMaxStock("");
+    setPendingDateFrom("");
+    setPendingDateTo("");
+    setPendingMinStock("");
+    setPendingMaxStock("");
+    setShowFilter(false);
   };
 
   const handlePageChange = (page: string) => {
     fetchData({ page });
   };
 
-  return (
-    <div className="p-6 space-y-6">
-      <Breadcrumb title="Restock Produk" desc="Menampilkan daftar restock dari gudang" />
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  };
 
-      <div className="p-4 flex flex-col gap-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2 mb-4 w-full sm:w-auto max-w-lg">
-            <SearchInput value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-            <div className="relative">
-              <Filter onClick={() => setShowFilter(true)} />
-              {isFilterActive && (
-                <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-white" />
-              )}
+  const getTotalRequestedStock = (products: ProductItem[]) =>
+    products.reduce(
+      (total, product) =>
+        total + product.variants.reduce((sum, v) => sum + v.requested_stock, 0),
+      0
+    );
+
+  const renderItem = (item: RestockHistoryItem, index: number) => (
+    <div
+      key={index}
+      className="bg-white shadow border border-slate-200 p-6 rounded-xl flex flex-col lg:flex-row gap-6 items-stretch mb-6"
+    >
+      <div className="flex-1 flex flex-col gap-2 justify-between">
+        <div className="border border-gray-200 rounded-xl p-4">
+          {item.products.slice(0, 2).map((product, i) => (
+            <div
+              key={i}
+              className={`flex flex-col md:flex-row md:items-center md:justify-between py-2 ${
+                i !== 0 ? "border-t-2 border-dashed border-gray-300 mt-2 pt-4" : ""
+              }`}
+            >
+              <div>
+                <div className="font-semibold text-gray-800">Nama Produk</div>
+                <div className="text-gray-600">{product.product_name}</div>
+              </div>
+              <div className="flex flex-col md:items-end gap-1 mt-2 md:mt-0">
+                <div className="font-semibold text-gray-800">Varian Dipilih</div>
+                <div className="text-gray-600">{product.variant_count} Varian</div>
+              </div>
+              <div className="flex flex-col md:items-end gap-1 mt-2 md:mt-0">
+                <div className="font-semibold text-gray-800">Jumlah Request</div>
+                <div className="text-green-600 font-medium">
+                  {product.variants.reduce((t, v) => t + v.requested_stock, 0).toLocaleString()}{" "}
+                  {product.variants[0]?.unit_code || "Unit"}
+                </div>
+              </div>
+            </div>
+          ))}
+          {item.products.length > 2 && (
+            <div
+              onClick={() => navigate(`/restock/${item.created_at}/details`)}
+              className="text-center text-gray-400 text-sm mt-4 border-t-2 border-dashed border-gray-300 pt-5 cursor-pointer hover:text-gray-600"
+            >
+              {item.products.length - 2}+ product lainnya
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="flex flex-col items-center justify-center min-w-[280px] rounded-xl p-6">
+        <div className="mb-4">
+          <div className="relative">
+            <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mb-2">
+              <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+              </svg>
             </div>
           </div>
-          <div className="w-full sm:w-auto">
-            <AddButton onClick={() => navigate("/restock/create")}>
-              Tambah Restock
-            </AddButton>
+        </div>
+        <div className="font-semibold text-lg text-center mb-2">
+          Re-Stock {item.products.length} Produk
+        </div>
+        <div className="text-green-600 text-sm mb-4 text-center">
+          Re-stock pada: {formatDate(item.created_at)}
+        </div>
+        <button
+          className="bg-blue-600 w-full hover:bg-blue-700 text-white px-5 py-2 cursor-pointer rounded-lg font-semibold transition-colors duration-200"
+          onClick={() => navigate(`/restock/${item.created_at}/details`)}
+        >
+          Detail
+        </button>
+      </div>
+    </div>
+  );
+
+  const renderPagination = () =>
+    pagination && (
+      <div className="flex justify-end mt-4">
+        <div className="flex items-center gap-1">
+          <button
+            className={`px-3 py-1 rounded border ${
+              pagination.current_page === 1
+                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                : "bg-white text-gray-700 hover:bg-blue-50"
+            }`}
+            disabled={pagination.current_page === 1}
+            onClick={() => handlePageChange((pagination.current_page - 1).toString())}
+          >
+            «
+          </button>
+          {Array.from({ length: pagination.last_page }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              className={`px-3 py-1 rounded border ${
+                page === pagination.current_page
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-gray-700 hover:bg-blue-50"
+              }`}
+              disabled={page === pagination.current_page}
+              onClick={() => handlePageChange(page.toString())}
+            >
+              {page}
+            </button>
+          ))}
+          <button
+            className={`px-3 py-1 rounded border ${
+              pagination.current_page === pagination.last_page
+                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                : "bg-white text-gray-700 hover:bg-blue-50"
+            }`}
+            disabled={pagination.current_page === pagination.last_page}
+            onClick={() => handlePageChange((pagination.current_page + 1).toString())}
+          >
+            »
+          </button>
+        </div>
+      </div>
+    );
+
+  return (
+    <div className="p-6 space-y-6">
+      <Breadcrumb title="Riwayat Stock Warehouse" desc="Menampilkan riwayat stock dari warehouse" />
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-2 w-full sm:w-auto max-w-lg">
+          <SearchInput
+            value={searchQuery}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+              debounceTimeout.current = setTimeout(() => {
+                setSearchQuery(value);
+              }, 400);
+            }}
+            placeholder="Cari riwayat restock..."
+          />
+          <div className="relative">
+            <Filter onClick={() => setShowFilter(true)} />
+            {isFilterActive && (
+              <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-white" />
+            )}
           </div>
         </div>
+        <AddButton onClick={() => navigate("/restock/create")}>Tambah Restock</AddButton>
       </div>
 
       {loading ? (
         <div className="text-center text-gray-400 py-10">Loading...</div>
       ) : data.length > 0 ? (
         <>
-          {data.map((card: any) => (
-            <div key={card.id} className="bg-white shadow-md p-6 rounded-xl flex flex-col md:flex-row gap-6 items-stretch mb-6">
-              <div className="flex-1 flex flex-col gap-2 justify-between">
-                <div className="border border-gray-200 rounded-xl p-4">
-                  {card.requested_stock.slice(0, 2).map((prod: any, idx2: number) => (
-                    <div key={idx2} className={`flex flex-col md:flex-row md:items-center md:justify-between py-2 ${idx2 !== 0 ? "border-t border-dashed border-gray-300 mt-2 pt-4" : ""}`}>
-                      <div>
-                        <div className="font-semibold">Product</div>
-                        <div className="text-gray-500 text-sm">{prod.variant_name || `Varian ${idx2 + 1}`}</div>
-                      </div>
-                      <div className="flex flex-col md:items-end gap-1 mt-2 md:mt-0">
-                        <div className="font-semibold text-sm">Varian Dipilih</div>
-                        <div className="text-gray-800">123 Varian</div>
-                      </div>
-                      <div className="flex flex-col md:items-end gap-1 mt-2 md:mt-0">
-                        <div className="font-semibold text-sm">Jumlah Request</div>
-                        <div className="text-green-600">{prod.requested_stock} Gram</div>
-                      </div>
-                    </div>
-                  ))}
-                  <div className="text-center text-gray-400 text-sm mt-4">
-                    {card.requested_stock.length > 2 && `+${card.requested_stock.length - 2} Produk Lainnya`}
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-col items-center justify-center min-w-[220px]">
-                <img
-                  src={ImageHelper(card.warehouse.image)}
-                  alt=""
-                  className="w-44 h-28 object-cover rounded-lg mb-2"
-                />
-                <div className="font-semibold text-lg">{card.warehouse?.name}</div>
-                <div className="text-green-600 text-sm mb-4">
-                  Request pada : {new Date(card.requested_at).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}
-                </div>
-                <div className="w-full">
-                  <button className="bg-blue-600 w-full hover:bg-blue-700 text-white px-5 py-2 rounded-md font-semibold cursor-pointer" onClick={() => navigate(`/restock/${card.id}/details`)}>
-                    Detail
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-          {pagination && (
-            <div className="flex justify-end mt-4">
-              <div className="flex items-center gap-1">
-                <button
-                  className={`px-3 py-1 rounded border cursor-pointer ${!pagination.prev_page_url ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-white text-gray-700 hover:bg-blue-50"}`}
-                  disabled={!pagination.prev_page_url}
-                  onClick={() => {
-                    if (pagination.prev_page_url) {
-                      const url = new URL(pagination.prev_page_url);
-                      const page = url.searchParams.get("page");
-                      handlePageChange(page || "1");
-                    }
-                  }}
-                >
-                  &laquo;
-                </button>
-                {pagination.links
-                  .filter((l: any) => /^\d+$/.test(l.label))
-                  .map((link: any, idx: number) => (
-                    <button
-                      key={idx}
-                      className={`px-3 py-1 rounded border cursor-pointer ${link.active ? "bg-blue-600 text-white" : "bg-white text-gray-700 hover:bg-blue-50"}`}
-                      disabled={link.active}
-                      onClick={() => {
-                        if (link.url) {
-                          const url = new URL(link.url);
-                          const page = url.searchParams.get("page");
-                          handlePageChange(page || "1");
-                        }
-                      }}
-                    >
-                      {link.label}
-                    </button>
-                  ))}
-                <button
-                  className={`px-3 py-1 rounded border cursor-pointer ${!pagination.next_page_url ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-white text-gray-700 hover:bg-blue-50"}`}
-                  disabled={!pagination.next_page_url}
-                  onClick={() => {
-                    if (pagination.next_page_url) {
-                      const url = new URL(pagination.next_page_url);
-                      const page = url.searchParams.get("page");
-                      handlePageChange(page || "1");
-                    }
-                  }}
-                >
-                  &raquo;
-                </button>
-              </div>
-            </div>
-          )}
+          {data.map(renderItem)}
+          {renderPagination()}
         </>
       ) : (
         <div className="text-center text-gray-400 py-10">Tidak ada data</div>
@@ -241,26 +279,16 @@ export const RestockIndex = () => {
       <FilterModal
         open={showFilter}
         onClose={() => setShowFilter(false)}
-        statusFilter={pendingStatusFilter}
-        setStatusFilter={setPendingStatusFilter}
-        kategoriFilter={pendingKategoriFilter}
-        setKategoriFilter={setPendingKategoriFilter}
-        warehouseFilter={pendingWarehouseFilter}
-        setwarehouseFilter={setPendingWarehouseFilter}
-        produkFilter={pendingProdukFilter}
-        setProdukFilter={setPendingProdukFilter}
         dateFrom={pendingDateFrom}
         setDateFrom={setPendingDateFrom}
         dateTo={pendingDateTo}
         setDateTo={setPendingDateTo}
-        minRequest={pendingMinRequest}
-        setMinRequest={setPendingMinRequest}
-        maxRequest={pendingMaxRequest}
-        setMaxRequest={setPendingMaxRequest}
-        produkOptions={produkOptions}
-        warehouseOptions={warehouseOptions}
-        kategoriOptions={kategoriOptions}
+        minStock={pendingMinStock}
+        setMinStock={setPendingMinStock}
+        maxStock={pendingMaxStock}
+        setMaxStock={setPendingMaxStock}
         onApply={handleApplyFilter}
+        onReset={handleResetFilter}
       />
     </div>
   );

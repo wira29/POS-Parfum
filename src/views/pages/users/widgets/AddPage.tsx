@@ -29,7 +29,8 @@ export default function UserCreateSelect() {
     const fetchUserRole = async () => {
         try {
             const meRes = await api.get("/me");
-            const currentUserRoles = meRes.data.data.roles.map((r: any) => r.name);
+            const rawRoles = meRes.data.data.roles ?? meRes.data.data.role ?? [];
+            const currentUserRoles = rawRoles.map((r: any) => r.name);
             setUserRoles(currentUserRoles);
 
             const roleRes = await api.get("/roles?per_page=100");

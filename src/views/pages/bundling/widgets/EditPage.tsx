@@ -129,7 +129,6 @@ export default function BundlingEdit() {
         const data = res.data?.data;
 
         setProductName(data.name || "");
-        setProductCode(data.kode_Bundling || "");
         setPrice(data.price || 0);
         setStock(data.stock || 0);
         setDescription(data.description || "");

@@ -1,177 +1,172 @@
-import { useState, useEffect } from "react";
+import { ChangeEvent, MouseEvent } from "react";
+
+interface FilterModalProps {
+  open: boolean;
+  onReset: () => void;
+  onClose: () => void;
+  dateFrom: string;
+  setDateFrom: (value: string) => void;
+  dateTo: string;
+  setDateTo: (value: string) => void;
+  minStock: string;
+  setMinStock: (value: string) => void;
+  maxStock: string;
+  setMaxStock: (value: string) => void;
+  onApply: () => void;
+  realMinStock: number | null; // Tambahan untuk minimal real stock
+}
 
 export const FilterModal = ({
   open,
+  onReset,
   onClose,
-  statusFilter,
-  setStatusFilter,
-  warehouseFilter,
-  setwarehouseFilter,
-  produkFilter,
-  setProdukFilter,
-  kategoriFilter,
-  setKategoriFilter,
-  kategoriOptions,
-  produkOptions,
-  warehouseOptions,
   dateFrom,
   setDateFrom,
   dateTo,
   setDateTo,
-  minRequest,
-  setMinRequest,
-  maxRequest,
-  setMaxRequest,
+  minStock,
+  setMinStock,
+  maxStock,
+  setMaxStock,
   onApply,
-}) => {
-  const [searchWarehouse, setSearchWarehouse] = useState("");
-
-  useEffect(() => {
-    setSearchWarehouse(warehouseFilter || "");
-  }, [warehouseFilter]);
-
-  const filteredWarehouses = warehouseOptions.filter((w) =>
-    w.toLowerCase().includes(searchWarehouse.toLowerCase())
-  );
-
+  realMinStock,
+}: FilterModalProps) => {
   if (!open) return null;
 
+  const handleReset = () => {
+    setDateFrom("");
+    setDateTo("");
+    setMinStock("");
+    setMaxStock("");
+    onReset();
+  };
+
+  const handleInputChange = (setter: (value: string) => void) => (
+    e: ChangeEvent<HTMLInputElement>
+  ) => {
+    setter(e.target.value);
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-      <div className="bg-white rounded-xl shadow-lg p-8 min-w-[500px] max-w-[600px] w-full max-h-[90vh] overflow-y-auto">
-        <div className="font-bold text-2xl mb-6">Filter Data</div>
-        <div className="border-t border-gray-300 mb-6" />
-
-        <div className="space-y-5">
-          <div>
-            <label className="block mb-1 font-medium">Warehouse</label>
-            <div className="relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-800">Filter Data</h2>
+        </div>
+        <div className="p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Minimum Jumlah Restock
+              </label>
               <input
-                type="text"
-                placeholder="Ketik atau pilih..."
-                className="w-full border border-gray-300 rounded px-3 py-2 pr-8"
-                value={searchWarehouse}
-                onChange={(e) => setSearchWarehouse(e.target.value)}
+                type="number"
+                placeholder={
+                  realMinStock !== null
+                    ? `Contoh: ${realMinStock}`
+                    : "Enter Amount"
+                }
+                className="w-full outline-none px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                value={minStock}
+                onChange={handleInputChange(setMinStock)}
               />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-                <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-                  <path d="M7 10l5 5 5-5" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
-              {searchWarehouse && (
-                <div className="absolute left-0 right-0 bg-white border border-gray-300 rounded shadow mt-1 z-10 max-h-40 overflow-y-auto">
-                  {filteredWarehouses.length === 0 && (
-                    <div className="px-3 py-2 text-gray-400 text-sm">Tidak ditemukan</div>
-                  )}
-                  {filteredWarehouses.map((w, idx) => (
-                    <div
-                      key={idx}
-                      className="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm"
-                      onClick={() => {
-                        setwarehouseFilter(w);
-                        setSearchWarehouse(w);
-                      }}
-                    >
-                      {w}
-                    </div>
-                  ))}
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Maximum Jumlah Restock
+              </label>
+              <input
+                type="number"
+                placeholder="Enter Amount"
+                className="w-full px-3 py-2 border outline-none border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                value={maxStock}
+                onChange={handleInputChange(setMaxStock)}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                From Date
+              </label>
+              <div className="relative">
+                <input
+                  type="date"
+                  className="w-full px-3 py-2 border outline-none border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                  value={dateFrom}
+                  onChange={handleInputChange(setDateFrom)}
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <svg
+                    className="w-4 h-4 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
                 </div>
-              )}
+              </div>
             </div>
-          </div>
-
-          <div>
-            <label className="block mb-1 font-medium">Status</label>
-            <select
-              className="w-full border border-gray-300 rounded px-3 py-2"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="">Pilih status</option>
-              <option value="pending">Menunggu</option>
-              <option value="Diproses">Diproses</option>
-              <option value="Dikirim">Dikirim</option>
-              <option value="approved">Disetujui</option>
-              <option value="rejected">Ditolak</option>
-            </select>
-          </div>
-
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <label className="block mb-1 font-medium">Dari Tanggal</label>
-              <input
-                type="date"
-                className="w-full border border-gray-300 rounded px-3 py-2"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-              />
-            </div>
-            <div className="flex-1">
-              <label className="block mb-1 font-medium">Hingga Tanggal</label>
-              <input
-                type="date"
-                className="w-full border border-gray-300 rounded px-3 py-2"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <label className="block mb-1 font-medium">Minimum Request</label>
-              <input
-                type="number"
-                className="w-full border border-gray-300 rounded px-3 py-2"
-                value={minRequest}
-                onChange={(e) => setMinRequest(e.target.value)}
-              />
-            </div>
-            <div className="flex-1">
-              <label className="block mb-1 font-medium">Maksimum Request</label>
-              <input
-                type="number"
-                className="w-full border border-gray-300 rounded px-3 py-2"
-                value={maxRequest}
-                onChange={(e) => setMaxRequest(e.target.value)}
-              />
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                To Date
+              </label>
+              <div className="relative">
+                <input
+                  type="date"
+                  className="w-full px-3 py-2 border outline-none border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                  value={dateTo}
+                  onChange={handleInputChange(setDateTo)}
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <svg
+                    className="w-4 h-4 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="border-t border-gray-300 mt-8 mb-6" />
-        <div className="flex justify-between">
+        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
           <button
-            className="px-5 py-2 rounded border border-gray-300 text-gray-500 font-semibold"
-            onClick={() => {
-              setSearchWarehouse("");
-              setStatusFilter("");
-              setDateFrom("");
-              setDateTo("");
-              setMinRequest("");
-              setMaxRequest("");
-              setwarehouseFilter("");
-              setProdukFilter("");
-              setKategoriFilter("");
-            }}
+            className="px-4 py-2 text-gray-600 border border-slate-300 rounded hover:text-gray-800 font-medium transition-colors text-sm cursor-pointer"
+            onClick={handleReset}
           >
             Reset
           </button>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <button
-              className="px-5 py-2 rounded border border-gray-300 text-gray-500 font-semibold"
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 font-medium transition-colors text-sm cursor-pointer"
               onClick={onClose}
             >
-              Batal
+              Cancel
             </button>
             <button
-              className="px-5 py-2 rounded bg-blue-600 text-white font-semibold"
-              onClick={() => {
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium transition-colors text-sm cursor-pointer"
+              onClick={(e: MouseEvent<HTMLButtonElement>) => {
                 onApply();
                 onClose();
               }}
             >
-              Terapkan
+              Apply
             </button>
           </div>
         </div>

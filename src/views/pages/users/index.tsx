@@ -64,14 +64,14 @@ export default function UserPage() {
 
     setLoading(true);
     try {
-      const response = await apiClient.get(`/users?page=${page}&per_page=8&role=${myRole}`);
+      const response = await apiClient.get(`/users?page=${page}&per_page=8`);
       const usersData = response.data.data;
       const mappedUsers: User[] = usersData.map((item: any) => ({
         id: item.id,
         name: item.name,
         email: item.email,
         role: item.roles?.[0] || "-",
-        image: "/images/profile/user-1.jpg",
+        image: item.image ? `${import.meta.env.VITE_BASE_URL}/${item.image}` : "/images/profile/user-1.jpg",
         created_at: item.created_at,
         roles: item.roles?.map((r: string) => ({ name: r })) || [],
       }));
