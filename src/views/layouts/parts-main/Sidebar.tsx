@@ -82,13 +82,14 @@ const menuItems = [
     icon: <TbShoppingCart />,
     path: "/outlets",
     isDropdown: true,
-    roles: ["warehouse", "owner"],
+    roles: ["warehouse", "owner","outlet"],
     children: [
-      { label: "Kasir", icon: <TbShoppingCart />, path: "/outlets" },
+      { label: "Kasir", icon: <TbShoppingCart />, path: "/outlets", roles:["warehouse","cashier"] },
       {
         label: "Riwayat Penjualan",
         icon: <FiTag />,
         path: "/riwayat-penjualan",
+        roles: ["warehouse", "owner","outlet"]
       },
     ],
   },
@@ -202,22 +203,10 @@ const menuItems = [
         roles: ["owner", "warehouse", "retail"],
       },
       {
-        label: "Laporan",
-        icon: <TbCoinTakaFilled />,
-        path: "/laporan",
-        roles: ["owner", "outlet"],
-      },
-      {
         label: "Pengeluaran",
         icon: <Wallet2Icon />,
         path: "/pengeluaran",
         roles: ["owner", "outlet"],
-      },
-      {
-        label: "Riwayat Penjualan",
-        icon: <FiTag />,
-        path: "/riwayat-penjualan",
-        roles: ["owner", "outlet", "warehouse"],
       },
     ],
     more: [
@@ -510,21 +499,6 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                             </li>
                           );
                         })}
-                        <li>
-                          <button
-                            className="px-3 py-1 border border-gray-300 rounded text-xs text-gray-700 hover:bg-gray-100 transition w-fit mt-2"
-                            style={{ minWidth: 100 }}
-                            type="button"
-                            onClick={() =>
-                              setOpenDropdowns((prev) => ({
-                                ...prev,
-                                [item.label]: false,
-                              }))
-                            }
-                          >
-                            Sembunyikan
-                          </button>
-                        </li>
                       </ul>
                     )}
 
