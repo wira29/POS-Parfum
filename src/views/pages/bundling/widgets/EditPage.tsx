@@ -127,9 +127,10 @@ export default function BundlingEdit() {
       try {
         const res = await apiClient.get(`/product-bundling/${id}`);
         const data = res.data?.data;
+
         setProductName(data.name || "");
         setProductCode(data.kode_Bundling || "");
-        setPrice(data.harga || 0);
+        setPrice(data.price || 0);
         setStock(data.stock || 0);
         setDescription(data.description || "");
         setCategory(
@@ -145,7 +146,8 @@ export default function BundlingEdit() {
             quantity: mat.quantity,
             unit_id: mat.unit_id,
             product_name: mat.product_name,
-            variant_name: mat.variant_name
+            variant_name: mat.variant_name,
+            unit_code: mat.unit_code,
           }));
 
           setComposition(newComposition);
@@ -167,8 +169,10 @@ export default function BundlingEdit() {
         Toaster("error", "Gagal mengambil data bundling");
       }
     };
+
     fetchBundling();
   }, [id, categories]);
+
 
   useEffect(() => {
     const handler = (e) => {
