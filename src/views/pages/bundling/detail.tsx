@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { useApiClient } from "@/core/helpers/ApiClient";
@@ -18,11 +18,12 @@ type BundlingPackage = {
   id: string;
   name: string;
   kode_Bundling: string;
-  harga: number;
+  price: number;
   stock: number;
   status: string;
   category: string;
   description?: string;
+  image?: string;
   bundling_material_count: number;
   bundling_material: BundlingMaterial[];
 };
@@ -33,6 +34,8 @@ export default function BundlingDetailPage() {
   const apiClient = useApiClient();
   const [packageData, setPackageData] = useState<BundlingPackage | null>(null);
   const [selectedOptionIndex, setSelectedOptionIndex] = useState(0);
+  const [showModal, setShowModal] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -45,6 +48,24 @@ export default function BundlingDetailPage() {
     };
     if (id) fetchDetail();
   }, [id]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        setShowModal(false);
+      }
+    };
+
+    if (showModal) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showModal]);
 
   const formatPrice = (price: number) => {
     return price.toLocaleString("id-ID");
@@ -63,7 +84,7 @@ export default function BundlingDetailPage() {
 
   const allVariants = packageData.bundling_material || [];
   const selectedVariant = allVariants[selectedOptionIndex] || null;
-  const mainImage = "/images/placeholder.jpg"; // fallback image
+  const mainImage = "/images/placeholder.jpg";
 
   return (
     <div className="p-6">
@@ -93,7 +114,7 @@ export default function BundlingDetailPage() {
             </div>
 
             <div className="flex flex-col gap-2">
-              {allVariants.map((variant, idx) => (
+              {allVariants.slice(0, 4).map((variant, idx) => (
                 <button
                   key={variant.product_detail_id}
                   onClick={() => setSelectedOptionIndex(idx)}
@@ -118,22 +139,29 @@ export default function BundlingDetailPage() {
                 </button>
               ))}
 
-              <button className="bg-blue-500 text-white text-sm px-4 py-2 rounded-md w-fit mt-2 hover:bg-blue-600">
-                Item Lainnya ▼
-              </button>
+              {allVariants.length > 4 && (
+                <button
+                  className="bg-blue-500 text-white text-sm px-4 py-2 rounded-md w-fit mt-2 hover:bg-blue-600"
+                  onClick={() => setShowModal(true)}
+                >
+                  Item Lainnya ▼
+                </button>
+              )}
             </div>
 
-            <div className="pt-4 border-t border-gray-300">
+            <div className="pb-4 border-b border-gray-300">
               <p className="text-gray-500 text-sm mb-1">{packageData.kode_Bundling}</p>
               <p className="text-2xl font-bold text-gray-800">
-                Rp {formatPrice(packageData.harga)}
+                Rp {formatPrice(packageData.price)}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="mt-10 border-t pt-6">
-          <h2 className="font-bold text-xl text-gray-800 mb-4">Deskripsi Produk Bundling</h2>
+        <div className="mt-10 pt-6">
+          <h2 className="font-bold text-xl text-gray-800 mb-4 border-b border-gray-300 pb-8">
+            Deskripsi Produk Bundling
+          </h2>
           <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
             {packageData.description || (
               <span className="italic text-gray-400">Belum ada deskripsi</span>
@@ -152,6 +180,55 @@ export default function BundlingDetailPage() {
           </button>
         </div>
       </div>
+
+      {showModal && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-10 flex items-center justify-center" style={{ backgroundColor: "rgba(0, 0, 0, 0.8)" }}>
+          <div
+            ref={modalRef}
+            className="bg-white rounded-xl w-full max-w-md max-h-[80vh] overflow-y-auto shadow-lg p-6"
+          >
+            <h3 className="font-bold text-lg mb-4">Bundling {packageData.name}</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              Terdiri dari {allVariants.length} item berikut
+            </p>
+
+            <div className="flex flex-col gap-2">
+              {allVariants.map((variant) => (
+                <div
+                  key={variant.product_detail_id}
+                  className="w-full flex items-start gap-3 border border-gray-200 bg-gray-50 p-3 rounded-2xl shadow-sm"
+                >
+                  <img
+                    src={"/images/placeholder.jpg"}
+                    className="w-10 h-10 rounded-full object-cover"
+                    alt="variant"
+                    onError={(e) => {
+                      e.currentTarget.src = "/images/placeholder.jpg";
+                    }}
+                  />
+                  <div className="flex flex-col items-start">
+                    <span className="text-sm text-gray-800 font-semibold">
+                      {variant.product_name} <span className="text-gray-400">Varian</span> {variant.variant_name}
+                    </span>
+                    <span className="flex items-center text-gray-500 text-sm gap-2 mt-1">
+                      <ShoppingCart size={16} /> Quantity {variant.quantity} {variant.unit_code}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end mt-6">
+              <button
+                className="px-4 py-2 bg-gray-500 hover:bg-gray-700 text-white rounded"
+                onClick={() => setShowModal(false)}
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -133,7 +133,7 @@ export const RequestStockCreate = () => {
         variants: variants.map((v) => ({
           ...v,
           qty: "",
-          unit: units[0]?.id || "", 
+          unit: units[0]?.id || "",
         })),
 
         showTable: false,
@@ -220,20 +220,34 @@ export const RequestStockCreate = () => {
       });
       return;
     }
+
     const requested_stock = selectedProducts.flatMap((p) =>
       p.variants.map((v: any) => ({
+        product_id: p.product.id,
         variant_id: v.id,
         requested_stock: Number(v.qty),
+        unit_id: v.unit,
       }))
     );
-    if (requested_stock.some((r) => !r.variant_id || !r.requested_stock)) {
+
+    if (
+      requested_stock.some(
+        (r) =>
+          !r.variant_id ||
+          !r.product_id ||
+          !r.unit_id ||
+          !r.requested_stock ||
+          isNaN(r.requested_stock)
+      )
+    ) {
       Swal.fire({
         icon: "warning",
-        title: "Jumlah tidak valid",
-        text: "Pastikan semua varian memiliki jumlah yang valid.",
+        title: "Data tidak valid",
+        text: "Pastikan semua varian memiliki jumlah dan satuan yang valid.",
       });
       return;
     }
+
     setLoading(true);
     try {
       await apiClient.post("/stock-request", {
@@ -251,6 +265,7 @@ export const RequestStockCreate = () => {
     }
     setLoading(false);
   };
+
 
   return (
     <div className="p-5 y-6">
@@ -469,7 +484,10 @@ export const RequestStockCreate = () => {
                                   handleVariantUnitChange(item.product.id, variant.id, e.target.value)
                                 }
                               >
-                                {units.map((unit: any) => (
+                                <option value="" disabled>
+                                  Pilih
+                                </option>
+                                {units.map((unit) => (
                                   <option key={unit.id} value={unit.id}>
                                     {unit.name}
                                   </option>

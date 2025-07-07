@@ -69,15 +69,24 @@ export const RequestStockDetail = () => {
                         />
                         <div className="flex-1 flex flex-col justify-between">
                             <div className="font-semibold text-lg">{detail.warehouse?.name}</div>
-                            <div className="text-gray-500 text-sm ">{detail.warehouse?.alamat}</div>
-                            <div className="text-gray-500 text-sm">{detail.warehouse?.telp}</div>
+                            <div className="text-gray-500 text-sm">{detail.warehouse?.alamat}</div>
+                            <div className="text-gray-500 text-sm">{detail.warehouse?.telp || '-'}</div>
                         </div>
                         <div className="flex-1 flex flex-col gap-2">
                             <div className="font-semibold text-lg">Transaksi</div>
                             <div className="flex flex-col gap-1 text-sm">
                                 <div className="flex mb-2.5">
                                     <div className="w-28 text-gray-500">Tanggal</div>
-                                    <div>: {detail.requested_at ? new Date(detail.requested_at).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" }) : "-"}</div>
+                                    <div>
+                                        :{" "}
+                                        {detail.requested_at
+                                            ? new Date(detail.requested_at).toLocaleDateString("id-ID", {
+                                                  day: "2-digit",
+                                                  month: "long",
+                                                  year: "numeric",
+                                              })
+                                            : "-"}
+                                    </div>
                                 </div>
                                 <div className="flex mb-2.5">
                                     <div className="w-28 text-gray-500">Produk dipilih</div>
@@ -156,7 +165,7 @@ export const RequestStockDetail = () => {
                                                                     readOnly
                                                                 />
                                                                 <span className="px-3 py-2 border border-gray-300 border-l-0 rounded-r-lg bg-gray-100 text-sm">
-                                                                    Gram
+                                                                    {variant.unit_code}
                                                                 </span>
                                                             </div>
                                                         </div>

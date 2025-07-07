@@ -135,16 +135,34 @@ export default function BundlingEdit() {
         setCategory(
           categories.find((cat) => cat.label === data.category)?.value || ""
         );
-        setComposition(
-          (data.bundling_material || []).map(
-            (mat) => mat.variant_name || ""
-          )
-        );
-        setMaterials(
-          (data.bundling_material || []).map((mat) => ({
+
+        if (data.bundling_material && data.bundling_material.length > 0) {
+          const newComposition = data.bundling_material.map(mat =>
+            `${mat.product_name} - ${mat.variant_name}`
+          );
+          const newMaterials = data.bundling_material.map(mat => ({
             product_detail_id: mat.product_detail_id,
-          }))
-        );
+            quantity: mat.quantity,
+            unit_id: mat.unit_id,
+            product_name: mat.product_name,
+            variant_name: mat.variant_name
+          }));
+
+          setComposition(newComposition);
+          setMaterials(newMaterials);
+
+          const variants = newMaterials.map(mat => ({
+            productId: '',
+            productName: mat.product_name,
+            variantId: mat.product_detail_id,
+            variantName: mat.variant_name
+          }));
+          setSelectedVariants(variants);
+        }
+
+        if (data.image && data.image !== "default/Default.jpeg") {
+          setImages([data.image]);
+        }
       } catch (error) {
         Toaster("error", "Gagal mengambil data bundling");
       }
@@ -213,16 +231,16 @@ export default function BundlingEdit() {
 
     const body = {
       name: productName,
-      quantity: stock,
       harga: price,
-      kode_Blend: productCode,
-      deskripsi: description,
+      kode_Bundling: productCode,
+      stock: stock,
+      description: description,
       category_id: category,
       details: materials.map((mat) => ({
         product_detail_id: mat.product_detail_id,
         quantity: mat.quantity,
-        unit_id: mat.unit_id,
-      })),
+        unit_id: mat.unit_id
+      }))
     };
 
     try {
@@ -465,7 +483,6 @@ export default function BundlingEdit() {
                                     <div className="text-xs font-medium text-gray-700">{variantName}</div>
                                   </div>
                                 </div>
-
                                 <div className="flex items-center gap-6">
                                   <div className="text-sm text-gray-700">
                                     <div className="text-xs text-gray-500">Harga</div>
@@ -473,16 +490,12 @@ export default function BundlingEdit() {
                                   </div>
                                   <div className="text-sm text-gray-700">
                                     <div className="text-xs text-gray-500">Quantity</div>
-                                    {quantity ? (
+                                    {materials.find(mat => mat.product_detail_id === variant?.id) ? (
                                       <div className="text-sm">
-                                        {quantity}{" "}
-                                        {
-                                          units.find(
-                                            (unit) =>
-                                              unit.id ===
-                                              materials.find((mat) => mat.product_detail_id === variant?.id)?.unit_id
-                                          )?.code || "-"
-                                        }
+                                        {materials.find(mat => mat.product_detail_id === variant?.id)?.quantity}{" "}
+                                        {materials.find(mat => mat.product_detail_id === variant?.id)?.unit_code ||
+                                          units.find(unit => unit.id === materials.find(mat => mat.product_detail_id === variant?.id)?.unit_id)?.code ||
+                                          "-"}
                                       </div>
                                     ) : (
                                       <div className="text-sm text-gray-400">-</div>

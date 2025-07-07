@@ -57,8 +57,11 @@ export default function ModalQuantity({
             <select
               value={selectedUnit}
               onChange={(e) => setSelectedUnit(e.target.value)}
-              className="absolute inset-y-0 right-0 w-14 text-sm text-gray-700 bg-gray-200 border-l border-gray-200 rounded-r-lg px-2 outline-none"
+              className="absolute inset-y-0 right-0 w-18 text-sm text-gray-700 bg-gray-200 border-l border-gray-200 rounded-r-lg px-2 outline-none"
             >
+              <option value="" disabled>
+                Pilih
+              </option>
               {units.map((u) => (
                 <option key={u.id} value={u.id}>
                   {u.code}

@@ -216,7 +216,7 @@ export default function BundlingPage() {
     setLoading(true);
     try {
       const params = new URLSearchParams({
-        per_page: "5",
+        per_page: "8",
         page: pagination.current_page.toString(),
       });
       if (appliedFilter.status) params.append("status", appliedFilter.status);
@@ -351,102 +351,75 @@ export default function BundlingPage() {
       </div>
 
       {loading ? (
-        <LoadingCards/>
+        <LoadingCards />
       ) : filteredPackages.length === 0 ? (
         <div className="text-gray-500">Tidak ada paket bundling ditemukan.</div>
       ) : (
         <>
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {filteredPackages.map((pkg) => (
               <div
                 key={pkg.id}
-                className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
+                className="bg-white rounded-xl shadow-md p-4 relative"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-10">
-                    <div className="w-20 flex -space-x-4">
-                      {(pkg.bundling_material || []).slice(0, 3).map((mat, idx) => (
-                        <img
-                          key={idx}
-                          src={ImageHelper(mat.image)}
-                          alt={pkg.name + " " + (idx + 1)}
-                          className="w-10 h-10 rounded-full border-2 border-white object-cover bg-gray-200"
-                          style={{ zIndex: 10 - idx }}
-                          onClick={() => handleDetail(pkg)}
-                          onError={e => (e.currentTarget.src = "/images/placeholder.jpg")}
-                        />
-                      ))}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{pkg.name}</h3>
-                      <p className="text-sm text-gray-500">Kode bundling</p>
-                      <div className="flex items-center gap-1 mt-1">
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                          #{pkg.kode_Bundling}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-25">
-                    <div className="text-center">
-                      <p className="text-sm font-medium text-gray-900">Stok</p>
-                      <p className="text-sm text-gray-600">{pkg.stock} Pcs</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm font-medium text-gray-900">Jumlah Item</p>
-                      <p className="text-sm text-gray-600">{pkg.bundling_material_count} Item</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm font-medium text-gray-900">Harga</p>
-                      <p className="text-sm text-gray-600">{formatPrice(pkg.harga)}</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm font-medium text-gray-900">Status</p>
-                      <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(pkg.status)}`}>
-                        {pkg.status === "active" ? "Tersedia" : pkg.status === "non-active" ? "Habis" : pkg.status}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <div className="relative" ref={dropdownOpenId === pkg.id ? dropdownRef : null}>
+                <div className="absolute top-3 right-3" ref={dropdownOpenId === pkg.id ? dropdownRef : null}>
+                  <button
+                    className="p-1 rounded-full hover:bg-gray-100"
+                    onClick={() => handleDropdownToggle(pkg.id)}
+                  >
+                    <FiMoreVertical size={18} className="text-gray-600" />
+                  </button>
+                  {dropdownOpenId === pkg.id && (
+                    <div className="absolute right-0 top-8 w-40 bg-white border border-gray-300 rounded-lg shadow-lg z-20 py-1">
                       <button
-                        className="p-1 rounded-full cursor-pointer hover:bg-gray-100"
-                        onClick={() => handleDropdownToggle(pkg.id)}
+                        className="w-full text-left px-4 py-2 flex items-center gap-2 hover:bg-gray-100 text-sm"
+                        onClick={() => handleDetail(pkg)}
                       >
-                        <FiMoreVertical size={20} className="text-gray-600" />
+                        <Eye size={16} /> Detail
                       </button>
-                      {dropdownOpenId === pkg.id && (
-                        <div className="absolute right-0 top-8 w-40 bg-white border border-gray-300 rounded-lg shadow-lg z-20 py-1">
-                          <button
-                            className="w-full text-left px-4 py-2 cursor-pointer flex items-center gap-2 hover:bg-gray-100 text-sm hover:font-semibold"
-                            onClick={() => handleDetail(pkg)}
-                          >
-                            <Eye size={16} />Detail
-                          </button>
-                          <button
-                            className="w-full text-left px-4 py-2 cursor-pointer flex items-center gap-2 hover:bg-gray-100 text-sm hover:font-semibold"
-                            onClick={() => handleEdit(pkg)}
-                          >
-                            <Pencil size={16} />Edit
-                          </button>
-                          <button
-                            className="w-full text-left px-4 py-2 cursor-pointer flex items-center gap-2 hover:bg-gray-100 text-sm text-red-600 hover:font-semibold"
-                            onClick={() => handleDelete(pkg)}
-                          >
-                            <Trash size={16} />Hapus
-                          </button>
-                          <hr className="my-1 border-gray-300" />
-                          <button
-                            className="w-full text-left px-4 py-2 cursor-pointer flex items-center gap-2 hover:bg-gray-100 text-sm text-red-600 hover:font-semibold"
-                            onClick={() => handleCancel(pkg)}
-                          >
-                            <LogOut size={16} />Batalkan
-                          </button>
-                        </div>
-                      )}
+                      <button
+                        className="w-full text-left px-4 py-2 flex items-center gap-2 hover:bg-gray-100 text-sm"
+                        onClick={() => handleEdit(pkg)}
+                      >
+                        <Pencil size={16} /> Edit
+                      </button>
+                      <button
+                        className="w-full text-left px-4 py-2 flex items-center gap-2 text-red-600 hover:bg-gray-100 text-sm"
+                        onClick={() => handleDelete(pkg)}
+                      >
+                        <Trash size={16} /> Hapus
+                      </button>
                     </div>
+                  )}
+                </div>
+
+                <div className="flex justify-center mb-4 -space-x-3">
+                  {(pkg.bundling_material || []).slice(0, 3).map((mat, idx) => (
+                    <img
+                      key={idx}
+                      src={ImageHelper(mat.image)}
+                      alt={pkg.name + " " + (idx + 1)}
+                      className="w-16 h-16 rounded-full border-2 border-white object-cover bg-gray-200"
+                      style={{ zIndex: 10 - idx }}
+                      onClick={() => handleDetail(pkg)}
+                      onError={(e) => (e.currentTarget.src = "/images/placeholder.jpg")}
+                    />
+                  ))}
+                </div>
+
+                <div className="text-center">
+                  <h3 className="text-xl font-semibold text-gray-900 truncate">{pkg.name}</h3>
+                  <p className="text-xs text-gray-500">#{pkg.kode_Bundling}</p>
+                </div>
+
+                <div className="mt-14 space-y-1 text-sm text-gray-700">
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-600">Quantity Item:</span>
+                    <span className="font-semibold">{pkg.bundling_material_count} Item</span>
+                  </div>
+                  <div className="flex justify-between mt-5">
+                    <span className="font-medium text-gray-600">Harga:</span>
+                    <span className="font-semibold">{formatPrice(pkg.harga)}</span>
                   </div>
                 </div>
               </div>
@@ -469,11 +442,10 @@ export default function BundlingPage() {
                 <button
                   key={page}
                   onClick={() => goToPage(page)}
-                  className={`px-3 py-1 border rounded text-sm ${
-                    pagination.current_page === page
+                  className={`px-3 py-1 border rounded text-sm ${pagination.current_page === page
                       ? "bg-blue-600 text-white"
                       : "hover:bg-gray-100 text-gray-700"
-                  }`}
+                    }`}
                 >
                   {page}
                 </button>

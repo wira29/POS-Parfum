@@ -66,6 +66,10 @@ export const ProductIndex = () => {
     }
   };
 
+  const getUnitCode = (variants: any[]) => {
+    return variants.find((v) => !!v.unit_code)?.unit_code || "G";
+  };
+
   const fetchData = async (page: number = 1) => {
     setLoading(true);
     try {
@@ -103,23 +107,21 @@ export const ProductIndex = () => {
     }
   };
 
-  const toggleExpand = (productId: string) => {
-    setExpandedProducts((prev) => {
-      const isExpanded = prev.includes(productId);
-      if (!isExpanded) {
-        setVariantPage((vp) => ({ ...vp, [productId]: 1 }));
-        setTimeout(() => {
-          expandRefs.current[productId]?.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
-        }, 200);
-      }
-      return isExpanded ? prev.filter((id) => id !== productId) : [...prev, productId];
-    });
-  };
-
   const getVariants = (product: any) => {
+    if (product.is_bundling) {
+      return (product.bundling_detail || []).map((detail: any, index: number) => ({
+        id: detail.product_detail_id || `bundling-${index}`,
+        name: detail.variant_name || detail.product_name || "Varian",
+        code: detail.product_code || "-",
+        stock: detail.sum_stock ?? 0,
+        price: product.bundling_price ?? 0,
+        category: detail.category || product.category || { name: "Umum" },
+        penjualan: 0,
+        image: product.image,
+        unit_code: detail.unit_code ?? "G",
+      }));
+    }
+
     return (product.product_detail || []).map((detail: any) => ({
       id: detail.id,
       name: detail.variant_name || detail.material || "Varian",
@@ -128,8 +130,22 @@ export const ProductIndex = () => {
       price: detail.price ?? 0,
       category: detail.category || product.category || { name: "Umum" },
       penjualan: detail.transaction_details_count || 0,
-      image: detail.product_image,
+      image: detail.product_image || product.image,
+      unit_code: detail.unit_code ?? "G",
     }));
+  };
+
+  const toggleExpand = (productId: string) => {
+    setExpandedProducts((prev) => {
+      const isExpanded = prev.includes(productId);
+      if (!isExpanded) {
+        setVariantPage((vp) => ({ ...vp, [productId]: 1 }));
+        setTimeout(() => {
+          expandRefs.current[productId]?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 200);
+      }
+      return isExpanded ? prev.filter((id) => id !== productId) : [...prev, productId];
+    });
   };
 
   const confirmDelete = (id: string) => () => {
@@ -167,15 +183,7 @@ export const ProductIndex = () => {
   };
 
   const isFilterActive = () => {
-    return !!(
-      categoryFilter ||
-      stockMin ||
-      stockMax ||
-      priceMin ||
-      priceMax ||
-      salesMin ||
-      salesMax
-    );
+    return !!(categoryFilter || stockMin || stockMax || priceMin || priceMax || salesMin || salesMax);
   };
 
   return (
@@ -214,28 +222,18 @@ export const ProductIndex = () => {
           </thead>
           <tbody>
             {loading ? (
-              <tr>
-                <td colSpan={6} className="text-center p-4">
-                  <LoadingColumn column={3} />
-                </td>
-              </tr>
+              <tr><td colSpan={6} className="text-center p-4"><LoadingColumn column={3} /></td></tr>
             ) : products.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="text-center p-4">Tidak ada data produk</td>
-              </tr>
+              <tr><td colSpan={6} className="text-center p-4">Tidak ada data produk</td></tr>
             ) : (
               products.map((product) => {
                 const variants = getVariants(product);
-                const singleVariant = product.product_detail?.length === 1 ? variants[0] : null;
+                const singleVariant = !product.is_bundling && product.product_detail?.length === 1 ? variants[0] : null;
                 return (
                   <React.Fragment key={product.id}>
                     <tr className="hover:bg-gray-50">
                       <td className="p-4 align-top flex gap-4">
-                        <img
-                          src={ImageHelper(product.image)}
-                          alt={product.name}
-                          className="w-14 h-14 rounded-md object-cover"
-                        />
+                        <img src={ImageHelper(product.image)} alt={product.name} className="w-14 h-14 rounded-md object-cover" />
                         <div>
                           <div className="font-semibold">{product.name}</div>
                           <div className="text-gray-500 text-xs">ID Produk: {product.code || "-"}</div>
@@ -244,25 +242,27 @@ export const ProductIndex = () => {
                       <td className="p-4 align-top">{product.category ?? "-"}</td>
                       <td className="p-4 align-top">{singleVariant ? singleVariant.penjualan : (product.sales ?? "-")}</td>
                       <td className="p-4 align-top">
-                        {singleVariant ? (
-                          `Rp ${singleVariant.price.toLocaleString("id-ID")}`
-                        ) : variants.length > 1 ? (
-                          (() => {
-                            const prices = variants.map((v) => v.price);
-                            const minPrice = Math.min(...prices);
-                            const maxPrice = Math.max(...prices);
-                            return minPrice === maxPrice
-                              ? `Rp ${minPrice.toLocaleString("id-ID")}`
-                              : `Rp ${minPrice.toLocaleString("id-ID")} - ${maxPrice.toLocaleString("id-ID")}`;
-                          })()
-                        ) : (
-                          product.price ? `Rp ${product.price.toLocaleString("id-ID")}` : "-"
-                        )}
+                        {product.is_bundling
+                          ? `Rp ${product.bundling_price?.toLocaleString("id-ID")}`
+                          : singleVariant
+                            ? `Rp ${singleVariant.price.toLocaleString("id-ID")}`
+                            : (() => {
+                              const prices = variants.map((v) => v.price);
+                              const min = Math.min(...prices);
+                              const max = Math.max(...prices);
+                              return min === max
+                                ? `Rp ${min.toLocaleString("id-ID")}`
+                                : `Rp ${min.toLocaleString("id-ID")} - ${max.toLocaleString("id-ID")}`;
+                            })()
+                        }
                       </td>
                       <td className="p-4 align-top">
-                        {singleVariant
-                          ? `${singleVariant.stock} G`
-                          : `${product.details_sum_stock || variants.reduce((acc, d) => acc + d.stock, 0)} G`}
+                        {product.is_bundling
+                          ? `${variants.reduce((sum, v) => sum + v.stock, 0)} ${getUnitCode(variants)}`
+                          : singleVariant
+                            ? `${singleVariant.stock} ${getUnitCode(variants)}`
+                            : `${variants.reduce((sum, v) => sum + v.stock, 0)} ${getUnitCode(variants)}`
+                        }
                       </td>
                       <td className="p-4 align-top">
                         <div className="flex gap-2">
@@ -275,30 +275,32 @@ export const ProductIndex = () => {
                     {variants.length > 1 && (
                       <>
                         <tr>
-                          <td
-                            colSpan={6}
-                            className="text-center text-gray-500 py-2 cursor-pointer select-none"
-                            onClick={() => toggleExpand(product.id)}
-                          >
-                            {expandedProducts.includes(product.id) ? (
-                              <>
-                                <FiChevronUp className="inline" /> Close <FiChevronUp className="inline" />
-                              </>
-                            ) : (
-                              <>
-                                <FiChevronDown className="inline" /> Expand <FiChevronDown className="inline" />
-                              </>
-                            )}
+                          <td colSpan={6} className="py-2 cursor-pointer select-none">
+                            <div
+                              className="flex justify-center items-center gap-1 text-gray-500"
+                              onClick={() => toggleExpand(product.id)}
+                            >
+                              {expandedProducts.includes(product.id) ? (
+                                <>
+                                  <FiChevronUp />
+                                  <span>Close</span>
+                                  <FiChevronUp />
+                                </>
+                              ) : (
+                                <>
+                                  <FiChevronDown />
+                                  <span>Expand</span>
+                                  <FiChevronDown />
+                                </>
+                              )}
+                            </div>
                           </td>
                         </tr>
                         <tr>
                           <td colSpan={6} className="p-0">
                             <div
                               ref={(el) => (expandRefs.current[product.id] = el)}
-                              className={`variant-slide ${expandedProducts.includes(product.id)
-                                ? "variant-enter"
-                                : "variant-leave"
-                                }`}
+                              className={`variant-slide ${expandedProducts.includes(product.id) ? "variant-enter" : "variant-leave"}`}
                             >
                               {expandedProducts.includes(product.id) && (() => {
                                 const vPage = variantPage[product.id] || 1;
@@ -308,16 +310,13 @@ export const ProductIndex = () => {
                                 return (
                                   <div className="ml-4 sm:ml-[72px]">
                                     {shownVariants.map((variant) => (
-                                      <div
-                                        key={variant.id}
-                                        className="grid grid-cols-2 sm:grid-cols-6 gap-4 items-center p-4 bg-gray-50 border-b border-gray-200 text-sm"
-                                      >
+                                      <div key={variant.id} className="grid grid-cols-2 sm:grid-cols-6 gap-4 items-center p-4 bg-gray-50 border-b border-gray-200 text-sm">
                                         <div>
                                           <img
                                             src={ImageHelper(variant.image)}
                                             alt={variant.name}
                                             className="w-12 h-12 rounded object-cover"
-                                            onError={e => { (e.target as HTMLImageElement).src = "/images/placeholder.jpg"; }}
+                                            onError={(e) => { (e.target as HTMLImageElement).src = "/images/placeholder.jpg"; }}
                                           />
                                         </div>
                                         <div>

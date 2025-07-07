@@ -5,7 +5,7 @@ import InputText from "@/views/components/Input-v2/InputText";
 import InputNumber from "@/views/components/Input-v2/InputNumber";
 import InputOneImage from "@/views/components/Input-v2/InputOneImage";
 import PreviewCard from "@/views/components/Card/PreviewCard";
-import { Barcode, DollarSign, ImageIcon, Plus, Info, X } from "lucide-react";
+import { Barcode, DollarSign, ImageIcon, Plus, Info, X, GitCompareArrows, ArrowLeftRight } from "lucide-react";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Toaster } from "@/core/helpers/BaseAlert";
 import InputManyText from "@/views/components/Input-v2/InputManyText";
@@ -33,6 +33,13 @@ export const ProductCreate = () => {
   const [selectedUnit, setSelectedUnit] = useState("");
   const [units, setUnits] = useState([]);
   const [variantUnits, setVariantUnits] = useState([]);
+  const [isParfumCategory, setIsParfumCategory] = useState(false);
+  const [conversionFrom, setConversionFrom] = useState("gram");
+  const [conversionTo, setConversionTo] = useState("ml");
+  const [conversionGram, setConversionGram] = useState("");
+  const [conversionMl, setConversionMl] = useState("");
+  const selectedUnitData = units.find((u) => u.id === selectedUnit);
+  const selectedUnitCode = selectedUnitData?.code?.toUpperCase();
 
   useEffect(() => {
     const fetchUnits = async () => {
@@ -113,15 +120,12 @@ export const ProductCreate = () => {
   }, [category]);
 
   useEffect(() => {
-    if (category) {
-      setVariantMatrix(prev =>
-        prev.map(variant => ({
-          ...variant,
-          category_id: category
-        }))
-      );
+    if (variations.length === 0) {
+      setVariantMatrix([]);
+      setVariantUnits([]);
+      setVariantImages([]);
     }
-  }, [category]);
+  }, [variations]);
 
   useEffect(() => {
     setVariantImages((prev) =>
@@ -330,7 +334,9 @@ export const ProductCreate = () => {
                 const val = e.target.value;
                 setCategory(val);
                 const found = categories.find((cat) => cat.value === val);
-                setSelectedCategoryName(found?.label || "");
+                const catLabel = found?.label || "";
+                setSelectedCategoryName(catLabel);
+                setIsParfumCategory(catLabel.toLowerCase().includes("parfum"));
               }}
               options={categories}
             />
@@ -376,8 +382,11 @@ export const ProductCreate = () => {
                     <select
                       value={selectedUnit}
                       onChange={(e) => setSelectedUnit(e.target.value)}
-                      className="absolute inset-y-0 right-0 w-14 text-sm text-gray-700 bg-gray-200 border-l border-gray-200 rounded-r-lg px-2 outline-none"
+                      className="absolute inset-y-0 right-0 w-18 text-sm text-gray-700 bg-gray-200 border-l border-gray-200 rounded-r-lg px-2 outline-none"
                     >
+                      <option value="" disabled>
+                        Pilih
+                      </option>
                       {units.map((u) => (
                         <option key={u.id} value={u.id}>
                           {u.code}
@@ -416,6 +425,45 @@ export const ProductCreate = () => {
               label="Unggah"
             />
           </div>
+
+          {isParfumCategory && (
+            <div className="mb-6 bg-white shadow rounded-2xl p-6">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-blue-600">
+                <GitCompareArrows size={18} /> Konversi
+              </h3>
+              <div className="flex gap-3 items-center">
+                <div className="relative w-full">
+                  <input
+                    type="number"
+                    value={selectedUnitCode === "G" ? 1 : conversionGram}
+                    readOnly={selectedUnitCode === "G"}
+                    onChange={(e) => setConversionGram(e.target.value)}
+                    placeholder="1"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none"
+                  />
+                  <div className="absolute inset-y-0 right-0 w-16 bg-gray-100 border-l border-gray-300 rounded-r-lg px-2 flex items-center justify-center">
+                    G
+                  </div>
+                </div>
+
+                <span className="text-xl"><ArrowLeftRight /></span>
+
+                <div className="relative w-full">
+                  <input
+                    type="number"
+                    value={selectedUnitCode === "ML" ? 1 : conversionMl}
+                    readOnly={selectedUnitCode === "ML"}
+                    onChange={(e) => setConversionMl(e.target.value)}
+                    placeholder="10"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none"
+                  />
+                  <div className="absolute inset-y-0 right-0 w-16 bg-gray-100 border-l border-gray-300 rounded-r-lg px-2 flex items-center justify-center">
+                    ML
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="bg-white shadow rounded-2xl p-6">
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-blue-600">
@@ -517,8 +565,8 @@ export const ProductCreate = () => {
                   <div className="p-3">Variasi</div>
                   <div className="p-3">Opsi</div>
                   <div className="p-3">Harga</div>
-                  <div className="p-3">Kode varian</div>
                   <div className="p-3">Stock</div>
+                  <div className="p-3">Kode varian</div>
                 </div>
 
                 {variantMatrix.map((variant, i) =>
@@ -562,14 +610,27 @@ export const ProductCreate = () => {
                           min={0}
                           placeholder="0"
                           className="w-full pl-4 pr-14 py-2 text-gray-800 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          value={stock}
-                          onChange={(e) => setStock(e.target.value)}
+                          value={variantMatrix[i]?.stocks?.[j] || ""}
+                          onChange={(e) => {
+                            const updated = [...variantMatrix];
+                            if (!updated[i].stocks) updated[i].stocks = [];
+                            updated[i].stocks[j] = e.target.value;
+                            setVariantMatrix(updated);
+                          }}
                         />
                         <select
-                          value={selectedUnit}
-                          onChange={(e) => setSelectedUnit(e.target.value)}
-                          className="absolute inset-y-0 right-0 w-14 text-sm text-gray-700 bg-gray-200 border-l border-gray-200 rounded-r-lg px-2 outline-none"
+                          value={variantUnits[i]?.[j] || ""}
+                          onChange={(e) => {
+                            const updated = [...variantUnits];
+                            if (!updated[i]) updated[i] = [];
+                            updated[i][j] = e.target.value;
+                            setVariantUnits(updated);
+                          }}
+                          className="absolute inset-y-0 right-0 w-18 text-sm text-gray-700 bg-gray-200 border-l border-gray-200 rounded-r-lg px-2 outline-none"
                         >
+                          <option value="" disabled>
+                            Pilih
+                          </option>
                           {units.map((u) => (
                             <option key={u.id} value={u.id}>
                               {u.code}
@@ -608,11 +669,11 @@ export const ProductCreate = () => {
         <div className="lg:col-span-4">
           <PreviewCard
             images={images}
-            price={variantMatrix.length ? variantMatrix[0].prices[0] : price}
+            price={hasVariant ? variantMatrix?.[0]?.prices?.[0] : price}
+            stock={hasVariant ? variantMatrix?.[0]?.stocks?.[0] : stock}
+            productCode={hasVariant ? variantMatrix?.[0]?.codes?.[0] : productCode}
             category={selectedCategoryName}
             productName={productName}
-            productCode={productCode}
-            stock={variantMatrix.length ? variantMatrix[0].stocks[0] : stock}
             variantImages={variantImages}
           />
         </div>
