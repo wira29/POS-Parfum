@@ -113,6 +113,24 @@ export const RequestStockIndex = () => {
     fetchData({ page });
   };
 
+  const groupRequestedStock = (requested_stock: any[]) => {
+    const grouped: Record<string, { variants: string[], total: number, unit: string }> = {};
+
+    for (const item of requested_stock) {
+      if (!grouped[item.product_name]) {
+        grouped[item.product_name] = {
+          variants: [],
+          total: 0,
+          unit: item.unit_code,
+        };
+      }
+      grouped[item.product_name].variants.push(item.variant_name);
+      grouped[item.product_name].total += item.requested_stock;
+    }
+
+    return Object.entries(grouped);
+  };
+
   return (
     <div className="p-6 space-y-6">
       <Breadcrumb title="Restock Produk" desc="Menampilkan daftar restock dari gudang" />
@@ -141,45 +159,65 @@ export const RequestStockIndex = () => {
       ) : data.length > 0 ? (
         <>
           {data.map((card: any) => (
-            <div key={card.id} className="bg-white shadow-md p-6 rounded-xl flex flex-col md:flex-row gap-6 items-stretch mb-6">
-              <div className="flex-1 flex flex-col gap-2 justify-between">
-                <div className="border border-gray-200 rounded-xl p-4">
-                  {card.requested_stock.slice(0, 2).map((prod: any, idx2: number) => (
-                    <div key={idx2} className={`flex flex-col md:flex-row md:items-center md:justify-between py-2 ${idx2 !== 0 ? "border-t border-dashed border-gray-300 mt-2 pt-4" : ""}`}>
+            <div
+              key={card.id}
+              className="bg-white border border-gray-200 shadow-sm rounded-2xl p-6 mb-6 flex flex-col lg:flex-row gap-6 transition-shadow hover:shadow-md"
+            >
+              <div className="flex-1 space-y-4">
+                <div className="bg-gray-50 border border-gray-100 rounded-xl p-4">
+                  {groupRequestedStock(card.requested_stock).map(([productName, info], idx2) => (
+                    <div
+                      key={idx2}
+                      className={`grid grid-cols-1 md:grid-cols-3 gap-4 py-4 ${
+                        idx2 !== 0 ? "border-t border-dashed border-gray-300 mt-4 pt-4" : ""
+                      }`}
+                    >
                       <div>
-                        <div className="font-semibold">Product</div>
-                        <div className="text-gray-500 text-sm">{prod.variant_name || `Varian ${idx2 + 1}`}</div>
+                        <div className="font-semibold text-base text-gray-700">{productName}</div>
+                        <div className="text-gray-500 text-sm">{info.variants.join(", ")}</div>
                       </div>
-                      <div className="flex flex-col md:items-end gap-1 mt-2 md:mt-0">
-                        <div className="font-semibold text-sm">Varian Dipilih</div>
-                        <div className="text-gray-800">123 Varian</div>
+                      <div className="text-right md:text-left">
+                        <div className="font-semibold text-sm text-gray-600">Varian Dipilih</div>
+                        <div className="text-gray-800">{info.variants.length} varian</div>
                       </div>
-                      <div className="flex flex-col md:items-end gap-1 mt-2 md:mt-0">
-                        <div className="font-semibold text-sm">Jumlah Request</div>
-                        <div className="text-green-600">{prod.requested_stock} Gram</div>
+                      <div className="text-right">
+                        <div className="font-semibold text-sm text-gray-600">Jumlah Request</div>
+                        <div className="text-green-600">{info.total} {info.unit}</div>
                       </div>
                     </div>
                   ))}
-                  <div className="text-center text-gray-400 text-sm mt-4">
-                    {card.requested_stock.length > 2 && `+${card.requested_stock.length - 2} Produk Lainnya`}
-                  </div>
+                  {card.requested_stock.length > 4 && (
+                    <div className="text-center text-xs text-gray-400 italic mt-2">
+                      +{card.requested_stock.length - 3} produk lainnya
+                    </div>
+                  )}
                 </div>
               </div>
-              <div className="flex flex-col items-center justify-center min-w-[220px]">
+              <div className="flex flex-col items-center justify-between bg-gray-50 border border-gray-100 rounded-xl p-4 min-w-[240px] text-center">
                 <img
                   src={ImageHelper(card.warehouse.image)}
                   alt=""
                   className="w-44 h-28 object-cover rounded-lg mb-2"
                 />
-                <div className="font-semibold text-lg">{card.warehouse?.name}</div>
-                <div className="text-green-600 text-sm mb-4">
-                  Request pada : {new Date(card.requested_at).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}
+                <div className="font-semibold text-lg text-gray-700">{card.warehouse?.name}</div>
+                <div className="text-sm text-gray-500 mb-4">
+                  <span className="font-medium text-gray-700">Request:</span><br />
+                  {new Date(card.requested_at).toLocaleDateString("id-ID", {
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                  })}
                 </div>
-                <div className="flex gap-3 w-full justify-center">
-                  <button className={`${statusMap[card.status]?.className || "bg-gray-100 text-gray-600"} px-5 py-2 rounded-md font-semibold`}>
+                <div className="flex gap-2 w-full justify-center">
+                  <button
+                    className={`${statusMap[card.status]?.className || "bg-gray-100 text-gray-600"} px-4 py-1.5 rounded-md text-sm font-medium`}
+                  >
                     {statusMap[card.status]?.label || card.status}
                   </button>
-                  <button className="bg-blue-600 text-white px-5 py-2 rounded-md font-semibold cursor-pointer" onClick={() => navigate(`/requeststock/${card.id}/details`)}>
+                  <button
+                    className="bg-blue-600 text-white px-4 py-1.5 rounded-md text-sm font-medium"
+                    onClick={() => navigate(`/requeststock/${card.id}/details`)}
+                  >
                     Detail
                   </button>
                 </div>

@@ -27,14 +27,16 @@ export default function RetailEdit() {
         const response = await apiClient.get(`/outlets/${id}`);
         const outlet = response.data?.data?.outlet;
 
-        setFormData({
-          name: outlet.name || "",
-          address: outlet.address || "",
-          telp: outlet.telp || "",
-          image: outlet.image
-            ? `${import.meta.env.VITE_API_BASE_URL}${outlet.image}`
-            : null,
-        });
+        if (outlet) {
+          setFormData({
+            name: outlet.name || "",
+            address: outlet.address || "",
+            telp: outlet.telp || "",
+            image: outlet.image
+              ? `${import.meta.env.VITE_API_BASE_URL}${outlet.image}`
+              : null,
+          });
+        }
       } catch (error) {
         Toaster("error", "Gagal mengambil data retail");
       } finally {
@@ -49,34 +51,27 @@ export default function RetailEdit() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
-    setFormData((prev) => ({
-      ...prev,
-      image: file,
-    }));
+    setFormData((prev) => ({ ...prev, image: file }));
     setErrors((prev) => ({ ...prev, image: "" }));
   };
 
   const handleRemoveImage = () => {
-    setFormData((prev) => ({
-      ...prev,
-      image: null,
-    }));
+    setFormData((prev) => ({ ...prev, image: null }));
     setErrors((prev) => ({ ...prev, image: "" }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     const newErrors: Record<string, string> = {};
     if (!formData.name.trim()) newErrors.name = "Nama retail wajib diisi";
+    if (!formData.address.trim()) newErrors.address = "Alamat wajib diisi";
     if (!formData.telp.trim()) newErrors.telp = "Nomor telepon wajib diisi";
     else if (!/^[0-9+\-()\s]+$/.test(formData.telp))
       newErrors.telp = "Format nomor tidak valid";
@@ -88,30 +83,28 @@ export default function RetailEdit() {
     }
 
     const payload = new FormData();
-    payload.append("name", formData.name);
-    payload.append("address", formData.address);
-    payload.append("telp", formData.telp);
-    if (formData.image && formData.image instanceof File) {
+    payload.append("name", formData.name.trim());
+    payload.append("address", formData.address.trim());
+    payload.append("telp", formData.telp.trim());
+
+    if (formData.image instanceof File) {
       payload.append("image", formData.image);
     }
 
+    for (let [key, val] of payload.entries()) {
+      console.log(`${key}:`, val);
+    }
+
     try {
-      await apiClient.post
-        ? await apiClient.post(`/outlets/${id}`, payload, {
-          headers: { "Content-Type": "multipart/form-data" },
-        })
-        : await apiClient.put(`/outlets/${id}`, payload, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+      await apiClient.put(`/outlets/${id}`, payload, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       Toaster("success", "Retail berhasil diperbarui");
       navigate("/retails");
     } catch (error: any) {
-      if (error.response?.status === 429) {
-        Toaster("error", "Terlalu banyak permintaan. Silakan coba lagi nanti.");
-      } else if (error?.response?.status === 400 && error?.response?.data?.data) {
-        const data = error.response.data.data;
+      if (error.response?.status === 400 && error.response.data?.data) {
         const mappedErrors: Record<string, string> = {};
-        Object.entries(data).forEach(([key, val]) => {
+        Object.entries(error.response.data.data).forEach(([key, val]) => {
           if (Array.isArray(val)) mappedErrors[key] = val[0];
         });
         setErrors(mappedErrors);
@@ -127,7 +120,7 @@ export default function RetailEdit() {
       <div className="p-6">
         <LoadingCards />
       </div>
-    )
+    );
   }
 
   return (
@@ -150,6 +143,7 @@ export default function RetailEdit() {
               <p className="text-red-500 text-sm">{errors.image}</p>
             )}
           </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="block text-sm font-medium">
@@ -160,7 +154,7 @@ export default function RetailEdit() {
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                className="w-full border border-slate-300 rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Masukkan nama retail"
               />
               {errors.name && (
@@ -176,7 +170,7 @@ export default function RetailEdit() {
                 name="telp"
                 value={formData.telp}
                 onChange={handleInputChange}
-                className="w-full border border-slate-300 rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="No telepon retail"
               />
               {errors.telp && (
@@ -184,6 +178,7 @@ export default function RetailEdit() {
               )}
             </div>
           </div>
+
           <div className="space-y-2">
             <label className="block text-sm font-medium">
               Alamat <span className="text-red-500">*</span>
@@ -193,21 +188,25 @@ export default function RetailEdit() {
               value={formData.address}
               onChange={handleInputChange}
               rows={4}
-              className="border border-gray-300 w-full rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Masukkan alamat"
             />
+            {errors.address && (
+              <p className="text-red-500 text-sm">{errors.address}</p>
+            )}
           </div>
+
           <div className="flex justify-end space-x-2 pt-4">
             <button
               type="button"
-              className="px-4 py-2 bg-gray-400 hover:bg-gray-600 text-white rounded-md cursor-pointer"
+              className="px-4 py-2 bg-gray-400 hover:bg-gray-600 text-white rounded-md"
               onClick={() => navigate("/retails")}
             >
               Kembali
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md cursor-pointer"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md"
             >
               Update
             </button>

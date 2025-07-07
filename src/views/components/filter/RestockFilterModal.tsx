@@ -88,43 +88,11 @@ export const FilterModal = ({
               onChange={(e) => setStatusFilter(e.target.value)}
             >
               <option value="">Pilih status</option>
-              <option value="Menunggu">Menunggu</option>
+              <option value="pending">Menunggu</option>
               <option value="Diproses">Diproses</option>
               <option value="Dikirim">Dikirim</option>
               <option value="approved">Disetujui</option>
               <option value="rejected">Ditolak</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block mb-1 font-medium">Produk</label>
-            <select
-              className="w-full border border-gray-300 rounded px-3 py-2"
-              value={produkFilter}
-              onChange={(e) => setProdukFilter(e.target.value)}
-            >
-              <option value="">Semua Produk</option>
-              {produkOptions.map((p, idx) => (
-                <option key={idx} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block mb-1 font-medium">Kategori</label>
-            <select
-              className="w-full border border-gray-300 rounded px-3 py-2"
-              value={kategoriFilter}
-              onChange={(e) => setKategoriFilter(e.target.value)}
-            >
-              <option value="">Semua Kategori</option>
-              {kategoriOptions.map((k, idx) => (
-                <option key={idx} value={k}>
-                  {k}
-                </option>
-              ))}
             </select>
           </div>
 

@@ -46,7 +46,7 @@ export default function UserEdit() {
           password: "",
         });
         if (user.image) {
-          setImages([`https://core-parfum.mijurnal.com/storage/users/${user.image}`]);
+          setImages([`${import.meta.env.VITE_API_BASE_URL}${user.image}`]);
         }
 
         const meRes = await api.get("/me");

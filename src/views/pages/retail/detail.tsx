@@ -30,8 +30,6 @@ export default function RetailDetail() {
     links: [],
   });
 
-  const IMAGE_BASE_URL = "https://core-parfum.mijurnal.com/storage/";
-
   const fetchDetail = async (page = 1) => {
     try {
       setLoading(true);
