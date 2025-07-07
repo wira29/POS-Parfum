@@ -203,12 +203,6 @@ const menuItems = [
         roles: ["owner", "warehouse", "retail"],
       },
       {
-        label: "Laporan",
-        icon: <TbCoinTakaFilled />,
-        path: "/laporan",
-        roles: ["owner", "outlet"],
-      },
-      {
         label: "Pengeluaran",
         icon: <Wallet2Icon />,
         path: "/pengeluaran",
