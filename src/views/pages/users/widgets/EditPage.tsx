@@ -11,7 +11,6 @@ const allowedRoleMap: Record<string, string[]> = {
   owner: [],
 };
 
-
 export default function UserEdit() {
   const api = useApiClient();
   const navigate = useNavigate();
@@ -19,7 +18,9 @@ export default function UserEdit() {
 
   const [images, setImages] = useState<(File | string)[]>([]);
   const [userRoles, setUserRoles] = useState<string[]>([]);
-  const [availableRoles, setAvailableRoles] = useState<{ value: string; label: string }[]>([]);
+  const [availableRoles, setAvailableRoles] = useState<
+    { value: string; label: string }[]
+  >([]);
   const [userData, setUserData] = useState({
     username: "",
     email: "",
@@ -46,7 +47,7 @@ export default function UserEdit() {
           password: "",
         });
         if (user.image) {
-          setImages([`${import.meta.env.VITE_API_BASE_URL}${user.image}`]);
+          setImages([`${import.meta.env.VITE_MIJURNAL_STORAGE}${user.image}`]);
         }
 
         const meRes = await api.get("/me");
@@ -81,7 +82,6 @@ export default function UserEdit() {
         setLoading(false);
       }
     };
-
 
     fetchAll();
   }, [api, id]);
@@ -232,7 +232,9 @@ export default function UserEdit() {
                   >
                     <option value="">-- Pilih Role --</option>
                     {availableRoles
-                      .filter((r) => !selectedRolesExceptCurrent.includes(r.value))
+                      .filter(
+                        (r) => !selectedRolesExceptCurrent.includes(r.value)
+                      )
                       .map((r) => (
                         <option key={r.value} value={r.value}>
                           {r.label}
@@ -263,7 +265,9 @@ export default function UserEdit() {
           <div>
             <label className={labelClass}>
               Password{" "}
-              <span className="text-gray-400 text-xs">(kosong = tidak diubah)</span>
+              <span className="text-gray-400 text-xs">
+                (kosong = tidak diubah)
+              </span>
             </label>
             <div className="relative">
               <input
@@ -278,7 +282,9 @@ export default function UserEdit() {
                 type="button"
                 className="absolute right-3 top-2.5 text-gray-500"
                 onClick={() => setShowPassword(!showPassword)}
-                title={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                title={
+                  showPassword ? "Sembunyikan password" : "Tampilkan password"
+                }
               >
                 {showPassword ? (
                   <svg

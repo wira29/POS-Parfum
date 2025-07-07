@@ -255,7 +255,7 @@ export const router = createBrowserRouter([
             element: <RestockCreate />,
           },
           {
-            path: "restock/:id/details",
+            path: "restock/:date/details",
             element: <RestockDetail />,
           },
           {

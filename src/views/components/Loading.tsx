@@ -35,6 +35,14 @@ export function LoadingColumn({ column = 5 }: Column) {
   );
 }
 
+export function LoadingSpiner() {
+  return (
+    <div className="text-center text-gray-400 py-10">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+    </div>
+  );
+}
+
 export function LoadingHeaderColumn({ column = 5 }: Column) {
   return (
     <>

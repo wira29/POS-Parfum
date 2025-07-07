@@ -76,6 +76,7 @@ const ListReqProduct: React.FC = () => {
   const HandleDetail = (id: number) => {
     navigate(`/request-pembelian/${id}/detail`);
   };
+  
 
   return (
     <div className="flex flex-col gap-5 py-5">

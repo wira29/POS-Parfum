@@ -1,187 +1,280 @@
 import { useEffect, useState } from "react";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
-import { ChevronDown, ChevronUp, ArrowLeft } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import {
+  ChevronDown,
+  ChevronUp,
+  ArrowLeft,
+  ContainerIcon,
+  Calendar,
+  BoxIcon,
+} from "lucide-react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useApiClient } from "@/core/helpers/ApiClient";
-import { ImageHelper } from "@/core/helpers/ImageHelper";
+import { SVGBlock, SVGBlock2 } from "@/views/components/svg/Svg";
 import { LoadingCards } from "@/views/components/Loading";
 
+interface Variant {
+  variant_id: string;
+  variant_name: string;
+  requested_stock: number;
+  unit_id: string | null;
+  unit_name: string | null;
+  unit_code: string | null;
+}
+
+interface Product {
+  product_name: string;
+  variant_count: number;
+  variants: Variant[];
+}
+
+interface RestockData {
+  created_at: string;
+  products: Product[];
+}
+
+interface ApiResponse {
+  success: boolean;
+  message: string;
+  code: number;
+  data: RestockData[];
+}
+
 export const RestockDetail = () => {
-  const navigate = useNavigate();
-  const { id } = useParams();
+  const { date } = useParams();
   const apiClient = useApiClient();
   const [openTable, setOpenTable] = useState<string | null>(null);
-  const [detail, setDetail] = useState<any>(null);
+  const [restockData, setRestockData] = useState<RestockData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchDetail = async () => {
+    const fetchRestockData = async () => {
       setLoading(true);
+      setError(null);
+
       try {
-        const res = await apiClient.get(`/stock-request/${id}`);
-        if (res.data && res.data.data && res.data.data.length > 0) {
-          setDetail(res.data.data[0]);
+        const requestDate = date;
+        const res = await apiClient.get<ApiResponse>(
+          `/restock/by-period?date=${requestDate}`
+        );
+
+        if (res.data && res.data.success && res.data.data.length > 0) {
+          setRestockData(res.data.data[0]);
+        } else {
+          setRestockData(null);
         }
       } catch (e) {
-        setDetail(null);
+        console.error("Error fetching restock data:", e);
+        setError("Gagal memuat data restock");
+        setRestockData(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
-    fetchDetail();
-  }, [id]);
 
-  const groupedProducts = (() => {
-    if (!detail?.requested_stock) return [];
-    const map = new Map();
-    detail.requested_stock.forEach((item: any) => {
-      if (!map.has(item.product_name)) {
-        map.set(item.product_name, {
-          product_name: item.product_name,
-          kategori: item.kategori,
-          variants: [],
-        });
-      }
-      map.get(item.product_name).variants.push(item);
-    });
-    return Array.from(map.values());
-  })();
+    fetchRestockData();
+  }, [date]);
+
+  const formatDate = (dateString: string): string => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("id-ID", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  const getTotalProducts = (): number => {
+    return restockData?.products?.length || 0;
+  };
+
+  const getTotalVariants = (): number => {
+    return (
+      restockData?.products?.reduce(
+        (total, product) => total + product.variant_count,
+        0
+      ) || 0
+    );
+  };
+
+  const toggleTable = (productName: string): void => {
+    setOpenTable(openTable === productName ? null : productName);
+  };
+  
+
+  const renderProductCard = (product: Product, index: number) => (
+    <div
+      key={`${product.product_name}-${index}`}
+      className="mt-6 border border-gray-300 rounded-md p-5 bg-[#FAFBFC]"
+    >
+      <div className="flex gap-5">
+        <div className="w-40 h-40 flex items-center justify-center border border-gray-300 rounded-md bg-gray-50 text-gray-400 text-2xl font-bold">
+          <img src="" alt={product.product_name} />
+        </div>
+        <div className="flex-1 space-y-4">
+          <div className="flex justify-between">
+            <h1 className="font-semibold text-xl">{product.product_name}</h1>
+          </div>
+          <div className="flex justify-between text-sm text-gray-700">
+            <div>
+              <p className="text-xs text-gray-400">Total Varian</p>
+              <p className="font-semibold">{product.variant_count} Varian</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-400">Jumlah Request</p>
+              <p className="font-semibold">
+                {product.variants.reduce(
+                  (sum, variant) => sum + variant.requested_stock,
+                  0
+                )}{" "}
+                Total
+              </p>
+            </div>
+            <div
+              className="cursor-pointer"
+              onClick={() => toggleTable(product.product_name)}
+            >
+              <p className="text-xs text-gray-400">Detail</p>
+              <p className="font-semibold">
+                {openTable === product.product_name ? (
+                  <ChevronUp />
+                ) : (
+                  <ChevronDown />
+                )}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {openTable === product.product_name && (
+        <div className="mt-6 overflow-x-auto">
+          <table className="w-full min-w-[800px] text-sm">
+            <thead className="bg-gray-100 border border-gray-300 text-gray-700">
+              <tr>
+                <th className="p-4 font-medium text-left">No</th>
+                <th className="p-4 font-medium text-left">Nama Varian</th>
+                <th className="p-4 font-medium text-left">
+                  Jumlah Request Stock
+                </th>
+                <th className="p-4 font-medium text-left">Unit</th>
+              </tr>
+            </thead>
+            <tbody>
+              {product.variants.map((variant, i) => (
+                <tr
+                  key={`${variant.variant_id}-${i}`}
+                  className="hover:bg-gray-50"
+                >
+                  <td className="p-6 align-top">{i + 1}</td>
+                  <td className="p-6 align-top">{variant.variant_name}</td>
+                  <td className="p-6 align-top">
+                    <div className="w-60">
+                      <div className="flex items-center">
+                        <input
+                          type="number"
+                          className="w-full border border-gray-300 rounded-l-lg px-3 py-2 bg-gray-50"
+                          value={variant.requested_stock}
+                          readOnly
+                        />
+                        <span className="px-3 py-2 border border-gray-300 border-l-0 rounded-r-lg bg-gray-100 text-sm">
+                          {variant.unit_name || "Unit"}
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="p-6 align-top">{variant.unit_code || "-"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
 
   return (
-    <div className="p-6 space-y-6 bg-[#F8F9FB] min-h-screen">
+    <div className="p-6 space-y-6 min-h-screen">
       <Breadcrumb
-        title="Detail Request Stock"
-        desc="Detail informasi request stock yang telah dibuat"
+        title="Detail Restock Produk"
+        desc="Detail informasi restock produk berdasarkan periode"
       />
-      <div className="bg-white rounded-xl shadow-md p-8 flex-col md:flex-row gap-8">
-        <button
-          className="flex items-center gap-2 text-blue-600 font-semibold mb-4 cursor-pointer"
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeft size={18} /> Kembali
-        </button>
-        {loading ? (
-          <LoadingCards />
-        ) : detail ? (
-          <div className="flex lg:flex-col gap-4 flex-row mt-5">
-            <h1 className="font-semibold text-lg">Detail Restock</h1>
-            <h2>
-              Tanggal : <span className="text-slate-500">00-00-00</span>
-            </h2>
-            <h2>
-              Product yang di pilih : <span className="text-slate-500">50</span>
-            </h2>
-          </div>
-        ) : (
-          <div className="text-center text-gray-400 py-10">
-            Data tidak ditemukan
-          </div>
-        )}
-        <div className="font-semibold mb-4 mt-16">Produk Dipilih :</div>
-        <hr className="border border-slate-300"/>
-        <div className="space-y-6">
-          {groupedProducts.map((item: any, idx: number) => (
-            <div
-              key={item.product_name + idx}
-              className="mt-6 border border-gray-300 rounded-md p-5 bg-[#FAFBFC]"
-            >
-              <div className="flex gap-5">
-                <div className="w-40 h-40 flex items-center justify-center border border-gray-300 rounded-md bg-gray-50 text-gray-400 text-2xl font-bold">
-                  {item.product_name?.[0] || "P"}
-                </div>
-                <div className="flex-1 space-y-4">
-                  <div className="flex justify-between">
-                    <h1 className="font-semibold text-xl">
-                      {item.product_name}
-                    </h1>
+
+      {restockData && (
+        <div className="bg-white rounded-xl shadow p-8">
+          <div className="mb-5">
+            {loading ? (
+              <LoadingCards />
+            ) : error ? (
+              <div className="text-center text-red-400 py-10">
+                <p>{error}</p>
+              </div>
+            ) : restockData ? (
+              <div className="flex flex-col gap-5">
+                <div className="flex gap-2 items-center">
+                  <div className="bg-indigo-100 rounded-lg w-8 h-8 flex justify-center items-center">
+                    <ContainerIcon className="text-lg text-blue-500" />
                   </div>
-                  <div className="flex justify-between text-sm text-gray-700">
-                    <div>
-                      <p className="text-xs text-gray-400">Kategori</p>
-                      <p className="font-semibold">{item.kategori}</p>
+                  <h1 className="text-xl text-slate-800 font-semibold">
+                    Restock Detail
+                  </h1>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="w-full bg-[#EEF2FF] rounded px-4 pt-5 flex justify-between items-start relative">
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2 text-[#4F46E5] font-medium">
+                        <Calendar className="w-5 h-5" />
+                        <span className="text-sm text-slate-600">Tanggal</span>
+                      </div>
+                      <span className="text-[18px] font-medium text-[#2563EB] mt-1">
+                        25 Mei 2025
+                      </span>
                     </div>
-                    <div>
-                      <p className="text-xs text-gray-400">Varian Dipilih</p>
-                      <p className="font-semibold">
-                        {item.variants.length} Varian
-                      </p>
+                    <SVGBlock />
+                  </div>
+                  <div className="w-full bg-[#EEF2FF] rounded px-4 pt-5 flex justify-between items-start relative">
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2 text-[#4F46E5] font-medium">
+                        <BoxIcon className="w-5 h-5" />
+                        <span className="text-sm text-slate-600">
+                          Produk Direstock
+                        </span>
+                      </div>
+                      <span className="text-[18px] font-medium text-[#2563EB] mt-1">
+                        5 Produk
+                      </span>
                     </div>
-                    <div
-                      className="cursor-pointer"
-                      onClick={() =>
-                        setOpenTable(
-                          openTable === item.product_name
-                            ? null
-                            : item.product_name
-                        )
-                      }
-                    >
-                      <p className="text-xs text-gray-400">Detail</p>
-                      <p className="font-semibold">
-                        {openTable === item.product_name ? (
-                          <ChevronUp />
-                        ) : (
-                          <ChevronDown />
-                        )}
-                      </p>
-                    </div>
+                    <SVGBlock2 />
                   </div>
                 </div>
               </div>
-              {openTable === item.product_name && (
-                <div className="mt-6 overflow-x-auto">
-                  <table className="w-full min-w-[800px] text-sm">
-                    <thead className="bg-gray-100 border border-gray-300 text-gray-700">
-                      <tr>
-                        <th className="p-4 font-medium text-left">No</th>
-                        <th className="p-4 font-medium text-left">
-                          Nama Varian
-                        </th>
-                        <th className="p-4 font-medium text-left">
-                          Kode Varian
-                        </th>
-                        <th className="p-4 font-medium text-left">
-                          Jumlah Request Stock
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {item.variants.map((variant: any, i: number) => (
-                        <tr
-                          key={variant.variant_code + i}
-                          className="hover:bg-gray-50"
-                        >
-                          <td className="p-6 align-top">{i + 1}</td>
-                          <td className="p-6 align-top">
-                            {variant.variant_name}
-                          </td>
-                          <td className="p-6 align-top">
-                            {variant.variant_code}
-                          </td>
-                          <td className="p-6 align-top">
-                            <div className="w-60">
-                              <div className="flex items-center">
-                                <input
-                                  type="number"
-                                  className="w-full border border-gray-300 rounded-l-lg px-3 py-2 bg-gray-50"
-                                  value={variant.requested_stock}
-                                  readOnly
-                                />
-                                <span className="px-3 py-2 border border-gray-300 border-l-0 rounded-r-lg bg-gray-100 text-sm">
-                                  Gram
-                                </span>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          ))}
+            ) : (
+              <div className="text-center text-gray-400 py-10">
+                <p>Data restock tidak ditemukan</p>
+              </div>
+            )}
+          </div>
+          <div className="font-semibold mb-4 text-lg">Produk Restock:</div>
+          <div className="space-y-6">
+            {restockData.products.map((product, index) =>
+              renderProductCard(product, index)
+            )}
+          </div>
+          <div className="flex justify-end mt-5">
+            <Link
+              to={`/restock`}
+              className="bg-gray-500 text-center text-white hover:bg-gray-700 cursor-pointer px-4 py-1.5 rounded"
+            >
+              Kembali
+            </Link>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
