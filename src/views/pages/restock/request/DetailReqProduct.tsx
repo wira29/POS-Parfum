@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import Card from "@/views/components/Card/Card";
-import { requests } from "@/core/data/requestRestock";
-import { Link, useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { useApiClient } from "@/core/helpers/ApiClient";
 import { RetailRequestModal } from "@/views/components/UpdateStatusModal";
+import { ImageHelper } from "@/core/helpers/ImageHelper";
+import { ModalReqPembelian } from "@/views/components/ModalReqPembelian";
 
 interface Product {
   id: number;
@@ -15,12 +17,48 @@ interface Product {
   subtotal: string;
 }
 
-interface ProdFromRequest {
+interface VariantItem {
+  product_name: string;
+  variant_name: string;
+  requested_stock: number;
+  kategori: string;
+  variant_code: string;
+  unit_id: string | null;
+  unit_code: string | null;
+  price: number | null;
+  sended_stock: number;
+  stock_warehouse: number;
+}
+
+interface Warehouse {
+  id: string;
   name: string;
-  totalOrder: string;
-  stockAvailable: string;
-  qtyShipped?: string;
-  unitPrice?: string;
+  alamat: string;
+  telp: string;
+  image: string;
+}
+
+interface StockRequest {
+  id: string;
+  outlet_id: string;
+  warehouse_id: string;
+  status: string;
+  store_name: string | null;
+  total_price: number;
+  store_location: string | null;
+  variant_chose: number;
+  requested_stock_count: number;
+  requested_at: string;
+  note: string | null;
+  requested_stock: VariantItem[] | null;
+  warehouse: Warehouse;
+}
+
+interface ApiResponse {
+  success: boolean;
+  message: string;
+  code: number;
+  data: StockRequest[] | null;
 }
 
 const DetailReqProduct = () => {
@@ -28,30 +66,22 @@ const DetailReqProduct = () => {
   const [productData, setProductData] = useState<Product[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const modalRef = useRef<HTMLDivElement | null>(null);
-  const [requestDetail, setRequestDetail] = useState<
-    (typeof requests)[0] | null
-  >(null);
+  const [requestDetail, setRequestDetail] = useState<StockRequest | null>(null);
+  const apiClient = useApiClient();
+  const navigate = useNavigate();
 
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-  };
+  const handleModalClose = () => setIsModalOpen(false);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        handleModalClose();
-      }
-    };
-
-    const handleClickOutside = (e: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-        handleModalClose();
-      }
-    };
+    const handleKeyDown = (e: KeyboardEvent) =>
+      e.key === "Escape" && handleModalClose();
+    const handleClickOutside = (e: MouseEvent) =>
+      modalRef.current &&
+      !modalRef.current.contains(e.target as Node) &&
+      handleModalClose();
 
     document.addEventListener("keydown", handleKeyDown);
     document.addEventListener("mousedown", handleClickOutside);
-
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("mousedown", handleClickOutside);
@@ -60,40 +90,43 @@ const DetailReqProduct = () => {
 
   useEffect(() => {
     if (!id) return;
-    const requestId = Number(id);
-    const foundRequest = requests.find((req) => req.id === requestId);
-    if (foundRequest) {
-      setRequestDetail(foundRequest);
-      const mappedProducts: Product[] = foundRequest.products.map(
-        (prod: ProdFromRequest, index) => ({
-          id: index + 1,
-          name: prod.name,
-          code: `PR${String(index + 1).padStart(3, "0")}`,
-          qtyRequest: prod.totalOrder,
-          stock: prod.stockAvailable,
-          qtyShipped: prod.qtyShipped ?? "",
-          unitPrice: prod.unitPrice ?? "",
-          subtotal:
-            prod.qtyShipped && prod.unitPrice
-              ? (Number(prod.qtyShipped) * Number(prod.unitPrice)).toString()
-              : "0",
-        })
-      );
+    const fetchRequestDetail = async () => {
+      try {
+        const res = await apiClient.get<ApiResponse>(`/stock-request/${id}`);
+        console.log(res.data.data);
+        
+        if (res.data.success && res.data.data.length > 0) {
+          const request = res.data.data[0];
+          setRequestDetail(request);
 
-      setProductData(mappedProducts);
-    } else {
-      setRequestDetail(null);
-      setProductData([]);
-    }
+          const mappedProducts: Product[] = request.requested_stock.map(
+            (prod, index) => ({
+              id: index + 1,
+              name: prod.product_name,
+              code: prod.variant_code,
+              qtyRequest: prod.requested_stock.toString(),
+              stock: prod.stock_warehouse ? prod.stock_warehouse.toString() : "-",
+              qtyShipped: prod.sended_stock.toString(),
+              unitPrice: prod.price ? prod.price.toString() : "0",
+              subtotal: "0",
+            })
+          );
+          setProductData(mappedProducts);
+        } else {
+          setRequestDetail(null);
+          setProductData([]);
+          console.warn("No valid data received from API:", res.data.message || "No message provided");
+        }
+      } catch (err) {
+        console.error("Error fetching request details:", err);
+        setRequestDetail(null);
+        setProductData([]);
+      }
+    };
+    fetchRequestDetail();
   }, [id]);
 
-  const handleApprove = () => {
-    setIsModalOpen(true);
-  };
-
-  const handleModalSubmit = () => {
-    setIsModalOpen(false);
-  };
+  const handleModalSubmit = () => setIsModalOpen(false);
 
   const handleInputChange = (
     index: number,
@@ -103,13 +136,9 @@ const DetailReqProduct = () => {
     const updatedProducts = [...productData];
     updatedProducts[index][field] = value;
 
-    const qty = parseInt(updatedProducts[index].qtyShipped, 10);
-    const price = parseInt(updatedProducts[index].unitPrice, 10);
-
-    const qtyNumber = isNaN(qty) ? 0 : qty;
-    const priceNumber = isNaN(price) ? 0 : price;
-
-    updatedProducts[index].subtotal = (qtyNumber * priceNumber).toString();
+    const qty = parseInt(updatedProducts[index].qtyShipped, 10) || 0;
+    const price = parseInt(updatedProducts[index].unitPrice, 10) || 0;
+    updatedProducts[index].subtotal = (qty * price).toString();
 
     setProductData(updatedProducts);
   };
@@ -132,29 +161,33 @@ const DetailReqProduct = () => {
         <div className="flex justify-start gap-18 items-start py-3">
           <div className="flex gap-4">
             <img
-              src={requestDetail?.image ?? "/assets/images/products/image.png"}
+              src={
+                ImageHelper(requestDetail?.warehouse?.image) ||
+                "/assets/images/products/image.png"
+              }
               alt="Store front"
               className="h-36 w-64 rounded-lg object-cover"
             />
             <div className="flex flex-col gap-1 text-left">
               <h1 className="text-2xl font-medium text-gray-800">Outlet</h1>
               <h2 className="text-lg font-medium text-gray-800">
-                {requestDetail?.retailName ?? "-"}
+                {requestDetail?.warehouse.name || "-"}
               </h2>
               <p className="text-sm font-normal text-gray-500">
-                {requestDetail?.retailAddress ?? "-"}
+                {requestDetail?.warehouse.alamat || "-"}
               </p>
               <p className="text-sm font-normal text-gray-500">
-                (+62) 811-0220-0010
+                {requestDetail?.warehouse.telp || "(+62) 811-0220-0010"}
               </p>
             </div>
           </div>
-
           <div className="flex flex-col gap-2.5 text-left">
             <h1 className="text-2xl font-medium text-gray-800">Transaksi</h1>
             <div className="flex gap-2 items-center text-sm">
               <span className="font-medium text-gray-800">Tanggal:</span>
-              <span className="font-normal text-gray-500">21 Mei 2025</span>
+              <span className="font-normal text-gray-500">
+                {requestDetail?.requested_at.split("T")[0] || "21 Mei 2025"}
+              </span>
             </div>
             <div className="flex gap-2 items-center text-sm">
               <span className="font-medium text-gray-800">Status:</span>
@@ -179,19 +212,19 @@ const DetailReqProduct = () => {
                   Produk
                 </th>
                 <th className="p-5 text-center text-gray-800 font-bold">
-                  Quantity Request
+                  Qty Request
                 </th>
                 <th className="p-5 text-center text-gray-800 font-bold">
                   Stock
                 </th>
                 <th className="p-5 text-center text-gray-800 font-bold">
-                  Quantity Dikirim
+                  Qty Dikirim
                 </th>
                 <th className="p-5 text-center text-gray-800 font-bold">
                   Harga
                 </th>
                 <th className="p-5 text-right text-gray-800 font-bold">
-                  Subtotal Harga
+                  Subtotal
                 </th>
               </tr>
             </thead>
@@ -216,30 +249,20 @@ const DetailReqProduct = () => {
                   </td>
                   <td className="py-4 px-4 text-center">{product.stock}</td>
                   <td className="py-4 px-4 text-center">
-                    <div className="flex">
-                      <input
-                        type="text"
-                        placeholder="0"
-                        value={product.qtyShipped}
-                        onChange={(e) => {
-                          let val = e.target.value.replace(/[^0-9]/g, "");
-                          if (val.length > 1 && val.startsWith("0")) {
-                            val = val.replace(/^0+/, "");
-                          }
-                          handleInputChange(index, "qtyShipped", val);
-                        }}
-                        disabled={requestDetail?.status !== "pending"}
-                        className="w-20 px-2 py-1 border border-slate-400/[0.5] outline-none rounded-l-md text-center disabled:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                      <select
-                        className="px-0 py-1.5 text-sm cursor-pointer border border-l-0 border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="g">g</option>
-                        <option value="ml">ml</option>
-                      </select>
-                    </div>
+                    <input
+                      type="text"
+                      placeholder="0"
+                      value={product.qtyShipped}
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/[^0-9]/g, "");
+                        if (val.length > 1 && val.startsWith("0"))
+                          val = val.replace(/^0+/, "");
+                        handleInputChange(index, "qtyShipped", val);
+                      }}
+                      disabled={requestDetail?.status !== "pending"}
+                      className="w-20 px-2 py-1 border border-slate-400/[0.5] outline-none rounded-md text-center disabled:bg-gray-100 focus:ring-2 focus:ring-blue-500"
+                    />
                   </td>
-
                   <td className="py-4 px-4 text-center">
                     <input
                       type="text"
@@ -251,16 +274,14 @@ const DetailReqProduct = () => {
                       }
                       onChange={(e) => {
                         let val = e.target.value.replace(/[^0-9]/g, "");
-                        if (val.length > 1 && val.startsWith("0")) {
+                        if (val.length > 1 && val.startsWith("0"))
                           val = val.replace(/^0+/, "");
-                        }
                         handleInputChange(index, "unitPrice", val);
                       }}
                       disabled={requestDetail?.status !== "pending"}
-                      className="w-24 px-2 py-1 border border-slate-400/[0.5] outline-none rounded-md text-center disabled:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-24 px-2 py-1 border border-slate-400/[0.5] outline-none rounded-md text-center disabled:bg-gray-100 focus:ring-2 focus:ring-blue-500"
                     />
                   </td>
-
                   <td className="py-4 px-4 text-right">
                     Rp {Number(product.subtotal).toLocaleString("id-ID")}
                   </td>
@@ -269,31 +290,18 @@ const DetailReqProduct = () => {
             </tbody>
           </table>
         </div>
-
-        <div className="flex justify-between items-center mt-5">
-          <div className="text-gray-500 text-sm">{productData.length} Data</div>
-          <div className="flex gap-5">
-            <Link
-              to={`/request-stock`}
-              className="bg-slate-50 hover:bg-slate-100 border border-slate-500/[0.5] text-slate-500 py-2 px-10 rounded-md cursor-pointer"
-            >
-              Kembali
-            </Link>
-            {requestDetail?.status !== "approved" &&
-              requestDetail?.status !== "rejected" && (
-                <button
-                  onClick={handleApprove}
-                  className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-10 rounded-md cursor-pointer"
-                >
-                  Tanggapi
-                </button>
-              )}
-          </div>
+        <div className="flex gap-5 justify-end mt-4">
+          <button onClick={() => navigate("/request-pembelian")} className="bg-gray-500 rounded text-white py-1.5 px-4 cursor-pointer hover:bg-gray-600">Kembali</button>
+          {requestDetail?.status === "pending" && (
+            <button onClick={() => setIsModalOpen(true)} className="bg-blue-500 rounded text-white py-1.5 px-4 cursor-pointer hover:bg-blue-600">Tanggapi</button>
+          )}
         </div>
       </Card>
 
-      <RetailRequestModal
+      <ModalReqPembelian
         isOpen={isModalOpen}
+        auditId={id} 
+        productData={productData}
         onClose={handleModalClose}
         onSubmit={handleModalSubmit}
       />

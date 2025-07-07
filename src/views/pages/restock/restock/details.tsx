@@ -12,6 +12,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { SVGBlock, SVGBlock2 } from "@/views/components/svg/Svg";
 import { LoadingCards } from "@/views/components/Loading";
+import { ImageHelper } from "@/core/helpers/ImageHelper";
 
 interface Variant {
   variant_id: string;
@@ -25,6 +26,7 @@ interface Variant {
 interface Product {
   product_name: string;
   variant_count: number;
+  image: string;
   variants: Variant[];
 }
 
@@ -76,36 +78,35 @@ export const RestockDetail = () => {
     fetchRestockData();
   }, [date]);
 
-  const formatDate = (dateString: string): string => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("id-ID", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-      });
-    } catch {
-      return dateString;
-    }
-  };
+  // const formatDate = (dateString: string): string => {
+  //   try {
+  //     const date = new Date(dateString);
+  //     return date.toLocaleDateString("id-ID", {
+  //       day: "2-digit",
+  //       month: "long",
+  //       year: "numeric",
+  //     });
+  //   } catch {
+  //     return dateString;
+  //   }
+  // };
 
-  const getTotalProducts = (): number => {
-    return restockData?.products?.length || 0;
-  };
+  // const getTotalProducts = (): number => {
+  //   return restockData?.products?.length || 0;
+  // };
 
-  const getTotalVariants = (): number => {
-    return (
-      restockData?.products?.reduce(
-        (total, product) => total + product.variant_count,
-        0
-      ) || 0
-    );
-  };
+  // const getTotalVariants = (): number => {
+  //   return (
+  //     restockData?.products?.reduce(
+  //       (total, product) => total + product.variant_count,
+  //       0
+  //     ) || 0
+  //   );
+  // };
 
   const toggleTable = (productName: string): void => {
     setOpenTable(openTable === productName ? null : productName);
   };
-  
 
   const renderProductCard = (product: Product, index: number) => (
     <div
@@ -114,7 +115,7 @@ export const RestockDetail = () => {
     >
       <div className="flex gap-5">
         <div className="w-40 h-40 flex items-center justify-center border border-gray-300 rounded-md bg-gray-50 text-gray-400 text-2xl font-bold">
-          <img src="" alt={product.product_name} />
+          <img src={ImageHelper(product.image)} alt={product.product_name} />
         </div>
         <div className="flex-1 space-y-4">
           <div className="flex justify-between">

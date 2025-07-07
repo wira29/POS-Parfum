@@ -58,7 +58,17 @@ export const RequestStockIndex = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const apiClient = useApiClient();
-  const isFilterActive = !!(dateTo || minRequest || maxRequest || dateFrom || statusFilter || kategoriFilter || warehouseFilter || produkFilter || statusFilter);
+  const isFilterActive = !!(
+    dateTo ||
+    minRequest ||
+    maxRequest ||
+    dateFrom ||
+    statusFilter ||
+    kategoriFilter ||
+    warehouseFilter ||
+    produkFilter ||
+    statusFilter
+  );
 
   const kategoriOptions = ["Parfum Siang", "Parfum Malam", "Parfum Sore"];
   const produkOptions = ["Parfum A", "Parfum B", "Parfum C"];
@@ -114,7 +124,10 @@ export const RequestStockIndex = () => {
   };
 
   const groupRequestedStock = (requested_stock: any[]) => {
-    const grouped: Record<string, { variants: string[], total: number, unit: string }> = {};
+    const grouped: Record<
+      string,
+      { variants: string[]; total: number; unit: string }
+    > = {};
 
     for (const item of requested_stock) {
       if (!grouped[item.product_name]) {
@@ -131,14 +144,26 @@ export const RequestStockIndex = () => {
     return Object.entries(grouped);
   };
 
+  const statusMap = {
+    pending: { label: "Menunggu", className: "bg-yellow-100 text-yellow-700" },
+    rejected: { label: "Ditolak", className: "bg-red-100 text-red-600" },
+    approved: { label: "Diterima", className: "bg-green-100 text-green-700" },
+  };
+
   return (
     <div className="p-6 space-y-6">
-      <Breadcrumb title="Restock Produk" desc="Menampilkan daftar restock dari gudang" />
+      <Breadcrumb
+        title="Restock Produk"
+        desc="Menampilkan daftar restock dari gudang"
+      />
 
       <div className="p-4 flex flex-col gap-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2 mb-4 w-full sm:w-auto max-w-lg">
-            <SearchInput value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+            <SearchInput
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
             <div className="relative">
               <Filter onClick={() => setShowFilter(true)} />
               {isFilterActive && (
@@ -165,27 +190,43 @@ export const RequestStockIndex = () => {
             >
               <div className="flex-1 space-y-4">
                 <div className="bg-gray-50 border border-gray-100 rounded-xl p-4">
-                  {groupRequestedStock(card.requested_stock).map(([productName, info], idx2) => (
-                    <div
-                      key={idx2}
-                      className={`grid grid-cols-1 md:grid-cols-3 gap-4 py-4 ${
-                        idx2 !== 0 ? "border-t border-dashed border-gray-300 mt-4 pt-4" : ""
-                      }`}
-                    >
-                      <div>
-                        <div className="font-semibold text-base text-gray-700">{productName}</div>
-                        <div className="text-gray-500 text-sm">{info.variants.join(", ")}</div>
+                  {groupRequestedStock(card.requested_stock).map(
+                    ([productName, info], idx2) => (
+                      <div
+                        key={idx2}
+                        className={`grid grid-cols-1 md:grid-cols-3 gap-4 py-4 ${
+                          idx2 !== 0
+                            ? "border-t border-dashed border-gray-300 mt-4 pt-4"
+                            : ""
+                        }`}
+                      >
+                        <div>
+                          <div className="font-semibold text-base text-gray-700">
+                            {productName}
+                          </div>
+                          <div className="text-gray-500 text-sm">
+                            {info.variants.join(", ")}
+                          </div>
+                        </div>
+                        <div className="text-right md:text-left">
+                          <div className="font-semibold text-sm text-gray-600">
+                            Varian Dipilih
+                          </div>
+                          <div className="text-gray-800">
+                            {info.variants.length} varian
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold text-sm text-gray-600">
+                            Jumlah Request
+                          </div>
+                          <div className="text-green-600">
+                            {info.total} {info.unit}
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-right md:text-left">
-                        <div className="font-semibold text-sm text-gray-600">Varian Dipilih</div>
-                        <div className="text-gray-800">{info.variants.length} varian</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-semibold text-sm text-gray-600">Jumlah Request</div>
-                        <div className="text-green-600">{info.total} {info.unit}</div>
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  )}
                   {card.requested_stock.length > 4 && (
                     <div className="text-center text-xs text-gray-400 italic mt-2">
                       +{card.requested_stock.length - 3} produk lainnya
@@ -199,9 +240,12 @@ export const RequestStockIndex = () => {
                   alt=""
                   className="w-44 h-28 object-cover rounded-lg mb-2"
                 />
-                <div className="font-semibold text-lg text-gray-700">{card.warehouse?.name}</div>
+                <div className="font-semibold text-lg text-gray-700">
+                  {card.warehouse?.name}
+                </div>
                 <div className="text-sm text-gray-500 mb-4">
-                  <span className="font-medium text-gray-700">Request:</span><br />
+                  <span className="font-medium text-gray-700">Request:</span>
+                  <br />
                   {new Date(card.requested_at).toLocaleDateString("id-ID", {
                     day: "2-digit",
                     month: "long",
@@ -210,9 +254,12 @@ export const RequestStockIndex = () => {
                 </div>
                 <div className="flex gap-2 w-full justify-center">
                   <button
-                    className={`${statusMap[card.status]?.className || "bg-gray-100 text-gray-600"} px-4 py-1.5 rounded-md text-sm font-medium`}
+                    className={`${
+                      statusMap[card.status]?.className ||
+                      "bg-gray-100 text-gray-600"
+                    } px-4 py-1.5 rounded-md text-sm font-medium`}
                   >
-                    {statusMap[card.status]?.label || card.status}
+                    {statusMap[card.status]?.label || "Status Tidak Dikenal"}
                   </button>
                   <button
                     className="bg-blue-600 text-white px-4 py-1.5 rounded-md text-sm font-medium"
@@ -228,7 +275,11 @@ export const RequestStockIndex = () => {
             <div className="flex justify-end mt-4">
               <div className="flex items-center gap-1">
                 <button
-                  className={`px-3 py-1 rounded border cursor-pointer ${!pagination.prev_page_url ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-white text-gray-700 hover:bg-blue-50"}`}
+                  className={`px-3 py-1 rounded border cursor-pointer ${
+                    !pagination.prev_page_url
+                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                      : "bg-white text-gray-700 hover:bg-blue-50"
+                  }`}
                   disabled={!pagination.prev_page_url}
                   onClick={() => {
                     if (pagination.prev_page_url) {
@@ -245,7 +296,11 @@ export const RequestStockIndex = () => {
                   .map((link: any, idx: number) => (
                     <button
                       key={idx}
-                      className={`px-3 py-1 rounded border cursor-pointer ${link.active ? "bg-blue-600 text-white" : "bg-white text-gray-700 hover:bg-blue-50"}`}
+                      className={`px-3 py-1 rounded border cursor-pointer ${
+                        link.active
+                          ? "bg-blue-600 text-white"
+                          : "bg-white text-gray-700 hover:bg-blue-50"
+                      }`}
                       disabled={link.active}
                       onClick={() => {
                         if (link.url) {
@@ -259,7 +314,11 @@ export const RequestStockIndex = () => {
                     </button>
                   ))}
                 <button
-                  className={`px-3 py-1 rounded border cursor-pointer ${!pagination.next_page_url ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-white text-gray-700 hover:bg-blue-50"}`}
+                  className={`px-3 py-1 rounded border cursor-pointer ${
+                    !pagination.next_page_url
+                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                      : "bg-white text-gray-700 hover:bg-blue-50"
+                  }`}
                   disabled={!pagination.next_page_url}
                   onClick={() => {
                     if (pagination.next_page_url) {
