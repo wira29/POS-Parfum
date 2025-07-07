@@ -13,6 +13,7 @@ interface FilterModalProps {
   maxStock: string;
   setMaxStock: (value: string) => void;
   onApply: () => void;
+  realMinStock: number | null; // Tambahan untuk minimal real stock
 }
 
 export const FilterModal = ({
@@ -28,6 +29,7 @@ export const FilterModal = ({
   maxStock,
   setMaxStock,
   onApply,
+  realMinStock,
 }: FilterModalProps) => {
   if (!open) return null;
 
@@ -46,7 +48,7 @@ export const FilterModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 bg-opacity-50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-800">Filter Data</h2>
@@ -55,11 +57,15 @@ export const FilterModal = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
-                Minimum Quantity Restock
+                Minimum Jumlah Restock
               </label>
               <input
                 type="number"
-                placeholder="Enter Amount"
+                placeholder={
+                  realMinStock !== null
+                    ? `Contoh: ${realMinStock}`
+                    : "Enter Amount"
+                }
                 className="w-full outline-none px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
                 value={minStock}
                 onChange={handleInputChange(setMinStock)}
@@ -67,7 +73,7 @@ export const FilterModal = ({
             </div>
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
-                Maximum Quantity Restock
+                Maximum Jumlah Restock
               </label>
               <input
                 type="number"
