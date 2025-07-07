@@ -46,8 +46,8 @@ export const ProductIndex = () => {
   const [tempPriceMax, setTempPriceMax] = useState("");
   const [tempSalesMin, setTempSalesMin] = useState("");
   const [tempSalesMax, setTempSalesMax] = useState("");
-  const [tempSearch, setTempSearch] = useState("");
 
+  const [salesRange, setSalesRange] = useState<{ min: number; max: number }>({ min: 0, max: 0 });
 
   useEffect(() => {
     fetchCategories();
@@ -85,10 +85,17 @@ export const ProductIndex = () => {
       const res = await api.get(`/products?${query.toString()}`);
       const pagination = res.data.pagination;
 
-      setProducts(res.data.data);
+      const newProducts = res.data.data;
+      setProducts(newProducts);
       setPage(pagination.current_page);
       setLastPage(pagination.last_page);
-      console.log("Products fetched:", res);
+
+      const allVariants = newProducts.flatMap((product: any) => getVariants(product));
+      const salesValues = allVariants.map((v) => v.penjualan || 0);
+      const minSales = salesValues.length ? Math.min(...salesValues) : 0;
+      const maxSales = salesValues.length ? Math.max(...salesValues) : 0;
+      setSalesRange({ min: minSales, max: maxSales });
+
     } catch (error) {
       Toaster("error", "Gagal memuat data produk");
     } finally {
@@ -259,7 +266,7 @@ export const ProductIndex = () => {
                       </td>
                       <td className="p-4 align-top">
                         <div className="flex gap-2">
-                          <ViewIcon to={`/products/${product.id}`} />
+                          <ViewIcon to={product.is_bundling ? `/bundlings/${product.id}/detail` : `/products/${product.id}`} />
                           <EditIcon to={`/products/${product.id}/edit`} />
                           <DeleteIcon onClick={confirmDelete(product.id)} />
                         </div>
@@ -288,11 +295,10 @@ export const ProductIndex = () => {
                           <td colSpan={6} className="p-0">
                             <div
                               ref={(el) => (expandRefs.current[product.id] = el)}
-                              className={`variant-slide ${
-                                expandedProducts.includes(product.id)
-                                  ? "variant-enter"
-                                  : "variant-leave"
-                              }`}
+                              className={`variant-slide ${expandedProducts.includes(product.id)
+                                ? "variant-enter"
+                                : "variant-leave"
+                                }`}
                             >
                               {expandedProducts.includes(product.id) && (() => {
                                 const vPage = variantPage[product.id] || 1;
@@ -318,7 +324,7 @@ export const ProductIndex = () => {
                                           <div className="font-medium">{variant.name}</div>
                                           <div className="text-xs text-gray-500">Kode Varian: {variant.code}</div>
                                         </div>
-                                        <div>{variant.category?.name ?? "-"}</div>
+                                        <div>{variant.category ?? "-"}</div>
                                         <div>{variant.penjualan}</div>
                                         <div>Rp {variant.price.toLocaleString("id-ID")}</div>
                                         <div>{variant.stock} G</div>
@@ -383,6 +389,7 @@ export const ProductIndex = () => {
         setSalesMin={setTempSalesMin}
         salesMax={tempSalesMax}
         setSalesMax={setTempSalesMax}
+        salesRange={salesRange}
       />
     </div>
   );

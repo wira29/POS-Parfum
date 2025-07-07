@@ -3,15 +3,15 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ShoppingCart } from "lucide-react";
 
 type BundlingMaterial = {
+  product_name: string;
   product_detail_id: string;
   variant_name: string;
-  image: string | null;
-  price?: number;
-  stock?: number;
-  category?: string;
+  quantity: number;
+  unit_code: string;
+  sum_stock: number;
 };
 
 type BundlingPackage = {
@@ -63,90 +63,94 @@ export default function BundlingDetailPage() {
 
   const allVariants = packageData.bundling_material || [];
   const selectedVariant = allVariants[selectedOptionIndex] || null;
-  const mainImage = selectedVariant?.image || "/images/placeholder.jpg";
+  const mainImage = "/images/placeholder.jpg"; // fallback image
 
   return (
     <div className="p-6">
       <Breadcrumb title="Detail Bundling Produk" desc="Data Bundling Produk" />
 
-      <div className="bg-white p-6 rounded-md shadow-xl mt-4">
-        <div className="flex flex-col md:flex-row gap-20 w-full">
-          <img
-            src={ImageHelper(mainImage)}
-            alt={packageData.name}
-            className="w-full max-w-[520px] h-[450px] object-cover rounded-lg shadow-md mb-4 md:mb-0 md:mr-2"
-            onError={(e) => {
-              e.currentTarget.src = "/images/placeholder.jpg";
-            }}
-          />
+      <div className="bg-white p-6 rounded-xl shadow-md mt-4">
+        <div className="flex flex-col md:flex-row gap-12">
+          <div className="w-full md:w-[420px]">
+            <img
+              src={ImageHelper(mainImage)}
+              alt={packageData.name}
+              className="w-full h-[480px] object-cover rounded-xl shadow"
+              onError={(e) => {
+                e.currentTarget.src = "/images/placeholder.jpg";
+              }}
+            />
+          </div>
 
-          <div className="flex-1 max-w-150 space-y-4">
-            <p className="text-xl text-black font-bold border-b-3 border-gray-300 w-full p-2 uppercase">
-              {packageData.name.toUpperCase()}
-            </p>
+          <div className="flex-1 flex flex-col gap-4">
+            <div>
+              <h1 className="text-xl font-bold text-gray-800 uppercase">
+                {packageData.name}
+              </h1>
+              <p className="text-sm text-gray-500 mt-1">
+                Terdiri dari {allVariants.length} item produk berikut ini
+              </p>
+            </div>
 
             <div className="flex flex-col gap-2">
               {allVariants.map((variant, idx) => (
                 <button
                   key={variant.product_detail_id}
-                  className={`border px-3 py-2 text-sm font-semibold flex items-center gap-2 w-fit cursor-pointer ${
-                    selectedOptionIndex === idx
-                      ? "bg-blue-100 border-blue-500 text-blue-700 rounded-sm"
-                      : "bg-gray-100 border-gray-300 text-gray-700"
-                  }`}
                   onClick={() => setSelectedOptionIndex(idx)}
+                  className="w-full flex items-start gap-3 border border-gray-200 bg-gray-50 p-3 rounded-2xl shadow-sm hover:bg-gray-100 transition"
                 >
                   <img
-                    src={ImageHelper(variant.image)}
-                    className="w-6 h-6 rounded"
+                    src={"/images/placeholder.jpg"}
+                    className="w-10 h-10 rounded-full object-cover"
                     alt="variant"
                     onError={(e) => {
                       e.currentTarget.src = "/images/placeholder.jpg";
                     }}
                   />
-                  <span>{variant.variant_name || "Opsi"}</span>
+                  <div className="flex flex-col items-start">
+                    <span className="text-sm text-gray-800 font-semibold">
+                      {variant.product_name} <span className="text-gray-400">Varian</span> {variant.variant_name}
+                    </span>
+                    <span className="flex items-center text-gray-500 text-sm gap-2 mt-1">
+                      <ShoppingCart size={16} /> Quantity {variant.quantity} {variant.unit_code}
+                    </span>
+                  </div>
                 </button>
               ))}
+
+              <button className="bg-blue-500 text-white text-sm px-4 py-2 rounded-md w-fit mt-2 hover:bg-blue-600">
+                Item Lainnya ▼
+              </button>
             </div>
 
-            <div className="border-b-3 border-gray-300 pb-4 pt-4">
-              <p className="text-gray-500 mb-3">{packageData.kode_Bundling}</p>
+            <div className="pt-4 border-t border-gray-300">
+              <p className="text-gray-500 text-sm mb-1">{packageData.kode_Bundling}</p>
               <p className="text-2xl font-bold text-gray-800">
                 Rp {formatPrice(packageData.harga)}
               </p>
             </div>
-
-            <div className="text-sm text-gray-700 pt-2">
-              <div className="flex justify-between">
-                <span className="font-semibold">Stok Produk</span>
-                <span>{selectedVariant?.stock ?? packageData.stock} Pcs</span>
-              </div>
-            </div>
           </div>
         </div>
 
-        <h2 className="font-bold text-xl p-3 text-gray-800 border-b-3 border-gray-300 mt-6">
-          Deskripsi
-        </h2>
-        <div className="mt-10 gap-6">
-          <div className="md:col-span-2">
-            <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
-              {packageData.description || (
-                <span className="text-gray-400 italic">
-                  Belum ada deskripsi
-                </span>
-              )}
-            </p>
-          </div>
+        <div className="mt-10 border-t pt-6">
+          <h2 className="font-bold text-xl text-gray-800 mb-4">Deskripsi Produk Bundling</h2>
+          <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
+            {packageData.description || (
+              <span className="italic text-gray-400">Belum ada deskripsi</span>
+            )}
+          </p>
         </div>
-        <button
-          className="mt-6 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors cursor-pointer"
-          onClick={() => navigate(-1)}
-        >
-          <span className="flex items-center gap-2">
-            <ArrowLeft /> Kembali
-          </span>
-        </button>
+
+        <div className="w-full flex justify-end">
+          <button
+            className="mt-8 bg-gray-400 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition"
+            onClick={() => navigate(-1)}
+          >
+            <span className="flex items-center gap-2">
+              <ArrowLeft size={16} /> Kembali
+            </span>
+          </button>
+        </div>
       </div>
     </div>
   );

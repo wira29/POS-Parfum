@@ -203,7 +203,7 @@ export const ProductShow = () => {
               </p>
             </div>
           </div>
-          <button className="mt-6 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors cursor-pointer" onClick={() => navigate("/products")}>
+          <button className="mt-6 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors cursor-pointer" onClick={() => navigate(-1)}>
             <p className="flex items-center gap-2"><ArrowLeft /> Kembali</p>
           </button>
         </div>

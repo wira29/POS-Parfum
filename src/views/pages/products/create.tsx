@@ -30,6 +30,21 @@ export const ProductCreate = () => {
   const [errors, setErrors] = useState({});
   const [description, setDescription] = useState("");
   const [selectedCategoryName, setSelectedCategoryName] = useState("");
+  const [selectedUnit, setSelectedUnit] = useState("");
+  const [units, setUnits] = useState([]);
+  const [variantUnits, setVariantUnits] = useState([]);
+
+  useEffect(() => {
+    const fetchUnits = async () => {
+      try {
+        const res = await apiClient.get("/unit/no-paginate");
+        setUnits(res.data.data);
+      } catch (error) {
+        console.error("Failed to fetch units:", error);
+      }
+    };
+    fetchUnits();
+  }, []);
 
   const hasVariant = variantMatrix.length > 0;
 
@@ -98,8 +113,27 @@ export const ProductCreate = () => {
   }, [category]);
 
   useEffect(() => {
+    if (category) {
+      setVariantMatrix(prev =>
+        prev.map(variant => ({
+          ...variant,
+          category_id: category
+        }))
+      );
+    }
+  }, [category]);
+
+  useEffect(() => {
     setVariantImages((prev) =>
       variantMatrix.map((_, i) => [prev?.[i]?.[0] ?? ""])
+    );
+  }, [variantMatrix]);
+
+  useEffect(() => {
+    setVariantUnits((prev) =>
+      variantMatrix.map((variant, i) =>
+        variant.volumes?.map((_, j) => prev?.[i]?.[j] || "")
+      )
     );
   }, [variantMatrix]);
 
@@ -129,22 +163,37 @@ export const ProductCreate = () => {
   const handleVariantImageUpload = (i) => (e) => {
     const file = e.target.files?.[0];
     if (file) {
+      const targetAroma = variantMatrix[i]?.aroma;
+
       setVariantImages((prev) => {
-        const updated = prev.map((row) => [...row]);
-        if (!updated[i]) updated[i] = [];
-        updated[i][0] = file;
+        const updated = [...prev];
+
+        variantMatrix.forEach((variant, idx) => {
+          if (variant.aroma === targetAroma) {
+            if (!updated[idx]) updated[idx] = [];
+            updated[idx][0] = file;
+          }
+        });
+
         return updated;
       });
     }
   };
 
   const handleRemoveVariantImage = (i) => () => {
+    const targetAroma = variantMatrix[i]?.aroma;
+
     setVariantImages((prev) => {
-      const updated = prev.map((row) => [...row]);
-      if (updated[i]) updated[i][0] = "";
+      const updated = [...prev];
+      variantMatrix.forEach((variant, idx) => {
+        if (variant.aroma === targetAroma) {
+          if (updated[idx]) updated[idx][0] = "";
+        }
+      });
       return updated;
     });
   };
+
 
   const applyToAllVariants = () => {
     const updated = variantMatrix.map((variant) => {
@@ -183,53 +232,71 @@ export const ProductCreate = () => {
 
     const formData = new FormData();
 
-    formData.append('name', productName);
-    formData.append('category_id', category);
-    formData.append('description', description);
-
-    if (images.length > 0) {
-      formData.append('image', images[0]);
-    }
+    formData.append("name", productName);
+    formData.append("category_id", category);
+    formData.append("description", description);
 
     if (!hasVariant) {
-      formData.append('product_details[0][product_code]', productCode);
-      formData.append('product_details[0][category_id]', category);
-      formData.append('product_details[0][price]', price);
-      formData.append('product_details[0][stock]', stock);
-      formData.append('product_details[0][variant]', 'Default');
-      formData.append('product_details[0][opsi]', '');
-    } else {
-      variantMatrix.forEach((variant, i) => {
-        (variant.volumes && variant.volumes.filter(Boolean).length > 0
-          ? variant.volumes.filter(Boolean)
-          : [null]
-        ).forEach((option, j) => {
-          const index = i * variant.volumes.length + j;
-          formData.append(`product_details[${index}][product_code]`, variant.codes?.[j] || "");
-          formData.append(`product_details[${index}][category_id]`, category);
-          formData.append(`product_details[${index}][price]`, Number(variant.prices?.[j] || 0));
-          formData.append(`product_details[${index}][stock]`, Number(variant.stocks?.[j] || 0));
-          formData.append(`product_details[${index}][variant]`, variant.aroma || `Varian ${i + 1}`);
-          formData.append(`product_details[${index}][opsi]`, option || "");
+      formData.append("product_details[0][product_code]", productCode);
+      formData.append("product_details[0][category_id]", category);
+      formData.append("product_details[0][price]", price);
+      formData.append("product_details[0][stock]", stock);
+      formData.append("product_details[0][unit_id]", selectedUnit);
+      formData.append("product_details[0][variant]", productName);
+      formData.append("product_details[0][opsi]", "");
 
-          if (variantImages[i]?.[0]) {
-            formData.append(`product_details[${index}][product_image]`, variantImages[i][0]);
+      if (images.length > 0) {
+        formData.append("product_details[0][product_image]", images[0]);
+        formData.append("image", images[0]);
+      }
+    } else {
+      if (images.length > 0) {
+        formData.append("image", images[0]);
+      }
+
+      const aromaImageMap = {};
+      variantMatrix.forEach((variant, i) => {
+        const aroma = variant.aroma;
+        const image = variantImages[i]?.[0];
+        if (aroma && image && !aromaImageMap[aroma]) {
+          aromaImageMap[aroma] = image;
+        }
+      });
+
+      let detailIndex = 0;
+
+      variantMatrix.forEach((variant, i) => {
+        const aroma = variant.aroma || `Varian ${i + 1}`;
+        const options = variant.volumes && variant.volumes.filter(Boolean).length > 0 ? variant.volumes.filter(Boolean) : [null];
+
+        options.forEach((option, j) => {
+          const price = Number(variant.prices?.[j] || 0);
+          const stock = Number(variant.stocks?.[j] || 0);
+          const code = variant.codes?.[j] || "";
+          const imageToUse = aromaImageMap[aroma];
+
+          formData.append(`product_details[${detailIndex}][product_code]`, code);
+          formData.append(`product_details[${detailIndex}][category_id]`, category);
+          formData.append(`product_details[${detailIndex}][price]`, price);
+          formData.append(`product_details[${detailIndex}][stock]`, stock);
+          formData.append(`product_details[${detailIndex}][variant]`, aroma);
+          formData.append(`product_details[${detailIndex}][opsi]`, option || "");
+          formData.append(`product_details[${detailIndex}][unit_id]`, variantUnits[i]?.[j] || "");
+
+          if (imageToUse) {
+            formData.append(`product_details[${detailIndex}][product_image]`, imageToUse);
           }
+
+          detailIndex++;
         });
       });
     }
 
-    variantImages.forEach((imgArray, i) => {
-      if (imgArray && imgArray[0]) {
-        formData.append(`variant_images_${i}`, imgArray[0]);
-      }
-    });
-
     try {
       await apiClient.post("/products", formData, {
         headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+          "Content-Type": "multipart/form-data",
+        },
       });
       navigate("/products");
       Toaster("success", "Produk berhasil dibuat");
@@ -242,6 +309,7 @@ export const ProductCreate = () => {
       }
     }
   };
+
 
   const labelClass = "block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2 mt-5";
 
@@ -292,14 +360,32 @@ export const ProductCreate = () => {
                   placeholder="500.000"
                   prefix="Rp"
                 />
-                <InputNumber
-                  label="Jumlah Stok"
-                  labelClass={labelClass}
-                  value={stock}
-                  onChange={(e) => setStock(e.target.value === "" ? "" : +e.target.value)}
-                  placeholder="500"
-                  prefix="Pcs"
-                />
+                <div>
+                  <label className={labelClass}>
+                    Quantity<span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min={0}
+                      placeholder="Masukan Quantity"
+                      className="w-full pl-4 pr-16 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      value={stock}
+                      onChange={(e) => setStock(e.target.value)}
+                    />
+                    <select
+                      value={selectedUnit}
+                      onChange={(e) => setSelectedUnit(e.target.value)}
+                      className="absolute inset-y-0 right-0 w-14 text-sm text-gray-700 bg-gray-200 border-l border-gray-200 rounded-r-lg px-2 outline-none"
+                    >
+                      {units.map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.code}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
                 <div>
                   <label className={labelClass}>
                     <Barcode size={16} /> Kode Produk
@@ -309,6 +395,7 @@ export const ProductCreate = () => {
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
                     value={productCode}
                     onChange={(e) => setProductCode(e.target.value)}
+                    placeholder="Kode Product"
                   />
                 </div>
               </div>
@@ -457,7 +544,7 @@ export const ProductCreate = () => {
                           <span className="text-gray-500 mr-1">Rp.</span>
                           <input
                             type="number"
-                            className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
+                            className="w-full pl-4 py-2 text-gray-800 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Harga"
                             value={variant.prices[j] || ""}
                             onChange={(e) => {
@@ -469,30 +556,38 @@ export const ProductCreate = () => {
                           />
                         </div>
                       </div>
+                      <div className="relative w-full max-w-xs mt-3">
+                        <input
+                          type="number"
+                          min={0}
+                          placeholder="0"
+                          className="w-full pl-4 pr-14 py-2 text-gray-800 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          value={stock}
+                          onChange={(e) => setStock(e.target.value)}
+                        />
+                        <select
+                          value={selectedUnit}
+                          onChange={(e) => setSelectedUnit(e.target.value)}
+                          className="absolute inset-y-0 right-0 w-14 text-sm text-gray-700 bg-gray-200 border-l border-gray-200 rounded-r-lg px-2 outline-none"
+                        >
+                          {units.map((u) => (
+                            <option key={u.id} value={u.id}>
+                              {u.code}
+                            </option>
+                          ))}
+
+                        </select>
+                      </div>
                       <div className="p-3">
                         <input
                           type="text"
-                          className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
+                          className="w-full pl-4 pr-14 py-2 text-gray-800 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                           placeholder="Kode"
                           value={variant.codes[j] || ""}
                           onChange={(e) => {
                             const updated = [...variantMatrix];
                             if (!updated[i].codes) updated[i].codes = [];
                             updated[i].codes[j] = e.target.value;
-                            setVariantMatrix(updated);
-                          }}
-                        />
-                      </div>
-                      <div className="p-3">
-                        <input
-                          type="number"
-                          className="bg-gray-100 rounded px-2 py-1 w-full focus:outline-none"
-                          placeholder="Stok"
-                          value={variant.stocks[j] || ""}
-                          onChange={(e) => {
-                            const updated = [...variantMatrix];
-                            if (!updated[i].stocks) updated[i].stocks = [];
-                            updated[i].stocks[j] = e.target.value;
                             setVariantMatrix(updated);
                           }}
                         />

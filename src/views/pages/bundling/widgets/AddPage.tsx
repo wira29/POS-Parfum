@@ -143,6 +143,16 @@ export default function BundlingCreate() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const isValid = materials.every(
+      (mat) => mat.quantity && mat.unit_id
+    );
+
+    if (!isValid) {
+      Toaster("error", "Semua bahan bundling harus memiliki quantity dan unit.");
+      return;
+    }
+
     const body = {
       name: productName,
       quantity: stock,
@@ -155,11 +165,12 @@ export default function BundlingCreate() {
           product_bundling_material: materials.map((mat) => ({
             product_detail_id: mat.product_detail_id,
             quantity: mat.quantity || 0,
-            unit_id: selectedUnit,
+            unit_id: mat.unit_id,
           })),
         },
       ],
     };
+
     try {
       await apiClient.post("/product-bundling", body);
       navigate("/bundlings");
@@ -447,7 +458,6 @@ export default function BundlingCreate() {
                                     ) : (
                                       <div className="text-sm text-gray-400">-</div>
                                     )}
-
                                   </div>
                                   <button
                                     type="button"
@@ -616,6 +626,8 @@ export default function BundlingCreate() {
                 : mat
             )
           );
+          setShowQtyModal(false);
+          setActiveQtyId(null);
         }}
         initialValue={
           materials.find((mat) => mat.product_detail_id === activeQtyId)?.quantity || ""
