@@ -13,7 +13,7 @@ export interface DiscountFormData {
   start_date: string;
   end_date: string;
   is_member: boolean | number;
-  minimum_purchase: string;
+  minimum_purchase: string | number;
 }
 
 export interface DiscountData {

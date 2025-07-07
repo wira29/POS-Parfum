@@ -23,7 +23,7 @@ export function DiscountCreate() {
     start_date: "",
     end_date: "",
     is_member: 0,
-    minimum_purchase: null,
+    minimum_purchase: "",
   });
   const [discountType, setDiscountType] = useState<"%" | "Rp">("Rp");
   const [status, setStatus] = useState<number>(1);
@@ -137,9 +137,7 @@ export function DiscountCreate() {
       !formData.minimum_purchase ||
       isNaN(parseInt(formData.minimum_purchase)) ||
       parseInt(formData.minimum_purchase) < 0
-    ) {
-      errors.minimum_purchase = "Minimum pembelian harus berupa angka valid";
-    }
+    )
     if (formData.type === "percentage") {
       if (
         formData.percentage == null ||
@@ -386,7 +384,7 @@ export function DiscountCreate() {
         </div>
 
         <div>
-          <label className={labelClass}>Deskripsi*</label>
+          <label className={labelClass}>Deskripsi</label>
           <textarea
             name="desc"
             rows={4}

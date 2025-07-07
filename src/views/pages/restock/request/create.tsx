@@ -9,11 +9,12 @@ import { toast } from "sonner";
 
 const PRODUCTS_PER_PAGE = 10;
 
-export const RestockCreate = () => {
+export const RequsetCreate = () => {
   const [showProductModal, setShowProductModal] = useState(false);
   const [showVariantModal, setShowVariantModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedVariants, setSelectedVariants] = useState([]);
+  const [showTable, setShowTable] = useState(false);
   const [warehouseDropdown, setWarehouseDropdown] = useState(false);
   const [warehouseSearch, setWarehouseSearch] = useState("");
   const [selectedWarehouse, setSelectedWarehouse] = useState(null);
@@ -28,19 +29,6 @@ export const RestockCreate = () => {
   const productModalRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const apiClient = useApiClient();
-  const [units, setUnits] = useState([]);
-
-  useEffect(() => {
-    const fetchUnits = async () => {
-      try {
-        const res = await apiClient.get("/unit/no-paginate");
-        setUnits(res.data.data || []);
-      } catch (error) {
-        console.error("Gagal mengambil data unit:", error);
-      }
-    };
-    fetchUnits();
-  }, []);
 
   useEffect(() => {
     const fetchWarehouses = async () => {
@@ -129,12 +117,7 @@ export const RestockCreate = () => {
       ...prev,
       {
         product: selectedProduct,
-        variants: variants.map((v) => ({
-          ...v,
-          qty: "",
-          unit: units[0]?.id || "", 
-        })),
-
+        variants: variants.map((v) => ({ ...v, qty: "", unit: "G" })),
         showTable: false,
       },
     ]);
@@ -160,11 +143,11 @@ export const RestockCreate = () => {
       prev.map((p) =>
         p.product.id === productId
           ? {
-            ...p,
-            variants: p.variants.map((v: any) =>
-              v.id === variantId ? { ...v, qty: value } : v
-            ),
-          }
+              ...p,
+              variants: p.variants.map((v: any) =>
+                v.id === variantId ? { ...v, qty: value } : v
+              ),
+            }
           : p
       )
     );
@@ -175,11 +158,11 @@ export const RestockCreate = () => {
       prev.map((p) =>
         p.product.id === productId
           ? {
-            ...p,
-            variants: p.variants.map((v: any) =>
-              v.id === variantId ? { ...v, unit: value } : v
-            ),
-          }
+              ...p,
+              variants: p.variants.map((v: any) =>
+                v.id === variantId ? { ...v, unit: value } : v
+              ),
+            }
           : p
       )
     );
@@ -255,7 +238,21 @@ export const RestockCreate = () => {
     <div className="p-5 y-6">
       <Breadcrumb title="Restock Produk" desc="Meminta restock dari gudang" />
       <div className="bg-white rounded-xl mt-6 shadow-md p-6">
-        <div ref={warehouseRef} className="relative">
+        <div ref={warehouseRef} className="relative mb-10">
+          <label className="block mb-1 text-sm text-gray-700">Warehouse</label>
+          <div
+            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 bg-white cursor-pointer"
+            onClick={() => setWarehouseDropdown((v) => !v)}
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                setWarehouseDropdown((v) => !v);
+                e.preventDefault();
+              }
+            }}
+          >
+            {warehouses.find((w) => w.id === selectedWarehouse)?.name || "Pilih warehouse"}
+          </div>
           {warehouseDropdown && (
             <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg">
               <input
@@ -328,7 +325,7 @@ export const RestockCreate = () => {
                         className={`border rounded-lg p-2 shadow transition cursor-pointer ${isSelected
                           ? "border-green-600 bg-green-50 ring-2 ring-green-200 opacity-70 pointer-events-none"
                           : "border-gray-200 hover:shadow-md bg-white"
-                          }`}
+                        }`}
                         onClick={() => !isSelected && handleAddProduct(product)}
                         title={isSelected ? "Sudah dipilih" : ""}
                       >
@@ -443,23 +440,11 @@ export const RestockCreate = () => {
                                 className="w-full border border-gray-300 rounded-l-lg px-3 py-2"
                                 placeholder="Masukan Jumlah"
                                 value={variant.qty}
-                                onChange={(e) =>
-                                  handleVariantQtyChange(item.product.id, variant.id, e.target.value)
-                                }
+                                onChange={(e) => handleVariantQtyChange(item.product.id, variant.id, e.target.value)}
                               />
-                              <select
-                                className="border border-gray-300 border-l-0 rounded-r-lg text-sm px-2 py-[0.6rem] bg-white"
-                                value={variant.unit}
-                                onChange={(e) =>
-                                  handleVariantUnitChange(item.product.id, variant.id, e.target.value)
-                                }
-                              >
-                                {units.map((unit: any) => (
-                                  <option key={unit.id} value={unit.id}>
-                                    {unit.name}
-                                  </option>
-                                ))}
-                              </select>
+                              <span className="px-3 py-2 border border-gray-300 border-l-0 rounded-r-lg bg-gray-300 text-sm">
+                                Gram
+                              </span>
                             </div>
                           </div>
                         </td>
@@ -508,7 +493,7 @@ export const RestockCreate = () => {
                 <div className="flex gap-2">
                   <button
                     onClick={() => {
-                      setShowVariantModal(true);
+                      setShowVariantModal(false);
                       setSelectedProduct(null);
                     }}
                     className="border border-gray-300 px-4 py-1.5 rounded-md hover:bg-gray-100 text-sm cursor-pointer"
@@ -533,7 +518,7 @@ export const RestockCreate = () => {
           </div>
         )}
         <div className="flex gap-5 w-full justify-end mt-10">
-          <button className="bg-gray-400 text-white p-2.5 w-25 rounded-sm cursor-pointer" onClick={() => navigate("/restock")}> Batal</button>
+          <button className="bg-gray-400 text-white p-2.5 w-25 rounded-sm cursor-pointer" onClick={() => navigate("/restock")}> Kembali</button>
           <button
             className="bg-blue-600 text-white p-2.5 w-25 rounded-sm cursor-pointer"
             disabled={loading}

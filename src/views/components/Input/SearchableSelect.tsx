@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Option } from "@/core/interface/types";
+
 interface SearchableSelectProps {
   label: string;
   options: Option[];
@@ -35,8 +36,7 @@ function SearchableSelect({
     opt.label.toLowerCase().includes(search.toLowerCase())
   );
 
-  const selectedLabel =
-    options.find((opt) => opt.value === value)?.label || value;
+  const selectedLabel = options.find((opt) => opt.value === value)?.label;
 
   return (
     <div className="relative" ref={ref}>
@@ -89,6 +89,20 @@ function SearchableSelect({
               </div>
             ))}
           </div>
+          {value && (
+            <div className="flex justify-end border-t border-gray-200 px-3 py-2">
+              <button
+                onClick={() => {
+                  onChange("");
+                  setOpen(false);
+                  setSearch("");
+                }}
+                className="text-sm text-gray-600 hover:text-gray-800 cursor-pointer"
+              >
+                Batal
+              </button>
+            </div>
+          )}
         </div>
       )}
       {error && <div className="text-red-500 text-sm mt-1">{error}</div>}

@@ -63,17 +63,22 @@ export const LoginPage = () => {
       setUser(res.data.data);
       Toaster("success", res.data.message || "Login berhasil");
       setToken(res.data.data.token);
-      navigate("/dashboard");
+
+      if (role_lists.includes("owner")) {
+        navigate("/dashboard-owner");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err: any) {
       setLoading(false);
       if (err.name === "ZodError") {
         const formattedErrors: { [key: string]: string[] } = {};
         err.errors.forEach(
           (e: { path: string[]; message: string }) =>
-            (formattedErrors[e.path[0]] = [
-              ...(formattedErrors[e.path[0]] || []),
-              e.message,
-            ])
+          (formattedErrors[e.path[0]] = [
+            ...(formattedErrors[e.path[0]] || []),
+            e.message,
+          ])
         );
         setFormErrorMsg(formattedErrors);
         if (err.errors && err.errors.length > 0) {
@@ -123,9 +128,8 @@ export const LoginPage = () => {
                   placeholder="Email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    formErrorMsg.email ? "border-gray-300" : "border-gray-300"
-                  }`}
+                  className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formErrorMsg.email ? "border-gray-300" : "border-gray-300"
+                    }`}
                   autoFocus
                 />
               </div>
@@ -148,8 +152,7 @@ export const LoginPage = () => {
                 placeholder="Kata Sandi (min. 8 karakter)"
                 value={formData.password}
                 onChange={handleInputChange}
-                 className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    formErrorMsg.password ? "border-gray-300" : "border-gray-300"
+                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formErrorMsg.password ? "border-gray-300" : "border-gray-300"
                   }`}
               />
               <button
@@ -158,7 +161,7 @@ export const LoginPage = () => {
                 className="absolute right-3 top-[38px] text-gray-500 hover:text-gray-700"
                 tabIndex={-1}
               >
-                {showPassword ? <EyeOff size={18} className="cursor-pointer"/> : <Eye className="cursor-pointer" size={18} />}
+                {showPassword ? <EyeOff size={18} className="cursor-pointer" /> : <Eye className="cursor-pointer" size={18} />}
               </button>
 
               {formErrorMsg.password &&

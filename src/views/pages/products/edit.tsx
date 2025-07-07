@@ -325,7 +325,7 @@ export const ProductEdit = () => {
                     formData.append(`product_details[${detailIdx}][category_id]`, category);
                     formData.append(`product_details[${detailIdx}][variant]`, variant.aroma);
                     formData.append(`product_details[${detailIdx}][opsi]`, option || "");
-                    formData.append(`product_details[${detailIdx}][stock]`, variant.stocks?.[j] || "0");
+                    formData.append(`product_details[${detailIdx}][stock]`, variant.stock?.[j] || "0");
                     formData.append(`product_details[${detailIdx}][price]`, variant.prices?.[j] || "0");
                     formData.append(`product_details[${detailIdx}][product_code]`, variant.codes?.[j] || "");
                     const img = variantImages[i]?.[j];
@@ -357,7 +357,7 @@ export const ProductEdit = () => {
         }
     };
 
-    const labelClass = "block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2";
+    const labelClass = "block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2 mt-5";
 
     if (loading) return <LoadingCards/> 
 
@@ -415,7 +415,7 @@ export const ProductEdit = () => {
                                     label="Atur Harga Produk"
                                     labelClass={labelClass}
                                     value={price}
-                                    onChange={(e) => setPrice(+e.target.value)}
+                                    onChange={(e) => setPrice(e.target.value === "" ? "" : +e.target.value)}
                                     placeholder="500.000"
                                     prefix="Rp"
                                     error={errors["product_details.0.price"]?.[0]}
@@ -424,7 +424,7 @@ export const ProductEdit = () => {
                                     label="Jumlah Stok"
                                     labelClass={labelClass}
                                     value={stock}
-                                    onChange={(e) => setStock(+e.target.value)}
+                                    onChange={(e) => setStock(e.target.value === "" ? "" : +e.target.value)}
                                     placeholder="500"
                                     prefix="Pcs"
                                     error={errors["product_details.0.stock"]?.[0]}
