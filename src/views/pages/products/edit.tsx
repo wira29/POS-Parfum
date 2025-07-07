@@ -449,7 +449,7 @@ export const ProductEdit = () => {
         }
 
         try {
-            await apiClient.put(`/products/${id}`, formData, {
+            await apiClient.post(`/products/${id}?_method=PUT`, formData, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
             Toaster("success", "Produk berhasil diperbarui");

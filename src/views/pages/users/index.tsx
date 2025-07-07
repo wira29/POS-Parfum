@@ -9,6 +9,7 @@ import { ReactNode } from "react";
 import { UserFilterModal } from "@/views/components/filter/UserFilter";
 import { Filter } from "@/views/components/Filter";
 import { LoadingCards } from "@/views/components/Loading";
+import { ImageHelper } from "@/core/helpers/ImageHelper";
 
 type User = {
   [x: string]: ReactNode;
@@ -71,7 +72,7 @@ export default function UserPage() {
         name: item.name,
         email: item.email,
         role: item.roles?.[0] || "-",
-        image: item.image ? `${import.meta.env.VITE_BASE_URL}/${item.image}` : "/images/profile/user-1.jpg",
+        image: item.image ? `${item.image}` : "/images/profile/user-1.jpg",
         created_at: item.created_at,
         roles: item.roles?.map((r: string) => ({ name: r })) || [],
       }));
@@ -234,7 +235,7 @@ export default function UserPage() {
               >
                 <div className="flex items-center gap-4">
                   <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
-                    <img src={user.image} alt={user.name} className="w-full h-full object-cover" />
+                    <img src={ImageHelper(user.image)} alt={user.name} className="w-full h-full object-cover" />
                   </div>
                   <div ref={dropdownOpenId === user.id ? dropdownRef : null}>
                     <button
