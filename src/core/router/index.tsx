@@ -58,7 +58,7 @@ import RetailCreate from "@/views/pages/retail/widgets/AddPage";
 import RetailEdit from "@/views/pages/retail/widgets/EditPage";
 import { RestockCreate } from "@/views/pages/restock/restock/create";
 import { RestockDetail } from "@/views/pages/restock/restock/details";
-
+import ShiftIndex from "@/views/pages/shift/index";
 export const router = createBrowserRouter([
   {
     path: "/login",
@@ -95,6 +95,10 @@ export const router = createBrowserRouter([
           {
             path: "retails/:id/detail",
             element: <RetailDetail />,
+          },
+          {
+            path: "shift",
+            element:<ShiftIndex/>
           },
           {
             path: "retails/:id/edit",

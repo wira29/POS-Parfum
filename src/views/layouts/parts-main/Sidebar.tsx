@@ -184,6 +184,12 @@ const menuItems = [
         roles: ["owner", "admin"],
       },
       {
+        label: "Shift",
+        icon: <FaShop />,
+        path: "/shift",
+        roles: ["outlet"],
+      },
+      {
         label: "Tambah Pengguna",
         icon: <FiUsers />,
         path: "/users",
@@ -302,9 +308,8 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
   if (userRoles.includes("owner")) {
     return (
       <aside
-        className={`h-screen fixed left-0 top-0 shadow-md z-20 transition-all duration-300 ${
-          isCollapsed ? "w-20" : "w-64"
-        } bg-white`}
+        className={`h-screen fixed left-0 top-0 shadow-md z-20 transition-all duration-300 ${isCollapsed ? "w-20" : "w-64"
+          } bg-white`}
       >
         <div className="flex py-3 px-4">
           <div className="flex items-center justify-center mx-auto">
@@ -315,23 +320,20 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                   : "../../../../public/images/logos/logo-new.png"
               }
               alt="Logo"
-              className={`transition-all duration-300 ${
-                isCollapsed ? "w-16 h-11" : "w-full h-12"
-              }`}
+              className={`transition-all duration-300 ${isCollapsed ? "w-16 h-11" : "w-full h-12"
+                }`}
             />
           </div>
         </div>
         <nav
-          className={`p-4 space-y-6 ${
-            isCollapsed ? "overflow-visible" : "overflow-y-auto"
-          } h-[calc(100vh-4rem)]`}
+          className={`p-4 space-y-6 ${isCollapsed ? "overflow-visible" : "overflow-y-auto"
+            } h-[calc(100vh-4rem)]`}
         >
           {ownerMenu.map((section, idx) => (
             <div key={idx}>
               <p
-                className={`text-xs font-bold uppercase mb-2 text-gray-400 ${
-                  isCollapsed ? "text-center text-[10px]" : ""
-                }`}
+                className={`text-xs font-bold uppercase mb-2 text-gray-400 ${isCollapsed ? "text-center text-[10px]" : ""
+                  }`}
               >
                 {section.label}
               </p>
@@ -340,11 +342,10 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                   <li key={i}>
                     <Link
                       to={item.path}
-                      className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${
-                        location.pathname.startsWith(item.path)
+                      className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${location.pathname.startsWith(item.path)
                           ? "bg-blue-600 text-white hover:bg-blue-600"
                           : "text-gray-700"
-                      } ${isCollapsed ? "justify-center" : ""}`}
+                        } ${isCollapsed ? "justify-center" : ""}`}
                     >
                       <span className="text-lg">{item.icon}</span>
                       {!isCollapsed && item.label}
@@ -359,11 +360,10 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                           <li key={mi}>
                             <Link
                               to={moreItem.path}
-                              className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${
-                                location.pathname.startsWith(moreItem.path)
+                              className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${location.pathname.startsWith(moreItem.path)
                                   ? "bg-blue-600 text-white hover:bg-blue-600"
                                   : "text-gray-700"
-                              } ${isCollapsed ? "justify-center" : ""}`}
+                                } ${isCollapsed ? "justify-center" : ""}`}
                             >
                               <span className="text-lg">{moreItem.icon}</span>
                               {!isCollapsed && moreItem.label}
@@ -407,9 +407,8 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
 
   return (
     <aside
-      className={`h-screen fixed left-0 top-0 shadow-md z-20 transition-all duration-300 ${
-        isCollapsed ? "w-20" : "w-64"
-      } bg-white`}
+      className={`h-screen fixed left-0 top-0 shadow-md z-20 transition-all duration-300 ${isCollapsed ? "w-20" : "w-64"
+        } bg-white`}
     >
       <div className="flex py-3 px-4">
         <div className="flex items-center justify-center mx-auto">
@@ -420,16 +419,14 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                 : "../../../../public/images/logos/logo-new.png"
             }
             alt="Logo"
-            className={`transition-all duration-300 ${
-              isCollapsed ? "w-16 h-11" : "w-full h-12"
-            }`}
+            className={`transition-all duration-300 ${isCollapsed ? "w-16 h-11" : "w-full h-12"
+              }`}
           />
         </div>
       </div>
       <nav
-        className={`p-4 space-y-2.5 ${
-          isCollapsed ? "overflow-visible" : "overflow-y-auto"
-        } h-[calc(100vh-4rem)]`}
+        className={`p-4 space-y-2.5 ${isCollapsed ? "overflow-visible" : "overflow-y-auto"
+          } h-[calc(100vh-4rem)]`}
       >
         {filteredMenuItems.map((item, i) => (
           <div key={i}>
@@ -437,18 +434,18 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
               <div>
                 {!isCollapsed &&
                   i ===
-                    filteredMenuItems.findIndex(
-                      (m: any) => m.group === item.group
-                    ) && (
+                  filteredMenuItems.findIndex(
+                    (m: any) => m.group === item.group
+                  ) && (
                     <p className="text-xs font-bold uppercase mb-2 text-gray-400">
                       {item.group}
                     </p>
                   )}
                 {isCollapsed &&
                   i ===
-                    filteredMenuItems.findIndex(
-                      (m: any) => m.group === item.group
-                    ) && (
+                  filteredMenuItems.findIndex(
+                    (m: any) => m.group === item.group
+                  ) && (
                     <p className="text-xs font-bold uppercase mb-2 text-center text-[10px] text-gray-400">
                       {item.group}
                     </p>
@@ -464,15 +461,14 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                           [item.label]: !prev[item.label],
                         }))
                       }
-                      className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${
-                        location.pathname.startsWith(item.path) ||
-                        (item.children &&
-                          item.children.some((child) =>
-                            location.pathname.startsWith(child.path)
-                          ))
+                      className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${location.pathname.startsWith(item.path) ||
+                          (item.children &&
+                            item.children.some((child) =>
+                              location.pathname.startsWith(child.path)
+                            ))
                           ? "bg-blue-600 text-white hover:bg-blue-600"
                           : "text-gray-700"
-                      } ${isCollapsed ? "justify-center" : "justify-between"}`}
+                        } ${isCollapsed ? "justify-center" : "justify-between"}`}
                     >
                       <div className="flex items-center gap-3">
                         <span className="text-lg">{item.icon}</span>
@@ -499,17 +495,15 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                             <li key={idx}>
                               <Link
                                 to={child.path}
-                                className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-50 text-sm transition-all duration-300 ${
-                                  isActive
+                                className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-50 text-sm transition-all duration-300 ${isActive
                                     ? "bg-blue-100 text-blue-600"
                                     : "text-gray-600"
-                                }`}
+                                  }`}
                               >
                                 <span
-                                  className={`w-2.5 h-2.5 rounded-full bg-blue-500 border-2 border-blue-300 ${
-                                    !isActive &&
+                                  className={`w-2.5 h-2.5 rounded-full bg-blue-500 border-2 border-blue-300 ${!isActive &&
                                     "opacity-50 bg-white border-blue-300"
-                                  }`}
+                                    }`}
                                 ></span>
                                 {child.label}
                               </Link>
@@ -544,11 +538,10 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                             <Link
                               key={idx}
                               to={child.path}
-                              className={`flex items-center gap-3 px-4 py-3 hover:bg-blue-50 text-sm transition-all duration-300 ${
-                                isActive
+                              className={`flex items-center gap-3 px-4 py-3 hover:bg-blue-50 text-sm transition-all duration-300 ${isActive
                                   ? "bg-blue-200 text-blue-600"
                                   : "text-gray-600"
-                              }`}
+                                }`}
                             >
                               <span className="text-lg">{child.icon}</span>
                               {child.label}
@@ -574,11 +567,10 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                 ) : (
                   <Link
                     to={item.path}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${
-                      location.pathname.startsWith(item.path)
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${location.pathname.startsWith(item.path)
                         ? "bg-blue-600 text-white hover:bg-blue-600"
                         : "text-gray-700"
-                    } ${isCollapsed ? "justify-center" : ""}`}
+                      } ${isCollapsed ? "justify-center" : ""}`}
                   >
                     <span className="text-lg">{item.icon}</span>
                     {!isCollapsed && item.label}
@@ -588,11 +580,10 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
             ) : (
               <div>
                 <p
-                  className={`text-xs font-bold uppercase mb-2 transition-all duration-300 ${
-                    isCollapsed
+                  className={`text-xs font-bold uppercase mb-2 transition-all duration-300 ${isCollapsed
                       ? "text-gray-400 text-center text-[10px]"
                       : "text-gray-400"
-                  }`}
+                    }`}
                 >
                   {item.label}
                 </p>
@@ -603,11 +594,10 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                       <li key={idx}>
                         <Link
                           to={child.path}
-                          className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${
-                            isActive
+                          className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${isActive
                               ? "bg-blue-600 text-white hover:bg-blue-600"
                               : "text-gray-700"
-                          } ${isCollapsed ? "justify-center" : ""}`}
+                            } ${isCollapsed ? "justify-center" : ""}`}
                         >
                           <span className="text-lg">{child.icon}</span>
                           {!isCollapsed && child.label}
