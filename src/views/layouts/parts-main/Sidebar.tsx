@@ -23,39 +23,14 @@ import { ShoppingCart } from "react-feather";
 
 const ownerMenu = [
   {
-    label: "Owner",
+    label: "Beranda",
     children: [
       { label: "Beranda", icon: <FiHome />, path: "/dashboard-owner" },
-      { label: "Warehouse", icon: <FaShop />, path: "/warehouses" },
     ],
   },
   {
-    label: "Warehouse",
+    label: "Transaksi",
     children: [
-      { label: "Req Pembelian", icon: <FiTag />, path: "/request-pembelian" },
-      { label: "Kategori", icon: <FiLayers />, path: "/categories" },
-      { label: "Produk", icon: <FiBox />, path: "/products" },
-      {
-        label: "Bundling",
-        icon: <ShoppingCart size={16} />,
-        path: "/bundlings",
-      },
-      {
-        label: "Restock",
-        icon: <ContainerIcon />,
-        path: "/restock",
-      },
-      { label: "Blending", icon: <FiCoffee />, path: "/blendings" },
-      { label: "Unit", icon: <LayoutGrid />, path: "/units" },
-      { label: "Diskon", icon: <FiPercent />, path: "/discounts" },
-      //{ label: "Laba Rugi", icon: <FaMoneyBillTransfer />, path: "/laba-rugi" },
-      { label: "Retail", icon: <FaShop />, path: "/retails" },
-      { label: "Pengguna", icon: <FiUsers />, path: "/users" },
-      { label: "Role", icon: <FaUserTag />, path: "/roles" },
-    ],
-    more: [
-      { label: "Audit", icon: <AiOutlineFileSearch />, path: "/audit" },
-      //{ label: "Pengeluaran", icon: <Wallet2Icon />, path: "/pengeluaran" },
       {
         label: "Riwayat Transaksi",
         icon: <FiTag />,
@@ -64,25 +39,32 @@ const ownerMenu = [
     ],
   },
   {
-    label: "Retail",
+    label: "Product",
     children: [
-      { label: "Kategori", icon: <FiLayers />, path: "/categories" },
       { label: "Produk", icon: <FiBox />, path: "/products" },
       {
         label: "Request Stok",
         icon: <FaBoxesPacking />,
         path: "/requeststock",
       },
-      { label: "Unit", icon: <LayoutGrid />, path: "/units" },
+      { label: "Diskon", icon: <FiPercent />, path: "/discounts" },
     ],
-    more: [
-      { label: "Laporan", icon: <TbCoinTakaFilled />, path: "/laporan" },
-      { label: "Pengeluaran", icon: <Wallet2Icon />, path: "/pengeluaran" },
+  },
+  {
+    label: "Lainnya",
+    children: [
+      { label: "Warehouse", icon: <FiBox />, path: "/#" },
       {
-        label: "Riwayat Transaksi",
-        icon: <FiTag />,
-        path: "/riwayat-penjualan",
+        label: "Retail",
+        icon: <FaBoxesPacking />,
+        path: "/retails",
       },
+      {
+        label: "Laporan Laba Rugi",
+        icon: <FaMoneyBillTransfer />,
+        path: "/laba-rugi",
+      },
+      { label: "Pengguna", icon: <FiUsers />, path: "/users" },
     ],
   },
 ];
@@ -202,6 +184,12 @@ const menuItems = [
         roles: ["owner", "admin"],
       },
       {
+        label: "Shift",
+        icon: <FaShop />,
+        path: "/shift",
+        roles: ["outlet"],
+      },
+      {
         label: "Tambah Pengguna",
         icon: <FiUsers />,
         path: "/users",
@@ -224,6 +212,12 @@ const menuItems = [
         icon: <Wallet2Icon />,
         path: "/pengeluaran",
         roles: ["owner", "outlet"],
+      },
+      {
+        label: "Riwayat Penjualan",
+        icon: <FiTag />,
+        path: "/riwayat-penjualan",
+        roles: ["owner", "outlet", "warehouse"],
       },
     ],
     more: [
@@ -349,8 +343,8 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                     <Link
                       to={item.path}
                       className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${location.pathname.startsWith(item.path)
-                        ? "bg-blue-600 text-white hover:bg-blue-600"
-                        : "text-gray-700"
+                          ? "bg-blue-600 text-white hover:bg-blue-600"
+                          : "text-gray-700"
                         } ${isCollapsed ? "justify-center" : ""}`}
                     >
                       <span className="text-lg">{item.icon}</span>
@@ -367,8 +361,8 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                             <Link
                               to={moreItem.path}
                               className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${location.pathname.startsWith(moreItem.path)
-                                ? "bg-blue-600 text-white hover:bg-blue-600"
-                                : "text-gray-700"
+                                  ? "bg-blue-600 text-white hover:bg-blue-600"
+                                  : "text-gray-700"
                                 } ${isCollapsed ? "justify-center" : ""}`}
                             >
                               <span className="text-lg">{moreItem.icon}</span>
@@ -468,12 +462,12 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                         }))
                       }
                       className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${location.pathname.startsWith(item.path) ||
-                        (item.children &&
-                          item.children.some((child) =>
-                            location.pathname.startsWith(child.path)
-                          ))
-                        ? "bg-blue-600 text-white hover:bg-blue-600"
-                        : "text-gray-700"
+                          (item.children &&
+                            item.children.some((child) =>
+                              location.pathname.startsWith(child.path)
+                            ))
+                          ? "bg-blue-600 text-white hover:bg-blue-600"
+                          : "text-gray-700"
                         } ${isCollapsed ? "justify-center" : "justify-between"}`}
                     >
                       <div className="flex items-center gap-3">
@@ -502,8 +496,8 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                               <Link
                                 to={child.path}
                                 className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-50 text-sm transition-all duration-300 ${isActive
-                                  ? "bg-blue-100 text-blue-600"
-                                  : "text-gray-600"
+                                    ? "bg-blue-100 text-blue-600"
+                                    : "text-gray-600"
                                   }`}
                               >
                                 <span
@@ -545,8 +539,8 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                               key={idx}
                               to={child.path}
                               className={`flex items-center gap-3 px-4 py-3 hover:bg-blue-50 text-sm transition-all duration-300 ${isActive
-                                ? "bg-blue-200 text-blue-600"
-                                : "text-gray-600"
+                                  ? "bg-blue-200 text-blue-600"
+                                  : "text-gray-600"
                                 }`}
                             >
                               <span className="text-lg">{child.icon}</span>
@@ -574,8 +568,8 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                   <Link
                     to={item.path}
                     className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${location.pathname.startsWith(item.path)
-                      ? "bg-blue-600 text-white hover:bg-blue-600"
-                      : "text-gray-700"
+                        ? "bg-blue-600 text-white hover:bg-blue-600"
+                        : "text-gray-700"
                       } ${isCollapsed ? "justify-center" : ""}`}
                   >
                     <span className="text-lg">{item.icon}</span>
@@ -587,8 +581,8 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
               <div>
                 <p
                   className={`text-xs font-bold uppercase mb-2 transition-all duration-300 ${isCollapsed
-                    ? "text-gray-400 text-center text-[10px]"
-                    : "text-gray-400"
+                      ? "text-gray-400 text-center text-[10px]"
+                      : "text-gray-400"
                     }`}
                 >
                   {item.label}
@@ -601,8 +595,8 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                         <Link
                           to={child.path}
                           className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${isActive
-                            ? "bg-blue-600 text-white hover:bg-blue-600"
-                            : "text-gray-700"
+                              ? "bg-blue-600 text-white hover:bg-blue-600"
+                              : "text-gray-700"
                             } ${isCollapsed ? "justify-center" : ""}`}
                         >
                           <span className="text-lg">{child.icon}</span>

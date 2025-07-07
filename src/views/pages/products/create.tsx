@@ -34,10 +34,10 @@ export const ProductCreate = () => {
   const [units, setUnits] = useState([]);
   const [variantUnits, setVariantUnits] = useState([]);
   const [isParfumCategory, setIsParfumCategory] = useState(false);
-  const [conversionFrom, setConversionFrom] = useState("gram");
-  const [conversionTo, setConversionTo] = useState("ml");
   const [conversionGram, setConversionGram] = useState("");
   const [conversionMl, setConversionMl] = useState("");
+  const [density, setDensity] = useState("");
+  
   const selectedUnitData = units.find((u) => u.id === selectedUnit);
   const selectedUnitCode = selectedUnitData?.code?.toUpperCase();
 
@@ -153,6 +153,19 @@ export const ProductCreate = () => {
     setVariantMatrix(matrix);
   }, [variations]);
 
+  useEffect(() => {
+    if (isParfumCategory) {
+      const gram = parseFloat(selectedUnitCode === "G" ? 1 : conversionGram);
+      const ml = parseFloat(selectedUnitCode === "ML" ? 1 : conversionMl);
+
+      if (!isNaN(gram) && !isNaN(ml) && ml !== 0) {
+        setDensity((gram / ml).toFixed(2));
+      } else {
+        setDensity("");
+      }
+    }
+  }, [conversionGram, conversionMl, selectedUnitCode, isParfumCategory]);
+
   const setVariantName = (index, name) => {
     setVariations((prev) =>
       prev.map((v, i) => (i === index ? { ...v, name } : v))
@@ -198,7 +211,6 @@ export const ProductCreate = () => {
     });
   };
 
-
   const applyToAllVariants = () => {
     const updated = variantMatrix.map((variant) => {
       const optionCount = variant.volumes && variant.volumes.length > 0 ? variant.volumes.length : 1;
@@ -225,95 +237,152 @@ export const ProductCreate = () => {
     setGlobalCode("");
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (!productName) {
-      setErrors({ message: ["Nama produk wajib diisi"] });
-      Toaster("error", "Nama produk wajib diisi");
+  if (!productName) {
+    setErrors({ message: ["Nama produk wajib diisi"] });
+    Toaster("error", "Nama produk wajib diisi");
+    return;
+  }
+
+  if (!category) {
+    setErrors({ message: ["Kategori produk wajib dipilih"] });
+    Toaster("error", "Kategori produk wajib dipilih");
+    return;
+  }
+
+  if (!selectedUnit) {
+    setErrors({ message: ["Unit produk wajib dipilih"] });
+    Toaster("error", "Unit produk wajib dipilih");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("name", productName);
+  if (images.length > 0 && typeof images[0] !== "string") {
+    formData.append("image", images[0]);
+  }
+  formData.append("description", description);
+  formData.append("category_id", category);
+  formData.append("unit_id", selectedUnit);
+
+  if (density) {
+    formData.append("density", density);
+  }
+
+  if (!hasVariant) {
+    if (!price || isNaN(price)) {
+      setErrors({ message: ["Harga produk wajib diisi"] });
+      Toaster("error", "Harga produk wajib diisi");
       return;
     }
 
-    const formData = new FormData();
+    if (!stock || isNaN(stock)) {
+      setErrors({ message: ["Stok produk wajib diisi"] });
+      Toaster("error", "Stok produk wajib diisi");
+      return;
+    }
 
-    formData.append("name", productName);
-    formData.append("category_id", category);
-    formData.append("description", description);
+    formData.append("product_details[0][category_id]", category);
+    formData.append("product_details[0][stock]", String(stock));
+    formData.append("product_details[0][price]", String(price));
+    formData.append("product_details[0][product_code]", productCode || "");
+    formData.append("product_details[0][unit_id]", selectedUnit);
+    formData.append("product_details[0][variant]", productName);
+    formData.append("product_details[0][opsi]", "");
 
-    if (!hasVariant) {
-      formData.append("product_details[0][product_code]", productCode);
-      formData.append("product_details[0][category_id]", category);
-      formData.append("product_details[0][price]", price);
-      formData.append("product_details[0][stock]", stock);
-      formData.append("product_details[0][unit_id]", selectedUnit);
-      formData.append("product_details[0][variant]", productName);
-      formData.append("product_details[0][opsi]", "");
+    if (density) {
+      formData.append("product_details[0][density]", density);
+    }
 
-      if (images.length > 0) {
-        formData.append("product_details[0][product_image]", images[0]);
-        formData.append("image", images[0]);
-      }
-    } else {
-      if (images.length > 0) {
-        formData.append("image", images[0]);
-      }
+    if (images.length > 0 && typeof images[0] !== "string") {
+      formData.append("product_details[0][product_image]", images[0]);
+    }
+  } else {
+    let hasVariantError = false;
+    variantMatrix.forEach((variant, i) => {
+      const options = variant.volumes?.filter(Boolean) || [null];
 
-      const aromaImageMap = {};
-      variantMatrix.forEach((variant, i) => {
-        const aroma = variant.aroma;
-        const image = variantImages[i]?.[0];
-        if (aroma && image && !aromaImageMap[aroma]) {
-          aromaImageMap[aroma] = image;
+      options.forEach((option, j) => {
+        const price = Number(variant.prices?.[j]) || 0;
+        const stock = Number(variant.stocks?.[j]) || 0;
+
+        if (price <= 0) {
+          hasVariantError = true;
+          setErrors({ message: [`Harga untuk varian ${variant.aroma} ${option || ""} tidak valid`] });
+        }
+
+        if (stock < 0) {
+          hasVariantError = true;
+          setErrors({ message: [`Stok untuk varian ${variant.aroma} ${option || ""} tidak valid`] });
         }
       });
+    });
 
-      let detailIndex = 0;
-
-      variantMatrix.forEach((variant, i) => {
-        const aroma = variant.aroma || `Varian ${i + 1}`;
-        const options = variant.volumes && variant.volumes.filter(Boolean).length > 0 ? variant.volumes.filter(Boolean) : [null];
-
-        options.forEach((option, j) => {
-          const price = Number(variant.prices?.[j] || 0);
-          const stock = Number(variant.stocks?.[j] || 0);
-          const code = variant.codes?.[j] || "";
-          const imageToUse = aromaImageMap[aroma];
-
-          formData.append(`product_details[${detailIndex}][product_code]`, code);
-          formData.append(`product_details[${detailIndex}][category_id]`, category);
-          formData.append(`product_details[${detailIndex}][price]`, price);
-          formData.append(`product_details[${detailIndex}][stock]`, stock);
-          formData.append(`product_details[${detailIndex}][variant]`, aroma);
-          formData.append(`product_details[${detailIndex}][opsi]`, option || "");
-          formData.append(`product_details[${detailIndex}][unit_id]`, variantUnits[i]?.[j] || "");
-
-          if (imageToUse) {
-            formData.append(`product_details[${detailIndex}][product_image]`, imageToUse);
-          }
-
-          detailIndex++;
-        });
-      });
+    if (hasVariantError) {
+      Toaster("error", "Validasi varian gagal");
+      return;
     }
 
-    try {
-      await apiClient.post("/products", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      navigate("/products");
-      Toaster("success", "Produk berhasil dibuat");
-    } catch (error) {
-      if (error?.response?.data?.data) {
-        setErrors(error.response.data.data);
-        Toaster("error", "Validasi gagal. Cek inputan Anda.");
-      } else {
-        Toaster("error", "Terjadi kesalahan saat menyimpan produk.");
+    // Mapping aroma → image
+    const aromaImageMap = {};
+    variantMatrix.forEach((variant, i) => {
+      const aroma = variant.aroma;
+      const image = variantImages[i]?.[0];
+      if (aroma && image && !aromaImageMap[aroma]) {
+        aromaImageMap[aroma] = image;
       }
-    }
-  };
+    });
 
+    let detailIdx = 0;
+    variantMatrix.forEach((variant, i) => {
+      const aroma = variant.aroma || `Varian ${i + 1}`;
+      const options = variant.volumes?.filter(Boolean) || [null];
+
+      options.forEach((option, j) => {
+        formData.append(`product_details[${detailIdx}][category_id]`, category);
+        formData.append(`product_details[${detailIdx}][variant]`, aroma);
+        formData.append(`product_details[${detailIdx}][opsi]`, option || "");
+        formData.append(`product_details[${detailIdx}][stock]`, variant.stocks?.[j] || "0");
+        formData.append(`product_details[${detailIdx}][price]`, variant.prices?.[j] || "0");
+        formData.append(`product_details[${detailIdx}][product_code]`, variant.codes?.[j] || "");
+        formData.append(`product_details[${detailIdx}][unit_id]`, variantUnits[i]?.[j] || selectedUnit);
+
+        if (density) {
+          formData.append(`product_details[${detailIdx}][density]`, density);
+        }
+
+        const imageToUse = aromaImageMap[aroma];
+        if (imageToUse instanceof File) {
+          formData.append(`product_details[${detailIdx}][product_image]`, imageToUse);
+        }
+
+        detailIdx++;
+      });
+    });
+  }
+
+  try {
+    const response = await apiClient.post("/products", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    navigate("/products");
+    Toaster("success", "Produk berhasil dibuat");
+  } catch (error) {
+    console.error("Error creating product:", error);
+
+    if (error?.response?.data?.data) {
+      setErrors(error.response.data.data);
+      Toaster("error", error.response.data.message || "Validasi gagal. Cek inputan Anda.");
+    } else {
+      Toaster("error", "Terjadi kesalahan saat menyimpan produk.");
+    }
+  }
+};
 
   const labelClass = "block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2 mt-5";
 
@@ -340,6 +409,23 @@ export const ProductCreate = () => {
               }}
               options={categories}
             />
+            <div className="space-y-2 mt-5">
+              <label className={labelClass}>Unit Barang</label>
+              <select
+                value={selectedUnit}
+                onChange={(e) => setSelectedUnit(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2"
+              >
+                <option value="" disabled>
+                  Pilih
+                </option>
+                {units.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.code}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div className="space-y-2">
               <label className={labelClass}>Deskripsi</label>
               <textarea
@@ -375,24 +461,10 @@ export const ProductCreate = () => {
                       type="number"
                       min={0}
                       placeholder="Masukan Quantity"
-                      className="w-full pl-4 pr-16 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full pl-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       value={stock}
                       onChange={(e) => setStock(e.target.value)}
                     />
-                    <select
-                      value={selectedUnit}
-                      onChange={(e) => setSelectedUnit(e.target.value)}
-                      className="absolute inset-y-0 right-0 w-18 text-sm text-gray-700 bg-gray-200 border-l border-gray-200 rounded-r-lg px-2 outline-none"
-                    >
-                      <option value="" disabled>
-                        Pilih
-                      </option>
-                      {units.map((u) => (
-                        <option key={u.id} value={u.id}>
-                          {u.code}
-                        </option>
-                      ))}
-                    </select>
                   </div>
                 </div>
                 <div>
@@ -462,6 +534,11 @@ export const ProductCreate = () => {
                   </div>
                 </div>
               </div>
+              {density && (
+                <div className="mt-2 text-sm text-gray-600">
+                  Density: {density} g/ml
+                </div>
+              )}
             </div>
           )}
 
@@ -609,7 +686,7 @@ export const ProductCreate = () => {
                           type="number"
                           min={0}
                           placeholder="0"
-                          className="w-full pl-4 pr-14 py-2 text-gray-800 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full pl-4 py-2 text-gray-800 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                           value={variantMatrix[i]?.stocks?.[j] || ""}
                           onChange={(e) => {
                             const updated = [...variantMatrix];
@@ -618,26 +695,6 @@ export const ProductCreate = () => {
                             setVariantMatrix(updated);
                           }}
                         />
-                        <select
-                          value={variantUnits[i]?.[j] || ""}
-                          onChange={(e) => {
-                            const updated = [...variantUnits];
-                            if (!updated[i]) updated[i] = [];
-                            updated[i][j] = e.target.value;
-                            setVariantUnits(updated);
-                          }}
-                          className="absolute inset-y-0 right-0 w-18 text-sm text-gray-700 bg-gray-200 border-l border-gray-200 rounded-r-lg px-2 outline-none"
-                        >
-                          <option value="" disabled>
-                            Pilih
-                          </option>
-                          {units.map((u) => (
-                            <option key={u.id} value={u.id}>
-                              {u.code}
-                            </option>
-                          ))}
-
-                        </select>
                       </div>
                       <div className="p-3">
                         <input

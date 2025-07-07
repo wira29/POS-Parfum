@@ -115,7 +115,7 @@ export const RestockDetail = () => {
     >
       <div className="flex gap-5">
         <div className="w-40 h-40 flex items-center justify-center border border-gray-300 rounded-md bg-gray-50 text-gray-400 text-2xl font-bold">
-          <img src={ImageHelper(product.image)} alt={product.product_name} />
+          <img src={ImageHelper(product.image)} className="w-full h-full object-cover" alt={product.product_name} />
         </div>
         <div className="flex-1 space-y-4">
           <div className="flex justify-between">
