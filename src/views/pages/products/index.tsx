@@ -1,20 +1,20 @@
-import { useEffect, useRef, useState } from "react";
-import React from "react";
-import { FiChevronDown, FiChevronUp } from "react-icons/fi";
-import { Breadcrumb } from "@/views/components/Breadcrumb";
-import { SearchInput } from "@/views/components/SearchInput";
-import { Filter } from "@/views/components/Filter";
-import DeleteIcon from "@/views/components/DeleteIcon";
-import { EditIcon } from "@/views/components/EditIcon";
-import AddButton from "@/views/components/AddButton";
-import ViewIcon from "@/views/components/ViewIcon";
-import { Pagination } from "@/views/components/Pagination";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Toaster } from "@/core/helpers/BaseAlert";
-import Swal from "sweetalert2";
-import { FilterModal } from "@/views/components/filter/ProductFilter";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
+import { IsRole } from "@/core/middlewares/is-role";
+import AddButton from "@/views/components/AddButton";
+import { Breadcrumb } from "@/views/components/Breadcrumb";
+import DeleteIcon from "@/views/components/DeleteIcon";
+import { EditIcon } from "@/views/components/EditIcon";
+import { Filter } from "@/views/components/Filter";
+import { FilterModal } from "@/views/components/filter/ProductFilter";
 import { LoadingColumn } from "@/views/components/Loading";
+import { Pagination } from "@/views/components/Pagination";
+import { SearchInput } from "@/views/components/SearchInput";
+import ViewIcon from "@/views/components/ViewIcon";
+import React, { useEffect, useRef, useState } from "react";
+import { FiChevronDown, FiChevronUp } from "react-icons/fi";
+import Swal from "sweetalert2";
 
 export const ProductIndex = () => {
   const api = useApiClient();
@@ -205,7 +205,9 @@ export const ProductIndex = () => {
             )}
           </div>
         </div>
-        <AddButton to="/products/create">Tambah Produk</AddButton>
+        <IsRole role={["warehouse", "outlet"]}>
+          <AddButton to="/products/create">Tambah Produk</AddButton>
+        </IsRole>
       </div>
 
       <div className="bg-white rounded-xl overflow-x-auto">
@@ -267,8 +269,10 @@ export const ProductIndex = () => {
                       <td className="p-4 align-top">
                         <div className="flex gap-2">
                           <ViewIcon to={product.is_bundling ? `/bundlings/${product.id}/detail` : `/products/${product.id}`} />
-                          <EditIcon to={`/products/${product.id}/edit`} />
-                          <DeleteIcon onClick={confirmDelete(product.id)} />
+                          <IsRole role={["warehouse", "outlet"]}>
+                            <EditIcon to={`/products/${product.id}/edit`} />
+                            <DeleteIcon onClick={confirmDelete(product.id)} />
+                          </IsRole>
                         </div>
                       </td>
                     </tr>

@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
-import { Breadcrumb } from "@/views/components/Breadcrumb";
-import AddButton from "@/views/components/AddButton";
-import { SearchInput } from "@/views/components/SearchInput";
-import { Filter } from "@/views/components/Filter";
-import { useNavigate } from "react-router-dom";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
+import { IsRole } from "@/core/middlewares/is-role";
+import AddButton from "@/views/components/AddButton";
+import { Breadcrumb } from "@/views/components/Breadcrumb";
+import { Filter } from "@/views/components/Filter";
 import { FilterModal } from "@/views/components/filter/RestockFilterModal";
+import { SearchInput } from "@/views/components/SearchInput";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const statusMap = {
   Menunggu: {
@@ -172,9 +173,11 @@ export const RequestStockIndex = () => {
             </div>
           </div>
           <div className="w-full sm:w-auto">
-            <AddButton onClick={() => navigate("/requeststock/create")}>
+            <IsRole role={["warehouse", "outlet"]}>
+              <AddButton onClick={() => navigate("/requeststock/create")}>
               Tambah Restock
             </AddButton>
+            </IsRole>
           </div>
         </div>
       </div>

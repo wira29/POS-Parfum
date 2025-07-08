@@ -1,11 +1,12 @@
-import { useState } from "react"
+import { IsRole } from "@/core/middlewares/is-role"
+import AddButton from "@/views/components/AddButton"
 import { Breadcrumb } from "@/views/components/Breadcrumb"
-import { SearchInput } from "@/views/components/SearchInput"
-import { Filter } from "@/views/components/Filter"
 import DeleteIcon from "@/views/components/DeleteIcon"
 import { EditIcon } from "@/views/components/EditIcon"
-import AddButton from "@/views/components/AddButton"
+import { Filter } from "@/views/components/Filter"
+import { SearchInput } from "@/views/components/SearchInput"
 import ViewIcon from "@/views/components/ViewIcon"
+import { useState } from "react"
 
 
 
@@ -74,7 +75,9 @@ export default function ExpenseManagement() {
             </div>
 
 
-            <AddButton to="./create">Tambah Pengeluaran</AddButton>
+            <IsRole role={["warehouse", "outlet"]}>
+              <AddButton to="./create">Tambah Pengeluaran</AddButton>
+            </IsRole>
           </div>
         </div>
 
@@ -135,8 +138,10 @@ export default function ExpenseManagement() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <ViewIcon to={`/expenses/${expense.id}`} />
-                      <EditIcon to={`/expenses/${expense.id}/edit`} />
-                      <DeleteIcon />
+                      <IsRole role={["warehouse", "outlet"]}>
+                        <EditIcon to={`/expenses/${expense.id}/edit`} />
+                        <DeleteIcon />
+                      </IsRole>
                     </div>
                   </td>
                 </tr>

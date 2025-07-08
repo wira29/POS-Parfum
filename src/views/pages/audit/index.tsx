@@ -1,16 +1,17 @@
-import { useEffect, useState } from "react";
+import { useApiClient } from "@/core/helpers/ApiClient";
+import { Toaster } from "@/core/helpers/BaseAlert";
+import { IsRole } from "@/core/middlewares/is-role";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
-import { SearchInput } from "@/views/components/SearchInput";
-import { Pagination } from "@/views/components/Pagination";
-import ViewIcon from "@/views/components/ViewIcon";
 import DeleteIcon from "@/views/components/DeleteIcon";
 import { Filter } from "@/views/components/Filter";
-import Swal from "sweetalert2";
-import { Toaster } from "@/core/helpers/BaseAlert";
-import { InfoIcon, Search } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Pagination } from "@/views/components/Pagination";
+import { SearchInput } from "@/views/components/SearchInput";
 import { RetailRequestModal } from "@/views/components/UpdateStatusModal";
-import { useApiClient } from "@/core/helpers/ApiClient";
+import ViewIcon from "@/views/components/ViewIcon";
+import { InfoIcon, Search } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import Swal from "sweetalert2";
 
 interface AuditDetail {
   id: string;
@@ -692,7 +693,8 @@ export const AuditIndex = () => {
                     <td className="px-6 py-4">
                       <div className="flex justify-center gap-2">
                         <ViewIcon to={`/audit/${item.id}/detail`} />
-                        {item.status === "pending" && (
+                        <IsRole role={["warehouse", "outlet"]}>
+                          {item.status === "pending" && (
                           <Link
                             to="#"
                             onClick={() => {
@@ -707,6 +709,7 @@ export const AuditIndex = () => {
                         {item.status === "pending" && (
                           <DeleteIcon onClick={() => handleDelete(item.id)} />
                         )}
+                        </IsRole>
                       </div>
                     </td>
                   </tr>
