@@ -1,25 +1,23 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import {
-  FiHome,
-  FiBox,
-  FiPercent,
-  FiCoffee,
-  FiTag,
-  FiUsers,
-  FiLayers,
-  FiChevronDown,
-  FiChevronUp,
-} from "react-icons/fi";
-import { ContainerIcon, LayoutGrid, Repeat } from "lucide-react";
-import { FaMoneyBillTransfer, FaUserTag } from "react-icons/fa6";
-import { TbCoinTakaFilled, TbShoppingCart } from "react-icons/tb";
-import { FaBoxesPacking, FaShop } from "react-icons/fa6";
-import { useEffect, useState } from "react";
-import { AiOutlineFileSearch } from "react-icons/ai";
-import { Wallet2Icon } from "lucide-react";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Toaster } from "@/core/helpers/BaseAlert";
+import { ContainerIcon, LayoutGrid, Repeat, Wallet2Icon } from "lucide-react";
+import { useEffect, useState } from "react";
 import { ShoppingCart } from "react-feather";
+import { AiOutlineFileSearch } from "react-icons/ai";
+import { FaBoxesPacking, FaMoneyBillTransfer, FaShop, FaUserTag } from "react-icons/fa6";
+import {
+  FiBox,
+  FiChevronDown,
+  FiChevronUp,
+  FiCoffee,
+  FiHome,
+  FiLayers,
+  FiPercent,
+  FiTag,
+  FiUsers,
+} from "react-icons/fi";
+import { TbShoppingCart } from "react-icons/tb";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const ownerMenu = [
   {
@@ -294,99 +292,99 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
     })
     .filter(Boolean);
 
-  if (userRoles.includes("owner")) {
-    return (
-      <aside
-        className={`h-screen fixed left-0 top-0 shadow-md z-20 transition-all duration-300 ${isCollapsed ? "w-20" : "w-64"
-          } bg-white`}
-      >
-        <div className="flex py-3 px-4">
-          <div className="flex items-center justify-center mx-auto">
-            <img
-              src={
-                isCollapsed
-                  ? "../../../../public/images/logos/logo-mini-new.png"
-                  : "../../../../public/images/logos/logo-new.png"
-              }
-              alt="Logo"
-              className={`transition-all duration-300 ${isCollapsed ? "w-16 h-11" : "w-full h-12"
-                }`}
-            />
-          </div>
-        </div>
-        <nav
-          className={`p-4 space-y-6 ${isCollapsed ? "overflow-visible" : "overflow-y-auto"
-            } h-[calc(100vh-4rem)]`}
-        >
-          {ownerMenu.map((section, idx) => (
-            <div key={idx}>
-              <p
-                className={`text-xs font-bold uppercase mb-2 text-gray-400 ${isCollapsed ? "text-center text-[10px]" : ""
-                  }`}
-              >
-                {section.label}
-              </p>
-              <ul className="space-y-1">
-                {section.children.map((item, i) => (
-                  <li key={i}>
-                    <Link
-                      to={item.path}
-                      className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${location.pathname.startsWith(item.path)
-                          ? "bg-blue-600 text-white hover:bg-blue-600"
-                          : "text-gray-700"
-                        } ${isCollapsed ? "justify-center" : ""}`}
-                    >
-                      <span className="text-lg">{item.icon}</span>
-                      {!isCollapsed && item.label}
-                    </Link>
-                  </li>
-                ))}
-                {section.more && (
-                  <>
-                    {showMore[section.label] && (
-                      <ul className="mt-2 space-y-1">
-                        {section.more.map((moreItem, mi) => (
-                          <li key={mi}>
-                            <Link
-                              to={moreItem.path}
-                              className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${location.pathname.startsWith(moreItem.path)
-                                  ? "bg-blue-600 text-white hover:bg-blue-600"
-                                  : "text-gray-700"
-                                } ${isCollapsed ? "justify-center" : ""}`}
-                            >
-                              <span className="text-lg">{moreItem.icon}</span>
-                              {!isCollapsed && moreItem.label}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                    <li>
-                      <button
-                        className="px-3 py-1 border border-gray-300 rounded text-xs text-gray-700 hover:bg-gray-100 transition w-fit mt-2"
-                        style={{ minWidth: 100 }}
-                        type="button"
-                        onClick={() =>
-                          setShowMore((prev) => ({
-                            ...prev,
-                            [section.label]: !prev[section.label],
-                          }))
-                        }
-                      >
-                        {showMore[section.label]
-                          ? "Sembunyikan"
-                          : "Selengkapnya"}
-                      </button>
-                    </li>
-                  </>
-                )}
-              </ul>
-            </div>
-          ))}
-        </nav>
-      </aside>
-    );
-  }
+  // if (userRoles.includes("owner")) {
+  //   return (
+  //     <aside
+  //       className={`h-screen fixed left-0 top-0 shadow-md z-20 transition-all duration-300 ${isCollapsed ? "w-20" : "w-64"
+  //         } bg-white`}
+  //     >
+  //       <div className="flex py-3 px-4">
+  //         <div className="flex items-center justify-center mx-auto">
+  //           <img
+  //             src={
+  //               isCollapsed
+  //                 ? "../../../../public/images/logos/logo-mini-new.png"
+  //                 : "../../../../public/images/logos/logo-new.png"
+  //             }
+  //             alt="Logo"
+  //             className={`transition-all duration-300 ${isCollapsed ? "w-16 h-11" : "w-full h-12"
+  //               }`}
+  //           />
+  //         </div>
+  //       </div>
+  //       <nav
+  //         className={`p-4 space-y-6 ${isCollapsed ? "overflow-visible" : "overflow-y-auto"
+  //           } h-[calc(100vh-4rem)]`}
+  //       >
+  //         {ownerMenu.map((section, idx) => (
+  //           <div key={idx}>
+  //             <p
+  //               className={`text-xs font-bold uppercase mb-2 text-gray-400 ${isCollapsed ? "text-center text-[10px]" : ""
+  //                 }`}
+  //             >
+  //               {section.label}
+  //             </p>
+  //             <ul className="space-y-1">
+  //               {section.children.map((item, i) => (
+  //                 <li key={i}>
+  //                   <Link
+  //                     to={item.path}
+  //                     className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${location.pathname.startsWith(item.path)
+  //                         ? "bg-blue-600 text-white hover:bg-blue-600"
+  //                         : "text-gray-700"
+  //                       } ${isCollapsed ? "justify-center" : ""}`}
+  //                   >
+  //                     <span className="text-lg">{item.icon}</span>
+  //                     {!isCollapsed && item.label}
+  //                   </Link>
+  //                 </li>
+  //               ))}
+  //               {section.more && (
+  //                 <>
+  //                   {showMore[section.label] && (
+  //                     <ul className="mt-2 space-y-1">
+  //                       {section.more.map((moreItem, mi) => (
+  //                         <li key={mi}>
+  //                           <Link
+  //                             to={moreItem.path}
+  //                             className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${location.pathname.startsWith(moreItem.path)
+  //                                 ? "bg-blue-600 text-white hover:bg-blue-600"
+  //                                 : "text-gray-700"
+  //                               } ${isCollapsed ? "justify-center" : ""}`}
+  //                           >
+  //                             <span className="text-lg">{moreItem.icon}</span>
+  //                             {!isCollapsed && moreItem.label}
+  //                           </Link>
+  //                         </li>
+  //                       ))}
+  //                     </ul>
+  //                   )}
+  //                   <li>
+  //                     <button
+  //                       className="px-3 py-1 border border-gray-300 rounded text-xs text-gray-700 hover:bg-gray-100 transition w-fit mt-2"
+  //                       style={{ minWidth: 100 }}
+  //                       type="button"
+  //                       onClick={() =>
+  //                         setShowMore((prev) => ({
+  //                           ...prev,
+  //                           [section.label]: !prev[section.label],
+  //                         }))
+  //                       }
+  //                     >
+  //                       {showMore[section.label]
+  //                         ? "Sembunyikan"
+  //                         : "Selengkapnya"}
+  //                     </button>
+  //                   </li>
+  //                 </>
+  //               )}
+  //             </ul>
+  //           </div>
+  //         ))}
+  //       </nav>
+  //     </aside>
+  //   );
+  // }
 
   if (loading) {
     <h1 className="text-xl text-center animate-pulse font-semibold">
