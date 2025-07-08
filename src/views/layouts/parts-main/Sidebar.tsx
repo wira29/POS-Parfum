@@ -105,7 +105,7 @@ const menuItems = [
         label: "Kategori",
         icon: <FiLayers />,
         path: "/categories",
-        roles: ["warehouse", "outlet", "owner"],
+        roles: ["warehouse", "outlet"],
       },
       {
         label: "Produk",
@@ -117,13 +117,13 @@ const menuItems = [
         label: "Bundling",
         icon: <ShoppingCart size={16} />,
         path: "/bundlings",
-        roles: ["owner", "warehouse", "outlet"],
+        roles: ["warehouse", "outlet"],
       },
       {
         label: "Blending Produk",
         icon: <FiCoffee />,
         path: "/blendings",
-        roles: ["warehouse", "owner"],
+        roles: ["warehouse"],
       },
       {
         label: "Request Stock",
@@ -141,7 +141,7 @@ const menuItems = [
         label: "Unit",
         icon: <LayoutGrid />,
         path: "/units",
-        roles: ["admin", "warehouse", "outlet", "owner"],
+        roles: ["admin", "warehouse", "outlet"],
       },
       {
         label: "Audit",
@@ -174,7 +174,7 @@ const menuItems = [
         label: "Laporan Laba Rugi",
         icon: <FaMoneyBillTransfer />,
         path: "/laba-rugi",
-        roles: ["outlet", "warehouse"],
+        roles: ["outlet", "warehouse", "owner"],
       },
       {
         label: "Warehouse",
@@ -198,7 +198,7 @@ const menuItems = [
         label: "Role",
         icon: <FaUserTag />,
         path: "/roles",
-        roles: ["owner", "warehouse", "retail"],
+        roles: [ "warehouse", "retail"],
       },
       {
         label: "Pengeluaran",
