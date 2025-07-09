@@ -230,7 +230,7 @@ export default function BundlingCreate() {
         { productId, productName, variantId, variantName },
       ]);
     }
-  };
+  };  
 
   const handleAddSelectedVariants = () => {
     setSelectedVariants([]);

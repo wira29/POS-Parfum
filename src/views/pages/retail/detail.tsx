@@ -104,12 +104,12 @@ export default function RetailDetail() {
         <div className="p-6 space-y-4 shadow-md rounded-2xl bg-white">
           <div className="flex justify-between items-center border-b-2 border-gray-200 pb-4 mb-4">
             <h2 className="text-gray-800 font-semibold text-2xl flex items-center gap-2">
-              <Warehouse size={26} className="text-blue-700 p-1 bg-blue-200" />
+              <Warehouse size={26} className="text-blue-700 p-1 bg-blue-200 rounded" />
               Detail Retail
             </h2>
           </div>
 
-          <div className="flex flex-col gap-4 w-80">
+          <div className="flex flex-col gap-4 lg:w-80 w-full">
             <img
               src={ImageHelper(outlet?.image)}
               alt={outlet?.name}

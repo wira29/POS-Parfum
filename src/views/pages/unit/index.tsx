@@ -114,13 +114,13 @@ export default function UnitPage() {
       if (filters.minUser) params.append("min_user", filters.minUser);
       if (filters.maxUser) params.append("max_user", filters.maxUser);
 
-      const { data } = await ApiClient.get(`/unit?${params.toString()}`);
+      const { data } = await ApiClient.get(`/unit?${params.toString()}`);      
 
-      const mapped = data.data.map((unit) => ({
+      const mapped = data.data.map((unit : any) => ({
         id: unit.id,
         name: unit.name,
         code: unit.code,
-        itemCount: unit.item_count || 0,
+        itemCount: unit.product_details_count,
         createdDate: format(new Date(unit.created_at), "dd MMM yyyy"),
       }));
 
@@ -139,7 +139,7 @@ export default function UnitPage() {
     fetchUnits();
   }, [currentPage, searchTerm, filters]);
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id : number | string) => {
     const confirm = await Swal.fire({
       title: "Yakin ingin menghapus unit ini?",
       icon: "warning",
@@ -157,7 +157,7 @@ export default function UnitPage() {
     } catch (error) {
       Swal.fire("Gagal!", "Terjadi kesalahan saat menghapus unit.", "error");
     }
-  };
+  };  
 
   return (
     <div className="p-6 space-y-6">
