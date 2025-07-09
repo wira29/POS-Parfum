@@ -149,11 +149,12 @@ const handleSubmit = async (e: React.FormEvent) => {
       formData.append("image", images[0]);
     }
 
-    // filteredMaterials.forEach((mat, index) => {
-    //   formData.append(`details[${index}][product_detail_id]`, mat.product_detail_id);
-    //   formData.append(`details[${index}][quantity]`, mat.quantity);
-    //   formData.append(`details[${index}][unit_id]`, mat.unit_id);
-    // });
+
+    materials.forEach((mat, index) => {
+      formData.append(`details[${index}][product_detail_id]`, mat.product_detail_id);
+      formData.append(`details[${index}][quantity]`, mat.quantity);
+      formData.append(`details[${index}][unit_id]`, mat.unit_id);
+    });
 
     await apiClient.post(`/product-bundling`, formData, {
       headers: {
