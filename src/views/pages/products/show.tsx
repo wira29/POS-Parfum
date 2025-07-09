@@ -3,9 +3,9 @@ import { useNavigate, useParams } from "react-router-dom"
 import { formatNum } from "@/core/helpers/FormatNumber"
 import { Breadcrumb } from "@/views/components/Breadcrumb"
 import { ArrowLeft } from "lucide-react"
-import { ImageHelper } from "@/core/helpers/ImageHelper"
 import { useApiClient } from "@/core/helpers/ApiClient"
 import { LoadingCards } from "@/views/components/Loading"
+import { getStorageOrDefaultFile } from "@/core/helpers/ServerUrl"
 
 interface Variant {
   id: string
@@ -64,7 +64,7 @@ export const ProductShow = () => {
         const mappedProduct: Product = {
           id: data.id,
           name: data.name,
-          image: [ImageHelper(data.image)],
+          image: [getStorageOrDefaultFile(data.image)],
           category: data.category ?? null,
           price: data.product_detail?.[0]?.price ?? 0,
           total_stock: data.details_sum_stock ?? null,
@@ -74,7 +74,7 @@ export const ProductShow = () => {
             product_code: v.product_code,
             stock: v.stock,
             price: v.price,
-            product_image: ImageHelper(v.product_image),
+            product_image: getStorageOrDefaultFile(v.product_image),
             category: v.category ?? null,
             unit_code: v.unit_code ?? "",
           })),
@@ -125,7 +125,7 @@ export const ProductShow = () => {
         <div className="bg-white p-6 rounded-md shadow-xl mt-4">
           <div className="flex flex-col lg:flex-row gap-20 w-full">
             <img
-              src={mainImage ?? "/images/placeholder.jpg"}
+              src={product.image}
               alt={product.name}
               className="w-full lg:max-w-[520px] h-[450px] object-cover rounded-lg shadow-md mb-4 md:mb-0 md:mr-2"
             />

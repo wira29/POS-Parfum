@@ -7,6 +7,7 @@ import { useApiClient } from "@/core/helpers/ApiClient";
 import { Toast, Toaster } from "@/core/helpers/BaseAlert";
 import ProductSelectionModal from "@/views/components/Modal/ProductSelectionModal";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
+import { getStorageUrl } from "@/core/helpers/ServerUrl";
 
 interface Product {
   id: string;
@@ -680,7 +681,7 @@ export const BlendingCreate: React.FC = () => {
                                 <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
                                   {product.image ? (
                                     <img 
-                                      src={product.image} 
+                                      src={getStorageUrl(product.image)} 
                                       alt={product.name}
                                       className="w-full h-full object-cover rounded-lg"
                                     />
