@@ -437,7 +437,7 @@ export const Register = () => {
                 placeholder="Password (8 karakter)"
                 value={credentialsData.password}
                 onChange={handleCredentialsChange}
-                maxLength={8}
+                minLength={8}
                 className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formErrorMsg.password ? "border-red-500" : "border-gray-300"
                   }`}
               />
