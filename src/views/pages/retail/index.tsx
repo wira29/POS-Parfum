@@ -180,7 +180,7 @@ export const RetailIndex = () => {
                     >
                       Detail
                     </button>
-                    <div className="relative">
+                    {/* <div className="relative">
                       <button
                         className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-400 hover:bg-gray-300 cursor-pointer"
                         onClick={() => handleDropdownToggle(retail.id)}
@@ -210,7 +210,7 @@ export const RetailIndex = () => {
                           </button>
                         </div>
                       )}
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               </div>
