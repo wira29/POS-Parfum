@@ -31,7 +31,7 @@ const getMenuItems = (userRoles: string[]) => [
     isDropdown: true,
     roles: ["warehouse", "owner", "outlet"],
     children: [
-      { label: "Kasir", icon: <TbShoppingCart />, path: "/outlets", roles: ["warehouse", "cashier"] },
+      { label: "Kasir", icon: <TbShoppingCart />, path: "/outlets", roles: ["cashier"] },
       { label: "Riwayat Penjualan", icon: <FiTag />, path: "/riwayat-penjualan", roles: ["warehouse", "owner", "outlet"] },
     ],
   },
