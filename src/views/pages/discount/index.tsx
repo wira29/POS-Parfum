@@ -1,17 +1,18 @@
-import { Breadcrumb } from "@/views/components/Breadcrumb";
-import { Pagination } from "@/views/components/Pagination";
-import { useState, useEffect } from "react";
+import { useApiClient } from "@/core/helpers/ApiClient";
+import { Toaster } from "@/core/helpers/BaseAlert";
+import { FormatTime } from "@/core/helpers/FormatTime";
+import { IsRole } from "@/core/middlewares/is-role";
 import AddButton from "@/views/components/AddButton";
-import { SearchInput } from "@/views/components/SearchInput";
+import { Breadcrumb } from "@/views/components/Breadcrumb";
 import DeleteIcon from "@/views/components/DeleteIcon";
 import { EditIcon } from "@/views/components/EditIcon";
 import { Filter } from "@/views/components/Filter";
-import Swal from "sweetalert2";
-import { Toaster } from "@/core/helpers/BaseAlert";
-import ViewIcon from "@/views/components/ViewIcon";
-import { useApiClient } from "@/core/helpers/ApiClient";
-import { FormatTime } from "@/core/helpers/FormatTime";
 import { LoadingColumn } from "@/views/components/Loading";
+import { Pagination } from "@/views/components/Pagination";
+import { SearchInput } from "@/views/components/SearchInput";
+import ViewIcon from "@/views/components/ViewIcon";
+import { useEffect, useState } from "react";
+import Swal from "sweetalert2";
 
 const FilterModal = ({
   open,
@@ -461,7 +462,9 @@ export default function DiscountIndex() {
             </div>
           </div>
           <div className="w-full sm:w-auto">
-            <AddButton to="/discounts/create">Buat Diskon</AddButton>
+            <IsRole role={["warehouse", "outlet"]}>
+              <AddButton to="/discounts/create">Buat Diskon</AddButton>
+              </IsRole>
           </div>
         </div>
         {error && <p className="text-red-600">{error}</p>}
@@ -537,11 +540,13 @@ export default function DiscountIndex() {
                       <td className="px-6 py-4">
                         <div className="flex justify-center gap-2">
                           <ViewIcon to={`/discounts/${item.id}/detail`} />
-                          <EditIcon
+                          <IsRole role={["warehouse", "outlet"]}>
+                            <EditIcon
                             to={`/discounts/${item.id}/edit`}
                             className="text-white hover:bg-yellow-600"
                           />
                           <DeleteIcon onClick={() => deleteVoucher(item.id)} />
+                          </IsRole>
                         </div>
                       </td>
                     </tr>

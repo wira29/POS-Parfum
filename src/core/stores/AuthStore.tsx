@@ -45,6 +45,7 @@ export const useAuthStore = create<AuthType>()((set, get) => ({
         }
     },
     updateUser: () => {
+        console.log("updateUser")
         const token = getToken()
         if(token) {
             apiClient.get('/me')

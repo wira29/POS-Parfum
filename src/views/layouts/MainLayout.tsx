@@ -1,3 +1,4 @@
+import { useAuthStore } from '@/core/stores/AuthStore'
 import { useLayoutStore } from '@/core/stores/LayoutStore'
 import { useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
@@ -7,6 +8,11 @@ import { Sidebar } from './parts-main/Sidebar'
 export const MainLayout = () => {
   const [isLoaded, setIsLoaded] = useState(false)
   const { sidebar, setSidebar } = useLayoutStore()
+  const { updateUser } = useAuthStore()
+
+  useEffect(() => {
+    updateUser()
+  }, [])
 
   useEffect(() => {
     const handleLoad = () => setIsLoaded(true)
