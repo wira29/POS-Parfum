@@ -70,13 +70,17 @@ export default function BundlingEdit() {
         setUnits(unitRes.data?.data || []);
         const mappedProducts = prodRes.data?.data?.map((p) => ({
           id: p.id,
-          category: p.category,
           name: p.name,
+          image: p.image,
+          category: p.category,
+          details_sum_stock: p.details_sum_stock,
+          is_bundling: p.is_bundling,
           variants: (p.product_detail || []).map((v) => ({
             id: v.id,
-            name: v.variant_name || "Default",
+            name: v.variant_name,
             stock: v.stock,
             price: v.price,
+            unit_code: v.unit_code,
             product_code: v.product_code,
             product_image: v.product_image,
           })),
@@ -267,7 +271,22 @@ export default function BundlingEdit() {
     } catch (error) {
       if (error?.response?.data?.data) {
         setErrors(error.response.data.data);
-        Toaster("error", "Validasi gagal. Cek inputan Anda.");
+
+        const errorData = error.response.data.data;
+        let messages: string[] = [];
+
+        Object.keys(errorData).forEach((key) => {
+          const val = errorData[key];
+          if (Array.isArray(val)) {
+            messages = messages.concat(val);
+          } else if (typeof val === "object" && val !== null) {
+            Object.values(val).forEach((arr) => {
+              if (Array.isArray(arr)) messages = messages.concat(arr);
+            });
+          }
+        });
+
+        Toaster("error", messages.join(" | "));
       } else {
         Toaster("error", "Terjadi kesalahan saat update bundling.");
       }
@@ -587,7 +606,7 @@ export default function BundlingEdit() {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className={labelClass}>Deskripsi<span className="text-red-500">*</span></label>
+                <label className={labelClass}>Deskripsi</label>
                 <textarea
                   rows={4}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -666,7 +685,6 @@ export default function BundlingEdit() {
               <div className="font-medium text-gray-800">
                 {productName || "Nama Bundling"}
               </div>
-              <div className="text-sm text-gray-600">Stok Produk: {stock || 0} Pcs</div>
             </div>
           </div>
         </div>

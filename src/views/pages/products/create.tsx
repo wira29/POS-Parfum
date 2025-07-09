@@ -47,7 +47,7 @@ export const ProductCreate = () => {
       try {
         const res = await apiClient.get("/unit/no-paginate");
         setUnits(res.data.data);
-      } catch (error) {}
+      } catch (error) { }
     };
     fetchUnits();
   }, []);
@@ -103,7 +103,7 @@ export const ProductCreate = () => {
           label: cat.name,
         })) || [];
         setCategories(mapped);
-      } catch (error) {}
+      } catch (error) { }
     };
     fetchCategories();
   }, []);
@@ -771,6 +771,7 @@ export const ProductCreate = () => {
             category={selectedCategoryName}
             productName={productName}
             variantImages={variantImages}
+            unit={units.find((u) => u.id === selectedUnit)?.code || "Pcs"}
           />
         </div>
       </form>

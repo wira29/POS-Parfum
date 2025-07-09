@@ -242,7 +242,6 @@ export const ProductIndex = () => {
                 const productCode = singleVariant
                   ? singleVariant.code || product.id
                   : "-";
-                  console.log("Product Code:", singleVariant);
                 return (
                   <React.Fragment key={product.id}>
                     <tr className="hover:bg-gray-50">
@@ -250,11 +249,15 @@ export const ProductIndex = () => {
                         <img src={ImageHelper(product.image)} alt={product.name} className="w-14 h-14 rounded-md object-cover" />
                         <div>
                           <div className="font-semibold">{product.name}</div>
-                          <div className="text-gray-500 text-xs">ID Produk: {productCode || "-"}</div>
+                          {singleVariant ? (
+                            <div className="text-gray-500 text-xs">Kode Product: {productCode || "-"}</div>
+                          ) : (
+                            <div></div>
+                          )}
                         </div>
                       </td>
                       <td className="p-4 align-top">{product.category ?? "-"}</td>
-                      <td className="p-4 align-top">{singleVariant ? singleVariant.penjualan : (product.sales ?? "-")}</td>
+                      <td className="p-4 align-top">{singleVariant ? singleVariant.penjualan : (product.sales ?? 0)}</td>
                       <td className="p-4 align-top">
                         {product.is_bundling
                           ? `Rp ${product.bundling_price?.toLocaleString("id-ID")}`
@@ -283,7 +286,9 @@ export const ProductIndex = () => {
                           <ViewIcon to={product.is_bundling ? `/bundlings/${product.id}/detail` : `/products/${product.id}`} />
                           <IsRole role={["warehouse", "outlet"]}>
                             <div className="flex gap-2 items-center">
-                              <EditIcon to={`/products/${product.id}/edit`} />
+                              {!product.is_bundling && (
+                                <EditIcon to={`/products/${product.id}/edit`} />
+                              )}
                               <DeleteIcon onClick={confirmDelete(product.id)} />
                             </div>
                           </IsRole>

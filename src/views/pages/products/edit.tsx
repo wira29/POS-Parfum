@@ -914,6 +914,7 @@ export const ProductEdit = () => {
                         category={selectedCategoryName}
                         productName={productName}
                         variantImages={variantImages}
+                        unit={units.find((u) => u.id === selectedUnit)?.code || "Pcs"}
                     />
                 </div>
             </form>

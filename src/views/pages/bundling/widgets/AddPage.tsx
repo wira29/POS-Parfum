@@ -9,6 +9,10 @@ import InputOneImage from "@/views/components/Input-v2/InputOneImage";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
 import ModalQuantity from "./modal/ModalQuantity";
 
+function Skeleton({ className = "" }) {
+  return <div className={`animate-pulse bg-gray-200 rounded ${className}`} />;
+}
+
 export default function BundlingCreate() {
   const navigate = useNavigate();
   const apiClient = useApiClient();
@@ -31,6 +35,7 @@ export default function BundlingCreate() {
   const [expandedProducts, setExpandedProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   const [categorySearch, setCategorySearch] = useState("");
   const [categoryDropdown, setCategoryDropdown] = useState(false);
@@ -44,58 +49,48 @@ export default function BundlingCreate() {
   const [activeQtyId, setActiveQtyId] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    setInitialLoading(true);
+    const fetchAll = async () => {
       try {
-        const res = await apiClient.get("/categories");
-        const mapped = res.data?.data?.map((cat) => ({
+        const [catRes, unitRes, prodRes] = await Promise.all([
+          apiClient.get("/categories"),
+          apiClient.get("/unit/no-paginate"),
+          apiClient.get("/products/no-paginate"),
+        ]);
+        const mappedCategories = catRes.data?.data?.map((cat) => ({
           value: cat.id,
           label: cat.name,
         })) || [];
-        setCategories(mapped);
-      } catch (error) {
-        setCategories([]);
-      }
-    };
-    fetchCategories();
-  }, []);
-
-  useEffect(() => {
-    const fetchUnits = async () => {
-      try {
-        const res = await apiClient.get("/unit/no-paginate");
-        setUnits(res.data?.data || []);
-      } catch (error) {
-        setUnits([]);
-      }
-    };
-    fetchUnits();
-  }, []);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await apiClient.get("/products/no-paginate");
-        const mapped = res.data?.data?.map((p) => ({
+        setCategories(mappedCategories);
+        setUnits(unitRes.data?.data || []);
+        const mappedProducts = prodRes.data?.data?.map((p) => ({
           id: p.id,
           name: p.name,
+          image: p.image,
           category: p.category,
+          details_sum_stock: p.details_sum_stock,
+          is_bundling: p.is_bundling,
           variants: (p.product_detail || []).map((v) => ({
             id: v.id,
-            name: v.variant_name || "Default",
+            name: v.variant_name,
             stock: v.stock,
             price: v.price,
+            unit_code: v.unit_code,
             product_code: v.product_code,
             product_image: v.product_image,
           })),
         }));
-        setProducts(mapped);
-        setFilteredProducts(mapped);
-      } catch (error) {
+        setProducts(mappedProducts);
+        setFilteredProducts(mappedProducts);
+      } catch {
+        setCategories([]);
+        setUnits([]);
         setProducts([]);
         setFilteredProducts([]);
       }
+      setInitialLoading(false);
     };
-    fetchProducts();
+    fetchAll();
   }, []);
 
   useEffect(() => {
@@ -167,7 +162,22 @@ export default function BundlingCreate() {
     } catch (error) {
       if (error?.response?.data?.data) {
         setErrors(error.response.data.data);
-        Toaster("error", "Validasi gagal. Cek inputan Anda.");
+
+        const errorData = error.response.data.data;
+        let messages = [];
+
+        Object.keys(errorData).forEach((key) => {
+          const val = errorData[key];
+          if (Array.isArray(val)) {
+            messages = messages.concat(val);
+          } else if (typeof val === "object" && val !== null) {
+            Object.values(val).forEach((arr) => {
+              if (Array.isArray(arr)) messages = messages.concat(arr);
+            });
+          }
+        });
+
+        Toaster("error", messages.join(" | "));
       } else {
         Toaster("error", "Terjadi kesalahan saat menyimpan bundling.");
       }
@@ -250,6 +260,39 @@ export default function BundlingCreate() {
       }, 10);
     }
   };
+
+  if (initialLoading) {
+    return (
+      <div className="p-6 space-y-6">
+        <Skeleton className="h-8 w-1/3 mb-4" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-8 space-y-6">
+            <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+              <Skeleton className="h-6 w-1/2 mb-4" />
+              <Skeleton className="h-12 w-full mb-4" />
+              <Skeleton className="h-12 w-full mb-4" />
+              <Skeleton className="h-32 w-full mb-4" />
+              <Skeleton className="h-10 w-1/3 mb-4" />
+              <Skeleton className="h-10 w-1/3 mb-4" />
+              <Skeleton className="h-10 w-1/3 mb-4" />
+            </div>
+            <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+              <Skeleton className="h-6 w-1/2 mb-4" />
+              <Skeleton className="h-32 w-full mb-4" />
+              <Skeleton className="h-10 w-1/3 mb-4" />
+            </div>
+          </div>
+          <div className="lg:col-span-4">
+            <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-6">
+              <Skeleton className="h-6 w-1/2 mb-4" />
+              <Skeleton className="h-32 w-full mb-4" />
+              <Skeleton className="h-10 w-1/3 mb-4" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -395,19 +438,6 @@ export default function BundlingCreate() {
                             const variant = prod?.variants.find((v) => v.name === variantName);
                             const quantity = materials.find(mat => mat.product_detail_id === variant?.id)?.quantity;
 
-                            const handleSetQuantity = () => {
-                              const input = prompt("Masukkan quantity dalam G:", quantity || "");
-                              if (input !== null) {
-                                setMaterials(prev =>
-                                  prev.map(mat =>
-                                    mat.product_detail_id === variant?.id
-                                      ? { ...mat, quantity: input }
-                                      : mat
-                                  )
-                                );
-                              }
-                            };
-
                             return (
                               <div
                                 key={index}
@@ -463,6 +493,7 @@ export default function BundlingCreate() {
                                   </button>
                                 </div>
                                 <button
+                                  type="button"
                                   onClick={() => handleRemoveComposition(index)}
                                   className="w-8 h-8 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-full"
                                 >
@@ -507,7 +538,7 @@ export default function BundlingCreate() {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className={labelClass}>Deskripsi<span className="text-red-500">*</span></label>
+                <label className={labelClass}>Deskripsi</label>
                 <textarea
                   rows={4}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
