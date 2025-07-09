@@ -1,14 +1,14 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Toaster } from "@/core/helpers/BaseAlert";
-import { Info, Image as ImageIcon } from "lucide-react";
-import VariantSelectModal from "./modal/VariantSelectModal";
-import InputOneImage from "@/views/components/Input-v2/InputOneImage";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
-import ModalQuantity from "./modal/ModalQuantity";
+import { Breadcrumb } from "@/views/components/Breadcrumb";
+import InputOneImage from "@/views/components/Input-v2/InputOneImage";
 import { LoadingForm } from "@/views/components/Loading";
+import { Image as ImageIcon, Info } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import ModalQuantity from "./modal/ModalQuantity";
+import VariantSelectModal from "./modal/VariantSelectModal";
 
 export default function BundlingCreate() {
   const navigate = useNavigate();
@@ -24,11 +24,12 @@ export default function BundlingCreate() {
   const [stock, setStock] = useState(0);
   const [errors, setErrors] = useState({});
   const [composition, setComposition] = useState([]);
+  const [compositionId, setCompositionId] = useState([]);
   const [description, setDescription] = useState("");
   const [materials, setMaterials] = useState([]);
 
   const [showModal, setShowModal] = useState(false);
-  const [selectedVariants, setSelectedVariants] = useState([]);
+  const [selectedVariants, setSelectedVariants] = useState<any[]>([]);
   const [expandedProducts, setExpandedProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -213,6 +214,9 @@ const handleSubmit = async (e: React.FormEvent) => {
       setComposition((prev) =>
         prev.filter((item) => item !== `${productName} - ${variantName}`)
       );
+      setCompositionId((prev) =>
+        prev.filter((item) => item !== `${productId}-${variantId}`)
+      );
       setSelectedVariants((prev) =>
         prev.filter(
           (v) => !(v.productId === productId && v.variantId === variantId)
@@ -228,6 +232,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         },
       ]);
       setComposition((prev) => [...prev, `${productName} - ${variantName}`]);
+      setCompositionId((prev) => [...prev, `${productId} / ${variantId}`]);
       setSelectedVariants((prev) => [
         ...prev,
         { productId, productName, variantId, variantName },
@@ -430,13 +435,14 @@ const handleSubmit = async (e: React.FormEvent) => {
                             </div>
                           )}
                           {composition.map((item, index) => {
+                            
                             const [productName, variantName] =
                               item.split(" - ");
-                            const prod = products.find(
-                              (p) => p.name === productName
-                            );
+                            const [productId, variantId] =
+                              compositionId[index].split(" / ");
+                            const prod = products.find((p) => p.id === productId);
                             const variant = prod?.variants.find(
-                              (v) => v.name === variantName
+                              (v) => v.id === variantId
                             );
                             const quantity = materials.find(
                               (mat) => mat.product_detail_id === variant?.id
@@ -495,6 +501,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                                   <button
                                     type="button"
                                     onClick={() => {
+                                      console.log(variant)
                                       setActiveQtyId(variant?.id ?? null);
                                       setShowQtyModal(true);
                                     }}
@@ -686,11 +693,13 @@ const handleSubmit = async (e: React.FormEvent) => {
           const material = materials.find(
             (mat) => mat.product_detail_id === activeQtyId
           );
+          
           if (!material) return null;
 
           const product = products.find((p) =>
             p.variants.some((v) => v.id === material.product_detail_id)
           );
+
           if (!product) return null;
 
           const variant = product.variants.find(
