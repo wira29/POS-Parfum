@@ -10,5 +10,5 @@ export const IsRole = ({role, children} : {role: string[], children?: ReactNode}
         return userRoles.some(r => role.includes(r))
     }
 
-    return hasRole() && <div>{children}</div>
+    return hasRole() && <>{children}</>
 }

@@ -131,26 +131,20 @@ export function DiscountCreate() {
 
   const validateForm = (): Partial<DiscountFormData & { discount: string }> => {
     const errors: Partial<DiscountFormData & { discount: string }> = {};
-
-    if (!formData.name) errors.name = "Nama diskon wajib diisi";
     if (
       !formData.minimum_purchase ||
       isNaN(parseInt(formData.minimum_purchase)) ||
       parseInt(formData.minimum_purchase) < 0
     )
-    if (formData.type === "percentage") {
-      if (
-        formData.percentage == null ||
-        formData.percentage <= 0 ||
-        formData.percentage > 100
-      ) {
-        errors.discount = "Nilai diskon harus antara 1-100%";
+      if (formData.type === "percentage") {
+        if (
+          formData.percentage == null ||
+          formData.percentage <= 0 ||
+          formData.percentage > 100
+        ) {
+          errors.discount = "Nilai diskon harus antara 1-100%";
+        }
       }
-    } else {
-      if (formData.nominal == null || formData.nominal <= 0) {
-        errors.discount = "Nilai diskon harus lebih dari 0";
-      }
-    }
 
     return errors;
   };
@@ -218,17 +212,21 @@ export function DiscountCreate() {
       }
 
       navigate("/discounts");
-    } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.message || "Gagal menyimpan diskon";
-      setApiError(errorMessage);
-      Toaster("error", errorMessage);
-      if (errorMessage.includes("Produk yang dipilih tidak valid")) {
-        setFormErrors((prev) => ({
-          ...prev,
-          product_detail_id: "Produk tidak valid untuk toko Anda",
-        }));
-      }
+    } catch (error: any) {
+      const allErrors = error.response?.data?.data || {};
+      const messages = Object.values(allErrors).flat();
+      messages.forEach((msg) => Toaster("error", msg));
+      setApiError(allErrors);
+      setFormErrors((prev) => ({
+        ...prev,
+        name: allErrors.name?.[0] || "",
+        end_date: allErrors.end_date?.[0] || "",
+        start_date: allErrors.start_date?.[0] || "",
+        discount: allErrors.nominal?.[0] || allErrors.percentage?.[0] || "",
+        product_detail_id: messages.includes("Produk yang dipilih tidak valid")
+          ? "Produk tidak valid untuk toko Anda"
+          : prev.product_detail_id,
+      }));
     } finally {
       setLoading(false);
     }
@@ -258,11 +256,10 @@ export function DiscountCreate() {
         <h2 className="text-lg font-semibold text-gray-800">
           {id ? "Ubah Diskon" : "Tambah Diskon"}
         </h2>
-        {apiError && <div className="text-red-500 text-sm">{apiError}</div>}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className={labelClass}>Nama Diskon*</label>
+            <label className={labelClass}>Nama Diskon<span className="text-red-500">*</span></label>
             <input
               type="text"
               name="name"
@@ -294,7 +291,7 @@ export function DiscountCreate() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <SearchableSelect
-            label="Pilih Varian Produk*"
+            label="Pilih Varian Produk"
             options={barangOptions}
             value={formData.product_detail_id}
             onChange={(value) =>
@@ -321,7 +318,7 @@ export function DiscountCreate() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className={labelClass}>Tanggal Mulai*</label>
+            <label className={labelClass}>Tanggal Mulai<span className="text-red-500">*</span></label>
             <input
               type="date"
               name="start_date"
@@ -330,12 +327,19 @@ export function DiscountCreate() {
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, start_date: e.target.value }))
               }
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full border ${
+                formErrors.start_date ? "border-red-500" : "border-gray-300"
+              } rounded-md px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500`}
             />
+            {formErrors.start_date && (
+              <div className="text-red-500 text-sm mt-1">
+                {formErrors.start_date}
+              </div>
+            )}
           </div>
 
           <div>
-            <label className={labelClass}>Tanggal Berakhir*</label>
+            <label className={labelClass}>Tanggal Berakhir<span className="text-red-500">*</span></label>
             <input
               type="date"
               name="end_date"
@@ -344,25 +348,32 @@ export function DiscountCreate() {
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, end_date: e.target.value }))
               }
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full border ${
+                formErrors.end_date ? "border-red-500" : "border-gray-300"
+              } rounded-md px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500`}
             />
+            {formErrors.end_date && (
+              <div className="text-red-500 text-sm mt-1">
+                {formErrors.end_date}
+              </div>
+            )}
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {id && (
-          <div>
-            <label className={labelClass}>Status*</label>
-            <select 
-              name="status" 
-              id="status" 
-              value={status}
-              onChange={(e) => setStatus(Number(e.target.value))}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="1">Aktif</option>
-              <option value="0">Non-Aktif</option>
-            </select>
-          </div>
+            <div>
+              <label className={labelClass}>Status*</label>
+              <select
+                name="status"
+                id="status"
+                value={status}
+                onChange={(e) => setStatus(Number(e.target.value))}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="1">Aktif</option>
+                <option value="0">Non-Aktif</option>
+              </select>
+            </div>
           )}
           <div className="flex items-center gap-2">
             <input

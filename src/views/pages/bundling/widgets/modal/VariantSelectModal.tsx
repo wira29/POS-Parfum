@@ -1,6 +1,7 @@
 import React from "react";
 import { Search, PlusCircle } from "lucide-react";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
+import { ImageHelper } from "@/core/helpers/ImageHelper";
 
 type VariantSelectModalProps = {
   showModal: boolean;
@@ -15,12 +16,14 @@ type VariantSelectModalProps = {
     category: string;
     totalStock?: number;
     unit?: string;
+    image?: string;
     variants: Array<{
       id: string;
       name: string;
       stock?: number;
       unit?: string;
       category?: string;
+      product_image?: string;
     }>;
   }>;
   toggleExpand: (productId: string) => void;
@@ -74,7 +77,7 @@ const VariantSelectModal: React.FC<VariantSelectModalProps> = ({
           </div>
           <button
             onClick={handleAddSelectedVariants}
-            className="ml-4 flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="ml-4 flex items-center gap-2 cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
             disabled={selectedVariants.length === 0}
           >
             <PlusCircle className="w-4 h-4" />
@@ -107,16 +110,20 @@ const VariantSelectModal: React.FC<VariantSelectModalProps> = ({
                     (v) => v.variantId === variant.id && v.productId === product.id
                   );
 
+                const productStock =
+                  hasOneVariant && variant && typeof variant.stock === "number"
+                    ? variant.stock
+                    : product.totalStock?.toLocaleString?.() || 0;
+
                 return (
                   <React.Fragment key={product.id}>
                     <tr
-                      className={`border-b border-gray-100 cursor-pointer ${
-                        isAlreadyAdded
+                      className={`border-b border-gray-100 cursor-pointer ${isAlreadyAdded
                           ? "bg-red-50 text-red-500"
                           : isSelected
-                          ? "bg-blue-50 text-blue-600"
-                          : "hover:bg-gray-50"
-                      }`}
+                            ? "bg-blue-50 text-blue-600"
+                            : "hover:bg-gray-50"
+                        }`}
                       onClick={() => {
                         if (hasOneVariant && variant) {
                           toggleSelectVariant(product.id, product.name, variant.id, variant.name);
@@ -128,25 +135,33 @@ const VariantSelectModal: React.FC<VariantSelectModalProps> = ({
                       <td className="px-6 py-4 text-sm">{i + 1}.</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                            <svg
-                              className="w-6 h-6 text-gray-400"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
-                                clipRule="evenodd"
+                          <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                            {product.image ? (
+                              <img
+                                src={ImageHelper(product.image)}
+                                alt={product.name}
+                                className="w-full h-full object-cover"
                               />
-                            </svg>
+                            ) : (
+                              <svg
+                                className="w-6 h-6 text-gray-400"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                            )}
                           </div>
                           <div className="font-medium text-sm">{product.name}</div>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm">{product.category || "-"}</td>
                       <td className="px-6 py-4 text-sm">
-                        {product.totalStock?.toLocaleString() || "N/A"} {product.unit || ""}
+                        {productStock} {product.unit || ""}
                       </td>
                     </tr>
 
@@ -162,13 +177,12 @@ const VariantSelectModal: React.FC<VariantSelectModalProps> = ({
                           return (
                             <tr
                               key={variant.id}
-                              className={`border-b border-gray-100 cursor-pointer ${
-                                isAlreadyAdded
+                              className={`border-b border-gray-100 cursor-pointer ${isAlreadyAdded
                                   ? "bg-red-50 text-red-500"
                                   : isSelected
-                                  ? "bg-blue-50 border-blue-200 text-blue-600"
-                                  : "hover:bg-gray-50"
-                              }`}
+                                    ? "bg-blue-50 border-blue-200 text-blue-600"
+                                    : "hover:bg-gray-50"
+                                }`}
                               onClick={() =>
                                 toggleSelectVariant(
                                   product.id,
@@ -181,25 +195,33 @@ const VariantSelectModal: React.FC<VariantSelectModalProps> = ({
                               <td className="px-6 py-3"></td>
                               <td className="px-6 py-3">
                                 <div className="flex items-center gap-3 pl-6">
-                                  <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
-                                    <svg
-                                      className="w-5 h-5 text-gray-400"
-                                      fill="currentColor"
-                                      viewBox="0 0 20 20"
-                                    >
-                                      <path
-                                        fillRule="evenodd"
-                                        d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
-                                        clipRule="evenodd"
+                                  <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                                    {variant.product_image ? (
+                                      <img
+                                        src={ImageHelper(variant.product_image)}
+                                        alt={variant.name}
+                                        className="w-full h-full object-cover"
                                       />
-                                    </svg>
+                                    ) : (
+                                      <svg
+                                        className="w-5 h-5 text-gray-400"
+                                        fill="currentColor"
+                                        viewBox="0 0 20 20"
+                                      >
+                                        <path
+                                          fillRule="evenodd"
+                                          d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                                          clipRule="evenodd"
+                                        />
+                                      </svg>
+                                    )}
                                   </div>
                                   <div className="text-sm font-medium">{variant.name}</div>
                                 </div>
                               </td>
                               <td className="px-6 py-3 text-sm">{variant.category || "-"}</td>
                               <td className="px-6 py-3 text-sm">
-                                {variant.stock?.toLocaleString() || "N/A"} {variant.unit || ""}
+                                {variant.stock?.toLocaleString() || 0} {variant.unit || ""}
                               </td>
                             </tr>
                           );
@@ -208,6 +230,7 @@ const VariantSelectModal: React.FC<VariantSelectModalProps> = ({
                         <tr className="border-b border-dashed border-gray-300">
                           <td colSpan={4} className="px-6 py-2 text-center">
                             <button
+                              type="button"
                               onClick={() => toggleExpand(product.id)}
                               className="text-gray-500 hover:text-gray-700 text-sm flex items-center justify-center w-full"
                             >
@@ -223,6 +246,7 @@ const VariantSelectModal: React.FC<VariantSelectModalProps> = ({
                       <tr className="border-b border-dashed border-gray-300">
                         <td colSpan={4} className="px-6 py-2 text-center">
                           <button
+                            type="button"
                             onClick={() => toggleExpand(product.id)}
                             className="text-gray-500 hover:text-gray-700 text-sm flex items-center justify-center w-full"
                           >

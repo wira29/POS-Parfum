@@ -8,28 +8,26 @@ import { useApiClient } from "@/core/helpers/ApiClient"
 import { LoadingCards } from "@/views/components/Loading"
 
 interface Variant {
-  transaction_details_count?: number
   id: string
   variant_name: string
   product_code: string
   stock: number
   price: number
   product_image: string | null
-  category?: { name: string | null } | null
+  category?: string | null
   optionName?: string
+  unit_code?: string
 }
 
 interface Product {
   id: string
   name: string
   image: string[]
-  createdAt?: string
-  category: { name: string | null } | null
+  category: string | null
   price: number
   total_stock?: number | null
   variants: Variant[]
   description?: string | null
-  composition?: string[] | null
 }
 
 function groupVariants(variants: Variant[]) {
@@ -67,7 +65,7 @@ export const ProductShow = () => {
           id: data.id,
           name: data.name,
           image: [ImageHelper(data.image)],
-          category: data.category ? { name: data.category?.name ?? null } : null,
+          category: data.category ?? null,
           price: data.product_detail?.[0]?.price ?? 0,
           total_stock: data.details_sum_stock ?? null,
           variants: (data.product_detail || []).map((v: any) => ({
@@ -77,10 +75,10 @@ export const ProductShow = () => {
             stock: v.stock,
             price: v.price,
             product_image: ImageHelper(v.product_image),
-            category: v.category ? { name: v.category?.name ?? null } : null,
+            category: v.category ?? null,
+            unit_code: v.unit_code ?? "",
           })),
           description: data.description ?? null,
-          composition: data.composition ?? null,
         }
 
         setProduct(mappedProduct)
@@ -125,11 +123,11 @@ export const ProductShow = () => {
         />
 
         <div className="bg-white p-6 rounded-md shadow-xl mt-4">
-          <div className="flex flex-col md:flex-row gap-20 w-full">
+          <div className="flex flex-col lg:flex-row gap-20 w-full">
             <img
               src={mainImage ?? "/images/placeholder.jpg"}
               alt={product.name}
-              className="w-full max-w-[520px] h-[450px] object-cover rounded-lg shadow-md mb-4 md:mb-0 md:mr-2"
+              className="w-full lg:max-w-[520px] w-full h-[450px] object-cover rounded-lg shadow-md mb-4 md:mb-0 md:mr-2"
             />
 
             <div className="flex-1 max-w-150 space-y-4">
@@ -189,7 +187,10 @@ export const ProductShow = () => {
               <div className="text-sm text-gray-700">
                 <div className="flex justify-between">
                   <span className="font-semibold">Stok Produk</span>
-                  <span>{selectedVariant.stock} Pcs</span>
+                  <span>
+                    {selectedVariant.stock}
+                    {selectedVariant.unit_code ? ` ${selectedVariant.unit_code}` : ""}
+                  </span>
                 </div>
               </div>
             </div>

@@ -2,6 +2,43 @@ interface Column {
   column?: number;
 }
 
+function Skeleton({ className = "" }) {
+  return <div className={`animate-pulse bg-gray-200 rounded ${className}`} />;
+}
+
+export function LoadingForm() {
+  return (
+    <div className="p-6 space-y-6">
+      <Skeleton className="h-8 w-1/3 mb-4" />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-8 space-y-6">
+          <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+            <Skeleton className="h-6 w-1/2 mb-4" />
+            <Skeleton className="h-12 w-full mb-4" />
+            <Skeleton className="h-12 w-full mb-4" />
+            <Skeleton className="h-32 w-full mb-4" />
+            <Skeleton className="h-10 w-1/3 mb-4" />
+            <Skeleton className="h-10 w-1/3 mb-4" />
+            <Skeleton className="h-10 w-1/3 mb-4" />
+          </div>
+          <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+            <Skeleton className="h-6 w-1/2 mb-4" />
+            <Skeleton className="h-32 w-full mb-4" />
+            <Skeleton className="h-10 w-1/3 mb-4" />
+          </div>
+        </div>
+        <div className="lg:col-span-4">
+          <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-6">
+            <Skeleton className="h-6 w-1/2 mb-4" />
+            <Skeleton className="h-32 w-full mb-4" />
+            <Skeleton className="h-10 w-1/3 mb-4" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function LoadingTable({ column = 5 }: Column) {
   return (
     <div className="w-full p-6 space-y-6">

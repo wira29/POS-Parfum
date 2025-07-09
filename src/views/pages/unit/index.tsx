@@ -170,7 +170,7 @@ export default function UnitPage() {
               <div className="flex-1 max-w-md">
                 <SearchInput
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(val) => setSearchTerm(val)}
                 />
               </div>
               <Filter onClick={() => setFilterOpen(true)} />

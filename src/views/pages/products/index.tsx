@@ -21,7 +21,7 @@ export const ProductIndex = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [categoryOptions, setCategoryOptions] = useState<{ id: number; name: string }[]>([]);
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [expandedProducts, setExpandedProducts] = useState<string[]>([]);
   const expandRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [showFilter, setShowFilter] = useState(false);
@@ -54,8 +54,9 @@ export const ProductIndex = () => {
   }, []);
 
   useEffect(() => {
-    fetchData(page);
-  }, [page, search, categoryFilter, stockMin, stockMax, priceMin, priceMax, salesMin, salesMax]);
+    setPage(1);
+    fetchData(1);
+  }, [searchQuery, categoryFilter, stockMin, stockMax, priceMin, priceMax, salesMin, salesMax]);
 
   const fetchCategories = async () => {
     try {
@@ -70,13 +71,13 @@ export const ProductIndex = () => {
     return variants.find((v) => !!v.unit_code)?.unit_code || "G";
   };
 
-  const fetchData = async (page: number = 1) => {
+  const fetchData = async (pageNumber: number = 1) => {
     setLoading(true);
     try {
       const query = new URLSearchParams({
-        page: page.toString(),
+        page: pageNumber.toString(),
         per_page: pageSize.toString(),
-        search,
+        search: searchQuery,
         category: categoryFilter,
         min_stock: stockMin,
         max_stock: stockMax,
@@ -192,11 +193,11 @@ export const ProductIndex = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex flex-col sm:flex-row gap-3">
           <SearchInput
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
+            value={searchQuery}
+            onChange={(val) => {
+              setSearchQuery(val);
             }}
+            placeholder="Cari produk..."
           />
           <div className="relative">
             <Filter onClick={openFilterModal} />
@@ -231,6 +232,9 @@ export const ProductIndex = () => {
               products.map((product) => {
                 const variants = getVariants(product);
                 const singleVariant = !product.is_bundling && product.product_detail?.length === 1 ? variants[0] : null;
+                const productCode = singleVariant
+                  ? singleVariant.code || product.id
+                  : "-";
                 return (
                   <React.Fragment key={product.id}>
                     <tr className="hover:bg-gray-50">
@@ -238,11 +242,15 @@ export const ProductIndex = () => {
                         <img src={ImageHelper(product.image)} alt={product.name} className="w-14 h-14 rounded-md object-cover" />
                         <div>
                           <div className="font-semibold">{product.name}</div>
-                          <div className="text-gray-500 text-xs">ID Produk: {product.code || "-"}</div>
+                          {singleVariant ? (
+                            <div className="text-gray-500 text-xs">Kode Product: {productCode || "-"}</div>
+                          ) : (
+                            <div></div>
+                          )}
                         </div>
                       </td>
                       <td className="p-4 align-top">{product.category ?? "-"}</td>
-                      <td className="p-4 align-top">{singleVariant ? singleVariant.penjualan : (product.sales ?? "-")}</td>
+                      <td className="p-4 align-top">{singleVariant ? singleVariant.penjualan : (product.sales ?? 0)}</td>
                       <td className="p-4 align-top">
                         {product.is_bundling
                           ? `Rp ${product.bundling_price?.toLocaleString("id-ID")}`
@@ -267,11 +275,15 @@ export const ProductIndex = () => {
                         }
                       </td>
                       <td className="p-4 align-top">
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 items-center">
                           <ViewIcon to={product.is_bundling ? `/bundlings/${product.id}/detail` : `/products/${product.id}`} />
                           <IsRole role={["warehouse", "outlet"]}>
-                            <EditIcon to={`/products/${product.id}/edit`} />
-                            <DeleteIcon onClick={confirmDelete(product.id)} />
+                            {!product.is_bundling && (
+                              <EditIcon to={`/products/${product.id}/edit`} />
+                            )}
+                            {!product.is_bundling && (
+                              <DeleteIcon onClick={confirmDelete(product.id)} />
+                            )}
                           </IsRole>
                         </div>
                       </td>
@@ -330,7 +342,7 @@ export const ProductIndex = () => {
                                         <div>{variant.category ?? "-"}</div>
                                         <div>{variant.penjualan}</div>
                                         <div>Rp {variant.price.toLocaleString("id-ID")}</div>
-                                        <div>{variant.stock} G</div>
+                                        <div>{variant.stock} {variant.unit_code}</div>
                                       </div>
                                     ))}
                                     {totalVariantPages > 1 && (

@@ -163,7 +163,7 @@ export const RequestStockIndex = () => {
           <div className="flex items-center gap-2 mb-4 w-full sm:w-auto max-w-lg">
             <SearchInput
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(value) => setSearchQuery(value)}
             />
             <div className="relative">
               <Filter onClick={() => setShowFilter(true)} />

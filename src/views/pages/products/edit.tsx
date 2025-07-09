@@ -140,8 +140,8 @@ export const ProductEdit = () => {
             const codes = [...(variant.codes || Array(optionCount).fill(""))];
 
             for (let idx = 0; idx < optionCount; idx++) {
-                if (globalPrice !== "") prices[idx] = globalPrice;
-                if (globalStock !== "") stocks[idx] = globalStock;
+                if (globalPrice !== "") prices[idx] = Math.max(0, globalPrice);
+                if (globalStock !== "") stocks[idx] = Math.max(0, globalStock);
                 if (globalCode !== "") codes[idx] = globalCode;
             }
 
@@ -163,9 +163,7 @@ export const ProductEdit = () => {
             try {
                 const res = await apiClient.get("/unit/no-paginate");
                 setUnits(res.data.data);
-            } catch (error) {
-                console.error("Failed to fetch units:", error);
-            }
+            } catch (error) {}
         };
         fetchUnits();
     }, []);
@@ -179,9 +177,7 @@ export const ProductEdit = () => {
                     label: cat.name,
                 })) || [];
                 setCategories(mapped);
-            } catch (error) {
-                console.error("Failed to fetch categories:", error);
-            }
+            } catch (error) {}
         };
         fetchCategories();
     }, []);
@@ -201,14 +197,27 @@ export const ProductEdit = () => {
 
     const handleQuantityChange = (e) => {
         const value = e.target.value;
-
         if (Number(value) < 0) {
             Toaster("error", "Jumlah stok tidak boleh negatif");
             return;
         }
-
         setStock(value);
     };
+
+    useEffect(() => {
+        if (variations.length === 0) return setVariantMatrix([]);
+        const matrix = variations.map((variation, i) => {
+            const filteredOptions = (variation.options || []).filter(opt => opt && opt.trim() !== "");
+            return {
+                aroma: variation.name || `Varian ${i + 1}`,
+                prices: [variantMatrix?.[i]?.prices?.[0] || ""],
+                stocks: [variantMatrix?.[i]?.stocks?.[0] || ""],
+                codes: [variantMatrix?.[i]?.codes?.[0] || ""],
+                ...(filteredOptions.length > 0 ? { volumes: filteredOptions } : {})
+            };
+        });
+        setVariantMatrix(matrix);
+    }, [variations]);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -322,7 +331,6 @@ export const ProductEdit = () => {
                     setStock(Number(newVariantMatrix[0].stocks[0]));
                 }
             } catch (error) {
-                console.error("Error fetching product:", error);
                 Toaster("error", "Gagal memuat data produk");
             } finally {
                 setLoading(false);
@@ -355,6 +363,8 @@ export const ProductEdit = () => {
             return;
         }
 
+        setLoading(true);
+
         const formData = new FormData();
         formData.append("name", productName);
 
@@ -374,12 +384,14 @@ export const ProductEdit = () => {
             if (!price || isNaN(price)) {
                 setErrors({ message: ["Harga produk wajib diisi"] });
                 Toaster("error", "Harga produk wajib diisi");
+                setLoading(false);
                 return;
             }
 
             if (stock === "" || isNaN(stock) || Number(stock) < 0) {
                 setErrors({ message: ["Stok produk tidak boleh kosong atau negatif"] });
                 Toaster("error", "Stok produk tidak valid");
+                setLoading(false);
                 return;
             }
 
@@ -402,26 +414,42 @@ export const ProductEdit = () => {
             let hasVariantError = false;
 
             variantMatrix.forEach((variant, i) => {
-                const options = variant.volumes?.filter(Boolean) || [null];
+                const options = variant.volumes?.filter(Boolean) || [];
 
-                options.forEach((option, j) => {
-                    const variantPrice = Number(variant.prices?.[j]) || 0;
-                    const variantStock = Number(variant.stocks?.[j]) || 0;
+                if (!variant.volumes || options.length === 0) {
+                    const variantPrice = Number(variant.prices?.[0]) || 0;
+                    const variantStock = Number(variant.stocks?.[0]) || 0;
 
                     if (variantPrice <= 0) {
                         hasVariantError = true;
-                        setErrors({ message: [`Harga untuk varian ${variant.aroma} ${option || ""} tidak valid`] });
+                        setErrors({ message: [`Harga untuk varian ${variant.aroma} tidak valid`] });
                     }
 
                     if (variantStock < 0) {
                         hasVariantError = true;
-                        setErrors({ message: [`Stok untuk varian ${variant.aroma} ${option || ""} tidak valid`] });
+                        setErrors({ message: [`Stok untuk varian ${variant.aroma} tidak valid`] });
                     }
-                });
+                } else {
+                    options.forEach((option, j) => {
+                        const variantPrice = Number(variant.prices?.[j]) || 0;
+                        const variantStock = Number(variant.stocks?.[j]) || 0;
+
+                        if (variantPrice <= 0) {
+                            hasVariantError = true;
+                            setErrors({ message: [`Harga untuk varian ${variant.aroma} ${option || ""} tidak valid`] });
+                        }
+
+                        if (variantStock < 0) {
+                            hasVariantError = true;
+                            setErrors({ message: [`Stok untuk varian ${variant.aroma} ${option || ""} tidak valid`] });
+                        }
+                    });
+                }
             });
 
             if (hasVariantError) {
                 Toaster("error", "Validasi varian gagal");
+                setLoading(false);
                 return;
             }
 
@@ -429,7 +457,7 @@ export const ProductEdit = () => {
             variantMatrix.forEach((variant, i) => {
                 const aroma = variant.aroma;
                 const image = variantImages[i]?.[0];
-                if (aroma && image && !aromaImageMap[aroma]) {
+                if (aroma && image && typeof image !== "string" && !aromaImageMap[aroma]) {
                     aromaImageMap[aroma] = image;
                 }
             });
@@ -437,29 +465,51 @@ export const ProductEdit = () => {
             let detailIdx = 0;
             variantMatrix.forEach((variant, i) => {
                 const aroma = variant.aroma || `Varian ${i + 1}`;
-                const options = variant.volumes?.filter(Boolean) || [null];
+                const options = variant.volumes?.filter(Boolean) || [];
 
-                options.forEach((option, j) => {
+                if (!variant.volumes || options.length === 0) {
                     formData.append(`product_details[${detailIdx}][category_id]`, category);
                     formData.append(`product_details[${detailIdx}][variant]`, aroma);
-                    formData.append(`product_details[${detailIdx}][opsi]`, option || "");
-                    formData.append(`product_details[${detailIdx}][stock]`, variant.stocks?.[j] || "0");
-                    formData.append(`product_details[${detailIdx}][price]`, variant.prices?.[j] || "0");
-                    formData.append(`product_details[${detailIdx}][product_code]`, variant.codes?.[j] || "");
-                    formData.append(`product_details[${detailIdx}][unit_id]`, variantUnits[i]?.[j] || selectedUnit);
+                    formData.append(`product_details[${detailIdx}][opsi]`, "");
+                    formData.append(`product_details[${detailIdx}][stock]`, variant.stocks?.[0] || "0");
+                    formData.append(`product_details[${detailIdx}][price]`, variant.prices?.[0] || "0");
+                    formData.append(`product_details[${detailIdx}][product_code]`, variant.codes?.[0] || "");
+                    formData.append(`product_details[${detailIdx}][unit_id]`, variantUnits[i]?.[0] || selectedUnit);
 
                     if (density) {
                         formData.append(`product_details[${detailIdx}][density]`, density);
                     }
 
                     const imageToUse = aromaImageMap[aroma];
-                    if (imageToUse instanceof File) {
+                    if (imageToUse && typeof imageToUse !== "string") {
                         formData.append(`product_details[${detailIdx}][product_image]`, imageToUse);
                     }
 
                     detailIdx++;
-                });
+                } else {
+                    options.forEach((option, j) => {
+                        formData.append(`product_details[${detailIdx}][category_id]`, category);
+                        formData.append(`product_details[${detailIdx}][variant]`, aroma);
+                        formData.append(`product_details[${detailIdx}][opsi]`, option || "");
+                        formData.append(`product_details[${detailIdx}][stock]`, variant.stocks?.[j] || "0");
+                        formData.append(`product_details[${detailIdx}][price]`, variant.prices?.[j] || "0");
+                        formData.append(`product_details[${detailIdx}][product_code]`, variant.codes?.[j] || "");
+                        formData.append(`product_details[${detailIdx}][unit_id]`, variantUnits[i]?.[j] || selectedUnit);
+
+                        if (density) {
+                            formData.append(`product_details[${detailIdx}][density]`, density);
+                        }
+
+                        const imageToUse = aromaImageMap[aroma];
+                        if (imageToUse && typeof imageToUse !== "string") {
+                            formData.append(`product_details[${detailIdx}][product_image]`, imageToUse);
+                        }
+
+                        detailIdx++;
+                    });
+                }
             });
+
         }
 
         try {
@@ -479,7 +529,29 @@ export const ProductEdit = () => {
             } else {
                 Toaster("error", "Terjadi kesalahan saat mengupdate produk.");
             }
+        } finally {
+            setLoading(false);
         }
+    };
+
+    const handleConversionGram = (e) => {
+        let value = e.target.value;
+        if (value === "") {
+            setConversionGram("");
+            return;
+        }
+        value = Math.max(0, Math.min(100, Number(value)));
+        setConversionGram(value);
+    };
+
+    const handleConversionMl = (e) => {
+        let value = e.target.value;
+        if (value === "") {
+            setConversionMl("");
+            return;
+        }
+        value = Math.max(0, Math.min(100, Number(value)));
+        setConversionMl(value);
     };
 
     const labelClass = "block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2 mt-5";
@@ -559,7 +631,7 @@ export const ProductEdit = () => {
                                     label="Atur Harga Produk"
                                     labelClass={labelClass}
                                     value={price}
-                                    onChange={(e) => setPrice(e.target.value === "" ? "" : +e.target.value)}
+                                    onChange={(e) => setPrice(Math.max(0, e.target.value === "" ? "" : +e.target.value))}
                                     placeholder="500.000"
                                     prefix="Rp"
                                     error={errors["product_details.0.price"]?.[0]}
@@ -622,12 +694,14 @@ export const ProductEdit = () => {
                                         type="number"
                                         value={selectedUnitCode === "G" ? 1 : density}
                                         readOnly={selectedUnitCode === "G"}
-                                        onChange={(e) => setConversionGram(e.target.value)}
+                                        onChange={handleConversionGram}
                                         placeholder="1"
+                                        min={0}
+                                        max={100}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none"
                                     />
                                     <div className="absolute inset-y-0 right-0 w-16 bg-gray-100 border-l border-gray-300 rounded-r-lg px-2 flex items-center justify-center">
-                                        G
+                                        g
                                     </div>
                                 </div>
 
@@ -638,12 +712,14 @@ export const ProductEdit = () => {
                                         type="number"
                                         value={selectedUnitCode === "ML" ? 1 : density}
                                         readOnly={selectedUnitCode === "ML"}
-                                        onChange={(e) => setConversionMl(e.target.value)}
+                                        onChange={handleConversionMl}
                                         placeholder="10"
+                                        min={0}
+                                        max={100}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none"
                                     />
                                     <div className="absolute inset-y-0 right-0 w-16 bg-gray-100 border-l border-gray-300 rounded-r-lg px-2 flex items-center justify-center">
-                                        ML
+                                        ml
                                     </div>
                                 </div>
                             </div>
@@ -718,14 +794,16 @@ export const ProductEdit = () => {
                                         placeholder="Harga"
                                         className="w-1/3 px-3 py-2 focus:outline-none"
                                         value={globalPrice}
-                                        onChange={(e) => setGlobalPrice(e.target.value)}
+                                        min={0}
+                                        onChange={(e) => setGlobalPrice(Math.max(0, e.target.value))}
                                     />
                                     <input
                                         type="number"
                                         placeholder="Stok"
                                         className="w-1/3 px-3 py-2 focus:outline-none"
                                         value={globalStock}
-                                        onChange={(e) => setGlobalStock(e.target.value)}
+                                        min={0}
+                                        onChange={(e) => setGlobalStock(Math.max(0, e.target.value))}
                                     />
                                     <input
                                         type="text"
@@ -762,7 +840,7 @@ export const ProductEdit = () => {
                                     ).map((option, j) => (
                                         <div key={`${i}-${j}`} className="grid grid-cols-5 items-start bg-white border-b border-gray-100">
                                             {j === 0 ? (
-                                                <div className="p-3" rowSpan={variant.volumes.length}>
+                                                <div className="p-3" rowSpan={variant.volumes?.length || 1}>
                                                     <p className="font-medium mb-2">{variant.aroma}</p>
                                                     <InputOneImage
                                                         images={variantImages[i]?.[0] ? [variantImages[i][0]] : []}
@@ -781,10 +859,11 @@ export const ProductEdit = () => {
                                                         className="w-full pl-4 py-2 text-gray-800 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                         placeholder="Harga"
                                                         value={variant.prices[j] || ""}
+                                                        min={0}
                                                         onChange={(e) => {
                                                             const updated = [...variantMatrix];
                                                             if (!updated[i].prices) updated[i].prices = [];
-                                                            updated[i].prices[j] = e.target.value;
+                                                            updated[i].prices[j] = Math.max(0, e.target.value);
                                                             setVariantMatrix(updated);
                                                         }}
                                                     />
@@ -800,7 +879,7 @@ export const ProductEdit = () => {
                                                     onChange={(e) => {
                                                         const updated = [...variantMatrix];
                                                         if (!updated[i].stocks) updated[i].stocks = [];
-                                                        updated[i].stocks[j] = e.target.value;
+                                                        updated[i].stocks[j] = Math.max(0, e.target.value);
                                                         setVariantMatrix(updated);
                                                     }}
                                                 />
@@ -827,8 +906,21 @@ export const ProductEdit = () => {
                     </div>
 
                     <div className="flex justify-end gap-4">
-                        <button type="button" onClick={() => navigate("/products")} className="border border-gray-300 rounded-lg px-4 py-2 cursor-pointer">Kembali</button>
-                        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer">Simpan</button>
+                        <button
+                            type="button"
+                            onClick={() => navigate("/products")}
+                            className="border border-gray-300 rounded-lg px-4 py-2 cursor-pointer"
+                            disabled={loading}
+                        >
+                            Kembali
+                        </button>
+                        <button
+                            type="submit"
+                            className="bg-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer"
+                            disabled={loading}
+                        >
+                            {loading ? "Loading..." : "Simpan"}
+                        </button>
                     </div>
                 </div>
 
@@ -841,6 +933,7 @@ export const ProductEdit = () => {
                         category={selectedCategoryName}
                         productName={productName}
                         variantImages={variantImages}
+                        unit={units.find((u) => u.id === selectedUnit)?.code || "Pcs"}
                     />
                 </div>
             </form>

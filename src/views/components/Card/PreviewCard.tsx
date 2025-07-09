@@ -8,13 +8,8 @@ interface PreviewCardProps {
   productCode: string;
   stock: number;
   variantImages?: (File | string)[][];
+  unit:string;
 }
-
-// const getImageUrl = (img: File | string) => {
-//   if (typeof img === "string") return img;
-//   if (img instanceof File) return URL.createObjectURL(img);
-//   return "";
-// };
 
 const PreviewCard = ({
   images,
@@ -24,6 +19,7 @@ const PreviewCard = ({
   productCode,
   stock,
   variantImages = [],
+  unit
 }: PreviewCardProps) => (
   <div className="bg-white rounded-2xl p-4 shadow">
     <h4 className="text-sm font-medium mb-2">Preview</h4>
@@ -80,7 +76,7 @@ const PreviewCard = ({
 
     <div className="text-sm text-gray-700 space-y-1">
       <p><strong>Kode Produk :</strong> {productCode || "-"}</p>
-      <p><strong>Stok Produk :</strong> {stock} Pcs</p>
+      <p><strong>Stok Produk :</strong> {stock} {unit}</p>
     </div>
   </div>
 );

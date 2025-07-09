@@ -76,7 +76,7 @@ export const RestockCreate = () => {
     const fetchProducts = async () => {
       try {
         const res = await apiClient.get<ApiResponse<Product[]>>(
-          "/products/no-paginate"
+          "/products/without-bundling"
         );
         setProducts(res.data.data || []);
       } catch (e) {
@@ -205,7 +205,7 @@ export const RestockCreate = () => {
         p.product.id === productId
           ? {
               ...p,
-              variants: p.variants.map((v) =>
+              variants: p.variants.map((v: any) =>
                 v.id === variantId ? { ...v, unit: value } : v
               ),
             }
@@ -567,9 +567,18 @@ export const RestockCreate = () => {
                         <td className="p-6 align-top">
                           <input
                             type="number"
-                            className="w-full max-w-[150px] border border-gray-300 rounded-lg px-3 py-2"
+                            className="w-full max-w-[150px] border outline-none border-gray-300 rounded-lg px-3 py-2"
                             placeholder="Masukan Jumlah"
                             value={variant.qty}
+                            onKeyDown={(e) => {
+                              if (
+                                e.key === "e" ||
+                                e.key === "E" ||
+                                e.key === "-"
+                              ) {
+                                e.preventDefault();
+                              }
+                            }}
                             onChange={(e) =>
                               handleVariantQtyChange(
                                 item.product.id,
@@ -580,23 +589,21 @@ export const RestockCreate = () => {
                           />
                         </td>
                         <td className="p-6 align-top">
-                          <select
-                            className="w-full max-w-[150px] border border-gray-300 rounded-lg px-3 py-2"
-                            value={variant.unit}
-                            onChange={(e) =>
-                              handleVariantUnitChange(
-                                item.product.id,
-                                variant.id,
-                                e.target.value
-                              )
+                          <input
+                            type="text"
+                            readOnly
+                            className="w-full max-w-[150px] border outline-none border-gray-300 rounded-lg px-3 py-2 bg-gray-100 text-gray-600"
+                            value={
+                              units.find((unit) => unit.id === variant.unit)
+                                ?.name || "-"
                             }
-                          >
-                            {units.map((unit: Unit) => (
-                              <option key={unit.id} value={unit.id}>
-                                {unit.name}
-                              </option>
-                            ))}
-                          </select>
+                            name="unit_name"
+                          />
+                          <input
+                            type="hidden"
+                            name="unit_id"
+                            value={variant.unit}
+                          />
                         </td>
                         <td className="p-6 align-top cursor-pointer">
                           <DeleteIcon

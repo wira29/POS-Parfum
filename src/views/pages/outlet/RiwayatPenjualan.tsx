@@ -23,7 +23,7 @@ export const RiwayatPenjualan: React.FC = () => {
       <Card className="mt-3 sm:mt-5">
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-5">
           <div className="w-full sm:w-1/3 md:w-1/4">
-            <SearchInput onChange={(e) => setState('search', e.target.value)} value={search} />
+            <SearchInput onChange={(val) => setState("search", val)} value={search} />
           </div>
           <div className="w-full sm:w-auto">
             <Filter />

@@ -58,7 +58,7 @@ export const RequestStockCreate = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await apiClient.get("/products/no-paginate");
+        const res = await apiClient.get("/products/without-bundling");
         setProducts(res.data.data || []);
       } catch (e) {
         setProducts([]);
@@ -473,13 +473,19 @@ export const RequestStockCreate = () => {
                                 className="w-full border border-gray-300 rounded-l-lg px-3 py-2"
                                 placeholder="Masukan Jumlah"
                                 value={variant.qty}
+                                onKeyDown={(e) => {
+                                  if (e.key === "e" || e.key === "E" || e.key === "-") {
+                                    e.preventDefault()
+                                  }
+                                }}
                                 onChange={(e) =>
                                   handleVariantQtyChange(item.product.id, variant.id, e.target.value)
                                 }
                               />
                               <select
-                                className="border border-gray-300 border-l-0 rounded-r-lg text-sm px-2 py-[0.6rem] bg-white"
+                                className="border border-gray-300 border-l-0 rounded-r-lg text-sm px-2 py-[0.6rem] bg-gray-200"
                                 value={variant.unit}
+                                disabled
                                 onChange={(e) =>
                                   handleVariantUnitChange(item.product.id, variant.id, e.target.value)
                                 }
@@ -493,6 +499,7 @@ export const RequestStockCreate = () => {
                                   </option>
                                 ))}
                               </select>
+                              <input type="hidden" name="unit_id" value={variant.unit}/>
                             </div>
                           </div>
                         </td>

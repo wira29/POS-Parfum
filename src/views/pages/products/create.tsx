@@ -37,7 +37,8 @@ export const ProductCreate = () => {
   const [conversionGram, setConversionGram] = useState("");
   const [conversionMl, setConversionMl] = useState("");
   const [density, setDensity] = useState("");
-  
+  const [loading, setLoading] = useState(false);
+
   const selectedUnitData = units.find((u) => u.id === selectedUnit);
   const selectedUnitCode = selectedUnitData?.code?.toUpperCase();
 
@@ -46,9 +47,7 @@ export const ProductCreate = () => {
       try {
         const res = await apiClient.get("/unit/no-paginate");
         setUnits(res.data.data);
-      } catch (error) {
-        console.error("Failed to fetch units:", error);
-      }
+      } catch (error) {}
     };
     fetchUnits();
   }, []);
@@ -104,9 +103,7 @@ export const ProductCreate = () => {
           label: cat.name,
         })) || [];
         setCategories(mapped);
-      } catch (error) {
-        console.error("Failed to fetch categories:", error);
-      }
+      } catch (error) {}
     };
     fetchCategories();
   }, []);
@@ -143,15 +140,38 @@ export const ProductCreate = () => {
 
   useEffect(() => {
     if (variations.length === 0) return setVariantMatrix([]);
-    const matrix = variations.map((variation, i) => ({
-      aroma: variation.name || `Varian ${i + 1}`,
-      prices: [variantMatrix?.[i]?.prices?.[0] || ""],
-      stocks: [variantMatrix?.[i]?.stocks?.[0] || ""],
-      codes: [variantMatrix?.[i]?.codes?.[0] || ""],
-      volumes: variation.options && variation.options.length > 0 ? variation.options : [null],
-    }));
+    const matrix = variations.map((variation, i) => {
+      const filteredOptions = (variation.options || []).filter(opt => opt && opt.trim() !== "");
+      return {
+        aroma: variation.name || `Varian ${i + 1}`,
+        prices: [variantMatrix?.[i]?.prices?.[0] || ""],
+        stocks: [variantMatrix?.[i]?.stocks?.[0] || ""],
+        codes: [variantMatrix?.[i]?.codes?.[0] || ""],
+        ...(filteredOptions.length > 0 ? { volumes: filteredOptions } : {})
+      };
+    });
     setVariantMatrix(matrix);
   }, [variations]);
+
+  const handleConversionGram = (e) => {
+    let value = e.target.value;
+    if (value === "") {
+      setConversionGram("");
+      return;
+    }
+    value = Math.max(0, Math.min(100, Number(value)));
+    setConversionGram(value);
+  };
+
+  const handleConversionMl = (e) => {
+    let value = e.target.value;
+    if (value === "") {
+      setConversionMl("");
+      return;
+    }
+    value = Math.max(0, Math.min(100, Number(value)));
+    setConversionMl(value);
+  };
 
   useEffect(() => {
     if (isParfumCategory) {
@@ -219,8 +239,8 @@ export const ProductCreate = () => {
       const codes = [...(variant.codes || Array(optionCount).fill(""))];
 
       for (let idx = 0; idx < optionCount; idx++) {
-        if (globalPrice !== "") prices[idx] = globalPrice;
-        if (globalStock !== "") stocks[idx] = globalStock;
+        if (globalPrice !== "") prices[idx] = Math.max(0, globalPrice);
+        if (globalStock !== "") stocks[idx] = Math.max(0, globalStock);
         if (globalCode !== "") codes[idx] = globalCode;
       }
 
@@ -237,152 +257,179 @@ export const ProductCreate = () => {
     setGlobalCode("");
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
-  if (!productName) {
-    setErrors({ message: ["Nama produk wajib diisi"] });
-    Toaster("error", "Nama produk wajib diisi");
-    return;
-  }
-
-  if (!category) {
-    setErrors({ message: ["Kategori produk wajib dipilih"] });
-    Toaster("error", "Kategori produk wajib dipilih");
-    return;
-  }
-
-  if (!selectedUnit) {
-    setErrors({ message: ["Unit produk wajib dipilih"] });
-    Toaster("error", "Unit produk wajib dipilih");
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("name", productName);
-  if (images.length > 0 && typeof images[0] !== "string") {
-    formData.append("image", images[0]);
-  }
-  formData.append("description", description);
-  formData.append("category_id", category);
-  formData.append("unit_id", selectedUnit);
-
-  if (density) {
-    formData.append("density", density);
-  }
-
-  if (!hasVariant) {
-    if (!price || isNaN(price)) {
-      setErrors({ message: ["Harga produk wajib diisi"] });
-      Toaster("error", "Harga produk wajib diisi");
+    if (!productName) {
+      setErrors({ message: ["Nama produk wajib diisi"] });
+      Toaster("error", "Nama produk wajib diisi");
+      setLoading(false);
       return;
     }
 
-    if (!stock || isNaN(stock)) {
-      setErrors({ message: ["Stok produk wajib diisi"] });
-      Toaster("error", "Stok produk wajib diisi");
+    if (!category) {
+      setErrors({ message: ["Kategori produk wajib dipilih"] });
+      Toaster("error", "Kategori produk wajib dipilih");
+      setLoading(false);
       return;
     }
 
-    formData.append("product_details[0][category_id]", category);
-    formData.append("product_details[0][stock]", String(stock));
-    formData.append("product_details[0][price]", String(price));
-    formData.append("product_details[0][product_code]", productCode || "");
-    formData.append("product_details[0][unit_id]", selectedUnit);
-    formData.append("product_details[0][variant]", productName);
-    formData.append("product_details[0][opsi]", "");
+    if (!selectedUnit) {
+      setErrors({ message: ["Unit produk wajib dipilih"] });
+      Toaster("error", "Unit produk wajib dipilih");
+      setLoading(false);
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("name", productName);
+    if (images.length > 0 && typeof images[0] !== "string") {
+      formData.append("image", images[0]);
+    }
+    formData.append("description", description);
+    formData.append("category_id", category);
+    formData.append("unit_id", selectedUnit);
 
     if (density) {
-      formData.append("product_details[0][density]", density);
+      formData.append("density", density);
     }
 
-    if (images.length > 0 && typeof images[0] !== "string") {
-      formData.append("product_details[0][product_image]", images[0]);
-    }
-  } else {
-    let hasVariantError = false;
-    variantMatrix.forEach((variant, i) => {
-      const options = variant.volumes?.filter(Boolean) || [null];
-
-      options.forEach((option, j) => {
-        const price = Number(variant.prices?.[j]) || 0;
-        const stock = Number(variant.stocks?.[j]) || 0;
-
-        if (price <= 0) {
-          hasVariantError = true;
-          setErrors({ message: [`Harga untuk varian ${variant.aroma} ${option || ""} tidak valid`] });
-        }
-
-        if (stock < 0) {
-          hasVariantError = true;
-          setErrors({ message: [`Stok untuk varian ${variant.aroma} ${option || ""} tidak valid`] });
-        }
-      });
-    });
-
-    if (hasVariantError) {
-      Toaster("error", "Validasi varian gagal");
-      return;
-    }
-
-    // Mapping aroma → image
-    const aromaImageMap = {};
-    variantMatrix.forEach((variant, i) => {
-      const aroma = variant.aroma;
-      const image = variantImages[i]?.[0];
-      if (aroma && image && !aromaImageMap[aroma]) {
-        aromaImageMap[aroma] = image;
+    if (!hasVariant) {
+      if (!price || isNaN(price) || price < 0) {
+        setErrors({ message: ["Harga produk wajib diisi dan tidak boleh kurang dari 0"] });
+        Toaster("error", "Harga produk wajib diisi dan tidak boleh kurang dari 0");
+        setLoading(false);
+        return;
       }
-    });
 
-    let detailIdx = 0;
-    variantMatrix.forEach((variant, i) => {
-      const aroma = variant.aroma || `Varian ${i + 1}`;
-      const options = variant.volumes?.filter(Boolean) || [null];
+      if (stock < 0) {
+        setErrors({ message: ["Stok produk tidak boleh kurang dari 0"] });
+        Toaster("error", "Stok produk tidak boleh kurang dari 0");
+        setLoading(false);
+        return;
+      }
 
-      options.forEach((option, j) => {
-        formData.append(`product_details[${detailIdx}][category_id]`, category);
-        formData.append(`product_details[${detailIdx}][variant]`, aroma);
-        formData.append(`product_details[${detailIdx}][opsi]`, option || "");
-        formData.append(`product_details[${detailIdx}][stock]`, variant.stocks?.[j] || "0");
-        formData.append(`product_details[${detailIdx}][price]`, variant.prices?.[j] || "0");
-        formData.append(`product_details[${detailIdx}][product_code]`, variant.codes?.[j] || "");
-        formData.append(`product_details[${detailIdx}][unit_id]`, variantUnits[i]?.[j] || selectedUnit);
+      formData.append("product_details[0][category_id]", category);
+      formData.append("product_details[0][stock]", String(stock));
+      formData.append("product_details[0][price]", String(price));
+      formData.append("product_details[0][product_code]", productCode || "");
+      formData.append("product_details[0][unit_id]", selectedUnit);
+      formData.append("product_details[0][variant]", productName);
+      formData.append("product_details[0][opsi]", "");
 
-        if (density) {
-          formData.append(`product_details[${detailIdx}][density]`, density);
-        }
+      if (density) {
+        formData.append("product_details[0][density]", density);
+      }
 
-        const imageToUse = aromaImageMap[aroma];
-        if (imageToUse instanceof File) {
-          formData.append(`product_details[${detailIdx}][product_image]`, imageToUse);
-        }
-
-        detailIdx++;
-      });
-    });
-  }
-
-  try {
-    const response = await apiClient.post("/products", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-
-    navigate("/products");
-    Toaster("success", "Produk berhasil dibuat");
-  } catch (error) {
-    console.error("Error creating product:", error);
-
-    if (error?.response?.data?.data) {
-      setErrors(error.response.data.data);
-      Toaster("error", error.response.data.message || "Validasi gagal. Cek inputan Anda.");
+      if (images.length > 0 && typeof images[0] !== "string") {
+        formData.append("product_details[0][product_image]", images[0]);
+      }
     } else {
-      Toaster("error", "Terjadi kesalahan saat menyimpan produk.");
+      let hasVariantError = false;
+      variantMatrix.forEach((variant, i) => {
+        const options = variant.volumes?.filter(Boolean) || [null];
+
+        options.forEach((option, j) => {
+          const price = Number(variant.prices?.[j]) || 0;
+          const stock = Number(variant.stocks?.[j]) || 0;
+
+          if (price < 0) {
+            hasVariantError = true;
+            setErrors({ message: [`Harga untuk varian ${variant.aroma} ${option || ""} tidak boleh kurang dari 0`] });
+          }
+
+          if (stock < 0) {
+            hasVariantError = true;
+            setErrors({ message: [`Stok untuk varian ${variant.aroma} ${option || ""} tidak boleh kurang dari 0`] });
+          }
+        });
+      });
+
+      if (hasVariantError) {
+        Toaster("error", "Validasi varian gagal");
+        setLoading(false);
+        return;
+      }
+
+      const aromaImageMap = {};
+      variantMatrix.forEach((variant, i) => {
+        const aroma = variant.aroma;
+        const image = variantImages[i]?.[0];
+        if (aroma && image && !aromaImageMap[aroma]) {
+          aromaImageMap[aroma] = image;
+        }
+      });
+
+      let detailIdx = 0;
+      variantMatrix.forEach((variant, i) => {
+        const aroma = variant.aroma || `Varian ${i + 1}`;
+        const options = variant.volumes?.filter(Boolean) || [];
+
+        if (!variant.volumes || options.length === 0) {
+          formData.append(`product_details[${detailIdx}][category_id]`, category);
+          formData.append(`product_details[${detailIdx}][variant]`, aroma);
+          formData.append(`product_details[${detailIdx}][opsi]`, "");
+          formData.append(`product_details[${detailIdx}][stock]`, variant.stocks?.[0] || "0");
+          formData.append(`product_details[${detailIdx}][price]`, variant.prices?.[0] || "0");
+          formData.append(`product_details[${detailIdx}][product_code]`, variant.codes?.[0] || "");
+          formData.append(`product_details[${detailIdx}][unit_id]`, variantUnits[i]?.[0] || selectedUnit);
+
+          if (density) {
+            formData.append(`product_details[${detailIdx}][density]`, density);
+          }
+
+          const imageToUse = aromaImageMap[aroma];
+          if (imageToUse instanceof File) {
+            formData.append(`product_details[${detailIdx}][product_image]`, imageToUse);
+          }
+
+          detailIdx++;
+        } else {
+          options.forEach((option, j) => {
+            formData.append(`product_details[${detailIdx}][category_id]`, category);
+            formData.append(`product_details[${detailIdx}][variant]`, aroma);
+            formData.append(`product_details[${detailIdx}][opsi]`, option || "");
+            formData.append(`product_details[${detailIdx}][stock]`, variant.stocks?.[j] || "0");
+            formData.append(`product_details[${detailIdx}][price]`, variant.prices?.[j] || "0");
+            formData.append(`product_details[${detailIdx}][product_code]`, variant.codes?.[j] || "");
+            formData.append(`product_details[${detailIdx}][unit_id]`, variantUnits[i]?.[j] || selectedUnit);
+
+            if (density) {
+              formData.append(`product_details[${detailIdx}][density]`, density);
+            }
+
+            const imageToUse = aromaImageMap[aroma];
+            if (imageToUse instanceof File) {
+              formData.append(`product_details[${detailIdx}][product_image]`, imageToUse);
+            }
+
+            detailIdx++;
+          });
+        }
+      });
     }
-  }
-};
+
+    try {
+      const response = await apiClient.post("/products", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      navigate("/products");
+      Toaster("success", "Produk berhasil dibuat");
+    } catch (error) {
+      if (error?.response?.data?.data) {
+        setErrors(error.response.data.data);
+        Toaster("error", error.response.data.message || "Validasi gagal. Cek inputan Anda.");
+      } else {
+        Toaster("error", "Terjadi kesalahan saat menyimpan produk.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const labelClass = "block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2 mt-5";
 
@@ -448,9 +495,10 @@ const handleSubmit = async (e) => {
                   label="Atur Harga Produk"
                   labelClass={labelClass}
                   value={price}
-                  onChange={(e) => setPrice(e.target.value === "" ? "" : +e.target.value)}
+                  onChange={(e) => setPrice(Math.max(0, e.target.value === "" ? "" : +e.target.value))}
                   placeholder="500.000"
                   prefix="Rp"
+                  min={0}
                 />
                 <div>
                   <label className={labelClass}>
@@ -463,7 +511,7 @@ const handleSubmit = async (e) => {
                       placeholder="Masukan Quantity"
                       className="w-full pl-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       value={stock}
-                      onChange={(e) => setStock(e.target.value)}
+                      onChange={(e) => setStock(Math.max(0, e.target.value))}
                     />
                   </div>
                 </div>
@@ -507,10 +555,12 @@ const handleSubmit = async (e) => {
                 <div className="relative w-full">
                   <input
                     type="number"
-                    value={selectedUnitCode === "G" ? 1 : conversionGram}
+                    value={selectedUnitCode === "G" ? 1 : density}
                     readOnly={selectedUnitCode === "G"}
-                    onChange={(e) => setConversionGram(e.target.value)}
+                    onChange={handleConversionGram}
                     placeholder="1"
+                    min={0}
+                    max={100}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none"
                   />
                   <div className="absolute inset-y-0 right-0 w-16 bg-gray-100 border-l border-gray-300 rounded-r-lg px-2 flex items-center justify-center">
@@ -523,10 +573,12 @@ const handleSubmit = async (e) => {
                 <div className="relative w-full">
                   <input
                     type="number"
-                    value={selectedUnitCode === "ML" ? 1 : conversionMl}
+                    value={selectedUnitCode === "ML" ? 1 : density}
                     readOnly={selectedUnitCode === "ML"}
-                    onChange={(e) => setConversionMl(e.target.value)}
+                    onChange={handleConversionMl}
                     placeholder="10"
+                    min={0}
+                    max={100}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none"
                   />
                   <div className="absolute inset-y-0 right-0 w-16 bg-gray-100 border-l border-gray-300 rounded-r-lg px-2 flex items-center justify-center">
@@ -609,14 +661,16 @@ const handleSubmit = async (e) => {
                     placeholder="Harga"
                     className="w-1/3 px-3 py-2 focus:outline-none"
                     value={globalPrice}
-                    onChange={(e) => setGlobalPrice(e.target.value)}
+                    min={0}
+                    onChange={(e) => setGlobalPrice(Math.max(0, e.target.value))}
                   />
                   <input
                     type="number"
                     placeholder="Stok"
                     className="w-1/3 px-3 py-2 focus:outline-none"
                     value={globalStock}
-                    onChange={(e) => setGlobalStock(e.target.value)}
+                    min={0}
+                    onChange={(e) => setGlobalStock(Math.max(0, e.target.value))}
                   />
                   <input
                     type="text"
@@ -653,7 +707,7 @@ const handleSubmit = async (e) => {
                   ).map((option, j) => (
                     <div key={`${i}-${j}`} className="grid grid-cols-5 items-start bg-white border-b border-gray-100">
                       {j === 0 ? (
-                        <div className="p-3" rowSpan={variant.volumes.length}>
+                        <div className="p-3" rowSpan={variant.volumes?.length || 1}>
                           <p className="font-medium mb-2">{variant.aroma}</p>
                           <InputOneImage
                             images={variantImages[i]?.[0] ? [variantImages[i][0]] : []}
@@ -672,10 +726,11 @@ const handleSubmit = async (e) => {
                             className="w-full pl-4 py-2 text-gray-800 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Harga"
                             value={variant.prices[j] || ""}
+                            min={0}
                             onChange={(e) => {
                               const updated = [...variantMatrix];
                               if (!updated[i].prices) updated[i].prices = [];
-                              updated[i].prices[j] = e.target.value;
+                              updated[i].prices[j] = Math.max(0, e.target.value);
                               setVariantMatrix(updated);
                             }}
                           />
@@ -691,7 +746,7 @@ const handleSubmit = async (e) => {
                           onChange={(e) => {
                             const updated = [...variantMatrix];
                             if (!updated[i].stocks) updated[i].stocks = [];
-                            updated[i].stocks[j] = e.target.value;
+                            updated[i].stocks[j] = Math.max(0, e.target.value);
                             setVariantMatrix(updated);
                           }}
                         />
@@ -718,8 +773,20 @@ const handleSubmit = async (e) => {
           </div>
 
           <div className="flex justify-end gap-4">
-            <button type="button" onClick={() => navigate("/products")} className="border border-gray-300 rounded-lg px-4 py-2 cursor-pointer">Kembali</button>
-            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer">Tambah</button>
+            <button type="button" onClick={() => navigate("/products")} className="border border-gray-300 rounded-lg px-4 py-2 cursor-pointer" disabled={loading}>Kembali</button>
+            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer flex items-center justify-center" disabled={loading}>
+              {loading ? (
+                <>
+                  <svg className="animate-spin mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                  </svg>
+                  Loading...
+                </>
+              ) : (
+                "Tambah"
+              )}
+            </button>
           </div>
         </div>
 
@@ -732,6 +799,7 @@ const handleSubmit = async (e) => {
             category={selectedCategoryName}
             productName={productName}
             variantImages={variantImages}
+            unit={units.find((u) => u.id === selectedUnit)?.code || "Pcs"}
           />
         </div>
       </form>

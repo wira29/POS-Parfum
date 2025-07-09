@@ -10,6 +10,7 @@ import { UserFilterModal } from "@/views/components/filter/UserFilter";
 import { Filter } from "@/views/components/Filter";
 import { LoadingCards } from "@/views/components/Loading";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
+import { IsRole } from "@/core/middlewares/is-role";
 
 type User = {
   [x: string]: ReactNode;
@@ -72,7 +73,7 @@ export default function UserPage() {
         name: item.name,
         email: item.email,
         role: item.roles?.[0] || "-",
-        image: item.image ? `${item.image}` : "/images/profile/user-1.jpg",
+        image: item.image,
         created_at: item.created_at,
         roles: item.roles?.map((r: string) => ({ name: r })) || [],
       }));
@@ -196,14 +197,13 @@ export default function UserPage() {
     }
   }, [showFilter]);
 
-  console.log(users)
   return (
     <div className="p-6 space-y-6">
       <Breadcrumb title="Daftar Pengguna" desc="Kelola daftar akun pengguna pada sistem." />
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
         <div className="flex items-center gap-2 mb-4 w-full sm:w-auto max-w-lg">
-          <SearchInput value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+          <SearchInput value={searchQuery} onChange={(value) => setSearchQuery(value)} />
           <div className="relative">
             {isFilterActive && (
               <span className="absolute -top-1 -left-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white z-10" />
@@ -212,12 +212,14 @@ export default function UserPage() {
           </div>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
-          <button
-            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 px-4 py-2 rounded-lg font-medium cursor-pointer"
-            onClick={() => navigate("/users/create")}
-          >
-            <FiPlus /> Tambah Akun
-          </button>
+          <IsRole role={["admin", "superadmin"]}>
+            <button
+              className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 px-4 py-2 rounded-lg font-medium cursor-pointer"
+              onClick={() => navigate("/users/create")}
+            >
+              <FiPlus /> Tambah Akun
+            </button>
+          </IsRole>
         </div>
       </div>
 
@@ -238,12 +240,14 @@ export default function UserPage() {
                     <img src={ImageHelper(user.image)} alt={user.name} className="w-full h-full object-cover" />
                   </div>
                   <div ref={dropdownOpenId === user.id ? dropdownRef : null}>
-                    <button
-                      className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-100 cursor-pointer"
-                      onClick={() => handleDropdownToggle(user.id)}
-                    >
-                      <FiMoreHorizontal size={22} />
-                    </button>
+                    <IsRole role={["admin", "superadmin"]}>
+                      <button
+                        className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleDropdownToggle(user.id)}
+                      >
+                        <FiMoreHorizontal size={22} />
+                      </button>
+                    </IsRole>
                     {dropdownOpenId === user.id && (
                       <div className="absolute right-2 top-10 w-36 bg-white border rounded shadow-lg z-20">
                         <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm cursor-pointer" onClick={() => { setDropdownOpenId(null); handleDetail(user); }}>

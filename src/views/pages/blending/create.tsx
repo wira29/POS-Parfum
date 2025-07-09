@@ -10,22 +10,21 @@ import { Breadcrumb } from "@/views/components/Breadcrumb";
 
 interface Product {
   id: string;
-  product: string;
-  product_code: string;
-  product_image?: string;
+  name: string;
+  image?: string;
   category: string;
-  unit: string;
-  variants?: Variant[];
-  variant_name?: string;
-  stock: number;
-}
-
-interface Variant {
-  id: string;
-  variant_name: string;
-  stock: number;
-  unit: string;
-  product: { id: string; name: string; code: string };
+  unit_id: string | null;
+  product_code?: string;
+  product_detail?: {
+    id: string;
+    unit_id: string;
+    unit_code: string;
+    variant_name: string;
+    stock: number;
+    product_code?: string;
+    [key: string]: any;
+  }[];
+  [key: string]: any;
 }
 
 interface SelectedVariant {
@@ -34,6 +33,7 @@ interface SelectedVariant {
   variantId: string;
   variantName: string;
   stock: number;
+  unit_id: string;
 }
 
 interface CompositionItem {
@@ -42,6 +42,7 @@ interface CompositionItem {
   quantity: number;
   productDetailId: string;
   maxStock?: number;
+  unit_id: string;
 }
 
 interface BlendingFormData {
@@ -71,9 +72,7 @@ export const BlendingCreate: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [expandedProducts, setExpandedProducts] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedVariants, setSelectedVariants] = useState<SelectedVariant[]>(
-    []
-  );
+  const [selectedVariants, setSelectedVariants] = useState<SelectedVariant[]>([]);
   const [units, setUnits] = useState<{ id: string; name: string }[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [currentFormId, setCurrentFormId] = useState("");
@@ -101,33 +100,29 @@ export const BlendingCreate: React.FC = () => {
       try {
         const res = await API.get("/products/no-paginate");
         const apiProducts = res.data?.data || [];
-        if (!Array.isArray(apiProducts)) {
-          console.error("Data produk tidak valid:", apiProducts);
-          return;
-        }
+        
         const formattedProducts = apiProducts.map((product: any) => ({
           id: product.id,
-          product: product.name,
+          name: product.name,
           category: product.category,
-          product_code: product.product_code || product.code || "N/A",
-          product_image: product.image || product.image_url || null,
-          variants:
-            product.product_detail?.map((detail: any) => ({
-              id: detail.id,
-              category: detail.category,
-              variant_name: detail.variant_name,
-              stock: detail.stock,
-              unit: detail.unit || "",
-              product: {
-                id: product.id,
-                name: product.name,
-                code: detail.product_code || product.code || "N/A",
-              },
-            })) || [],
-          stock: product.details_sum_stock
-            ? parseInt(product.details_sum_stock)
-            : 0,
+          product_code: product.product_code || "N/A",
+          image: product.image,
+          unit_id: product.unit_id,
+          product_detail: product.product_detail?.map((detail: any) => ({
+            id: detail.id,
+            unit_id: detail.unit_id,
+            unit_code: detail.unit_code,
+            variant_name: detail.variant_name,
+            stock: detail.stock,
+            product: {
+              id: product.id,
+              name: product.name,
+              code: detail.product_code || product.product_code || "N/A",
+            },
+          })) || [],
+          stock: product.details_sum_stock ? parseInt(product.details_sum_stock) : 0,
         }));
+        
         setProducts(formattedProducts);
       } catch (err) {
         console.error("Gagal memuat produk:", err);
@@ -160,10 +155,7 @@ export const BlendingCreate: React.FC = () => {
     );
   };
 
-  const updateBlendingForm = (
-    id: string,
-    updates: Partial<BlendingFormData>
-  ) => {
+  const updateBlendingForm = (id: string, updates: Partial<BlendingFormData>) => {
     setBlendingForms((prev) =>
       prev.map((form) => (form.id === id ? { ...form, ...updates } : form))
     );
@@ -176,21 +168,24 @@ export const BlendingCreate: React.FC = () => {
 
   const handleSelectProduct = (product: Product) => {
     if (!currentFormId) return;
-    const variantId = product.variants?.[0]?.id || product.id || "";
-    const productName = product.product || "No Product";
-    const variantName =
-      product.variants?.[0]?.variant_name ||
-      product.variant_name ||
-      product.product ||
-      "No Variant";
-    const combinedName =
-      variantName === "No Variant"
-        ? productName
-        : `Product: ${productName} - Variant: ${variantName}`;
+    
+    const variant = product.product_detail?.[0] || product;
+    const variantId = variant.id || product.id;
+    const productName = product.name || "No Product";
+    const variantName = variant.variant_name || product.name || "No Variant";
+    const combinedName = variantName === "No Variant" 
+      ? productName 
+      : `${productName} - ${variantName}`;
+    
+    const unitId = variant.unit_id || product.unit_id || "";
+    
     updateBlendingForm(currentFormId, {
       productVariantId: variantId,
       variantName: combinedName,
+      unit_id: unitId, 
+      product_name: productName
     });
+    
     setOpenModalVariant(false);
   };
 
@@ -205,7 +200,8 @@ export const BlendingCreate: React.FC = () => {
     productName: string,
     variantId: string,
     variantName: string,
-    stock: number
+    stock: number,
+    unit_id: string
   ) => {
     const exists = selectedVariants.find(
       (v) => v.variantId === variantId && v.productId === productId
@@ -219,7 +215,7 @@ export const BlendingCreate: React.FC = () => {
           ? prev.filter(
               (v) => !(v.variantId === variantId && v.productId === productId)
             )
-          : [...prev, { productId, productName, variantId, variantName, stock }]
+          : [...prev, { productId, productName, variantId, variantName, stock, unit_id }]
       );
     }
   };
@@ -230,10 +226,11 @@ export const BlendingCreate: React.FC = () => {
 
     const newCompositions = selectedVariants.map((v) => ({
       id: `${v.productId}-${v.variantId}`,
-      label: `Product: ${v.productName} - ${v.variantName}`,
+      label: `${v.productName} - ${v.variantName}`,
       quantity: 1,
       productDetailId: v.variantId,
       maxStock: v.stock,
+      unit_id: v.unit_id,
     }));
 
     const filteredCompositions = newCompositions.filter(
@@ -273,11 +270,18 @@ export const BlendingCreate: React.FC = () => {
       (comp) => comp.id === compositionId
     );
     if (!composition) return;
-    const maxStock = composition.maxStock ?? Infinity;
-    const parsedValue =
-      quantity === "" ? 0 : Math.min(parseInt(quantity.toString()), maxStock);
+    
+    const parsedValue = Math.max(
+      0,
+      quantity === "" ? 0 : parseInt(quantity.toString())
+    );
+    
+    const finalValue = composition.maxStock 
+      ? Math.min(parsedValue, composition.maxStock)
+      : parsedValue;
+
     const updatedCompositions = currentForm.compositions.map((comp) =>
-      comp.id === compositionId ? { ...comp, quantity: parsedValue } : comp
+      comp.id === compositionId ? { ...comp, quantity: finalValue } : comp
     );
     updateBlendingForm(formId, { compositions: updatedCompositions });
   };
@@ -322,6 +326,7 @@ export const BlendingCreate: React.FC = () => {
           product_blend_details: form.compositions.map((comp) => ({
             product_detail_id: comp.productDetailId,
             used_stock: comp.quantity,
+            unit_id: comp.unit_id,
           })),
         })),
       };
@@ -357,9 +362,9 @@ export const BlendingCreate: React.FC = () => {
 
   const filteredProducts = products.filter(
     (product) =>
-      product.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.product_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.variants?.some((v) =>
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (product.product_code && product.product_code.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      product.product_detail?.some((v) =>
         v.variant_name?.toLowerCase().includes(searchTerm.toLowerCase())
       )
   );
@@ -429,42 +434,65 @@ export const BlendingCreate: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Quantity Keseluruhan{" "}
-                      <span className="text-red-500">*</span>
+                      Quantity Keseluruhan <span className="text-red-500">*</span>
                     </label>
-                    <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
-                      <input
-                        type="number"
-                        min="1"
-                        value={form.quantity || ""}
-                        onChange={(e) =>
-                          handleInputChange(
-                            form.id,
-                            "quantity",
-                            parseInt(e.target.value) || 0
-                          )
-                        }
-                        className="flex-1 px-3 py-2 text-sm border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Jumlah keseluruhan"
-                        required
-                      />
-                      <select
-                        value={form.unit_id}
-                        onChange={(e) =>
-                          handleInputChange(form.id, "unit_id", e.target.value)
-                        }
-                        className="px-3 py-2 text-sm bg-gray-50 border-l border-gray-300 focus:outline-none"
-                      >
-                        <option value="" disabled>
-                          Pilih Unit
-                        </option>
-                        {units.map((unit) => (
-                          <option key={unit.id} value={unit.id}>
-                            {unit.name}
+                    {form.unit_id ? (
+                      <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden bg-gray-50">
+                        <input
+                          type="number"
+                          min="1"
+                          value={form.quantity || ""}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value);
+                            handleInputChange(
+                              form.id,
+                              "quantity",
+                              isNaN(value) ? 0 : Math.max(1, value)
+                            );
+                          }}
+                          className="flex-1 px-3 py-2 text-sm border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Jumlah keseluruhan"
+                          required
+                        />
+                        <div className="px-3 py-2 text-sm bg-gray-100 border-l border-gray-300">
+                          {units.find(u => u.id === form.unit_id)?.name || "Unit"}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+                        <input
+                          type="number"
+                          min="1"
+                          value={form.quantity || ""}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value);
+                            handleInputChange(
+                              form.id,
+                              "quantity",
+                              isNaN(value) ? 0 : Math.max(1, value)
+                            );
+                          }}
+                          className="flex-1 px-3 py-2 text-sm border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Jumlah keseluruhan"
+                          required
+                        />
+                        <select
+                          value={form.unit_id}
+                          onChange={(e) => handleInputChange(form.id, "unit_id", e.target.value)}
+                          className="px-3 py-2 text-sm bg-gray-50 border-l border-gray-300 focus:outline-none"
+                          disabled={!!form.unit_id}
+                        >
+                          <option value="" disabled>
+                            Pilih Unit
                           </option>
-                        ))}
-                      </select>
-                    </div>
+                          {units.map((unit) => (
+                            <option key={unit.id} value={unit.id}>
+                              {unit.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -514,11 +542,7 @@ export const BlendingCreate: React.FC = () => {
                               handleQuantityChange(
                                 form.id,
                                 item.id,
-                                Math.min(
-                                  parseInt(e.target.value || "0"),
-                                  item.maxStock ?? Infinity
-                                )
-                              )
+                                Math.max(0, parseInt(e.target.value || "0")))
                             }
                             className="w-20 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none"
                             placeholder="Qty"
@@ -654,21 +678,32 @@ export const BlendingCreate: React.FC = () => {
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-3">
                                 <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                                  <svg
-                                    className="w-6 h-6 text-gray-400"
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                  >
-                                    <path
-                                      fillRule="evenodd"
-                                      d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
-                                      clipRule="evenodd"
+                                  {product.image ? (
+                                    <img 
+                                      src={product.image} 
+                                      alt={product.name}
+                                      className="w-full h-full object-cover rounded-lg"
                                     />
-                                  </svg>
+                                  ) : (
+                                    <svg
+                                      className="w-6 h-6 text-gray-400"
+                                      fill="currentColor"
+                                      viewBox="0 0 20 20"
+                                    >
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                  )}
                                 </div>
                                 <div>
                                   <div className="font-medium text-sm text-gray-900">
-                                    {product.product}
+                                    {product.name}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    {product.product_code || "N/A"}
                                   </div>
                                 </div>
                               </div>
@@ -679,12 +714,14 @@ export const BlendingCreate: React.FC = () => {
                             <td className="px-6 py-4 text-sm text-gray-900">
                               {typeof product.stock === "number"
                                 ? product.stock.toLocaleString()
-                                : "N/A"}{" "}
-                              {product.unit || ""}
+                                : "0"}{" "}
+                              {product.unit_id ? 
+                                units.find(u => u.id === product.unit_id)?.name || "" 
+                                : ""}
                             </td>
                           </tr>
                           {expandedProducts.includes(product.id) &&
-                            product.variants
+                            product.product_detail
                               ?.filter(
                                 (variant) =>
                                   variant.id !==
@@ -719,10 +756,11 @@ export const BlendingCreate: React.FC = () => {
                                       !isAlreadyAdded &&
                                       toggleSelectVariant(
                                         product.id,
-                                        product.product,
+                                        product.name,
                                         variant.id,
                                         variant.variant_name,
-                                        variant.stock
+                                        variant.stock,
+                                        variant.unit_id
                                       )
                                     }
                                   >
@@ -759,13 +797,13 @@ export const BlendingCreate: React.FC = () => {
                                       </div>
                                     </td>
                                     <td className="px-6 py-3 text-sm text-gray-900">
-                                      {variant.category || "N/A"}
+                                      {product.category || "N/A"}
                                     </td>
                                     <td className="px-6 py-3 text-sm text-gray-900">
                                       {typeof variant.stock === "number"
                                         ? variant.stock.toLocaleString()
                                         : "N/A"}{" "}
-                                      {variant.unit || ""}
+                                      {variant.unit_code || ""}
                                     </td>
                                   </tr>
                                 );
@@ -788,7 +826,7 @@ export const BlendingCreate: React.FC = () => {
                                   <FiChevronDown className="w-4 h-4 mr-1" />
                                   Buka{" "}
                                   {
-                                    product.variants?.filter(
+                                    product.product_detail?.filter(
                                       (variant) =>
                                         variant.id !==
                                         blendingForms.find(

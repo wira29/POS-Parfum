@@ -182,16 +182,9 @@ export const LoginPage = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="bg-blue-500 hover:bg-blue-700 cursor-pointer disabled:opacity-50 text-white w-full py-2 rounded-md font-medium"
+              className="bg-blue-500 hover:bg-blue-700 disabled:cursor-not-allowed cursor-pointer disabled:opacity-50 text-white w-full py-2 rounded-md font-medium"
             >
-              {isLoading ? (
-                <span
-                  className="spinner-border spinner-border-sm me-2"
-                  role="status"
-                  aria-hidden="true"
-                ></span>
-              ) : null}
-              {isLoading ? "Masuk" : "Masuk"}
+              {isLoading ? "Memuat..." : "Masuk"}
             </button>
           </form>
 

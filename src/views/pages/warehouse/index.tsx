@@ -15,6 +15,7 @@ interface Warehouse {
   telp: string;
   address: string;
   products_count: number;
+  person_responsible:string;
 }
 
 interface PaginationLink {
@@ -59,10 +60,6 @@ export const WarehouseIndex = () => {
 
   const handleEdit = (warehouse: Warehouse) => {
     navigate(`/warehouses/${warehouse.id}/edit`);
-  };
-
-  const handleDelete = (warehouse: Warehouse) => {
-    console.log("Delete", warehouse);
   };
 
   const handleTambah = () => {
@@ -124,7 +121,7 @@ export const WarehouseIndex = () => {
           <div className="flex items-center gap-2 mb-4 w-full sm:w-auto max-w-lg">
             <SearchInput
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(value) => setSearchQuery(value)}
             />
           </div>
           <div className="w-full sm:w-auto">
@@ -160,7 +157,7 @@ export const WarehouseIndex = () => {
                 </div>
                 <div className="p-4">
                   <h3 className="text-[14px] font-semibold text-gray-900 mb-1">
-                    Penanggung Jawab:
+                    Penanggung Jawab: {warehouse.person_responsible ?? "-"}
                   </h3>
                   <p className="text-[13px] text-gray-500 mb-0.5 ">{warehouse.telp}</p>
                   <p className="text-[14px] text-gray-600 font-semibold truncate mt-2.5">Alamat</p>
@@ -172,7 +169,8 @@ export const WarehouseIndex = () => {
                     >
                       Detail
                     </button>
-                    <div className="relative">
+                    
+                    {/* <div className="relative">
                       <button
                         className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-400 hover:bg-gray-300 cursor-pointer"
                         onClick={() => handleDropdownToggle(warehouse.id)}
@@ -202,7 +200,8 @@ export const WarehouseIndex = () => {
                           </button>
                         </div>
                       )}
-                    </div>
+                    </div> */}
+                    
                   </div>
                 </div>
               </div>
