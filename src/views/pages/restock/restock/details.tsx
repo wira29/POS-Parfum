@@ -7,13 +7,14 @@ import {
   ContainerIcon,
   Calendar,
   BoxIcon,
+  StoreIcon,
 } from "lucide-react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { SVGBlock, SVGBlock2 } from "@/views/components/svg/Svg";
 import { LoadingCards } from "@/views/components/Loading";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
-import { IoCloseCircle } from "react-icons/io5";
+import { FaMoneyBill1Wave } from "react-icons/fa6";
 
 interface Variant {
   variant_id: string;
@@ -89,8 +90,6 @@ export const RestockDetail = () => {
   const toggleTable = (productName: string): void => {
     setOpenTable(openTable === productName ? null : productName);
   };
-
-  console.log(restockData);
 
   const renderProductCard = (product: Product, index: number) => (
     <div
@@ -213,7 +212,47 @@ export const RestockDetail = () => {
                     Restock Detail
                   </h1>
                 </div>
-                {restockData.store && restockData.store.length > 0 ? (
+                {(Array.isArray(restockData.store) &&
+                  restockData.store.length === 0) ||
+                !restockData.store ? (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="w-full bg-[#EEF2FF] rounded px-4 pt-5 flex justify-between items-start relative">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2 text-[#4F46E5] font-medium">
+                          <Calendar className="w-5 h-5" />
+                          <span className="text-sm text-slate-600">
+                            Tanggal
+                          </span>
+                        </div>
+                        <span className="text-[18px] font-medium text-[#2563EB] mt-1">
+                          {new Date(restockData.created_at).toLocaleDateString(
+                            "id-ID",
+                            {
+                              day: "2-digit",
+                              month: "long",
+                              year: "numeric",
+                            }
+                          )}
+                        </span>
+                      </div>
+                      <SVGBlock />
+                    </div>
+                    <div className="w-full bg-[#EEF2FF] rounded px-4 pt-5 flex justify-between items-start relative">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2 text-[#4F46E5] font-medium">
+                          <BoxIcon className="w-5 h-5" />
+                          <span className="text-sm text-slate-600">
+                            Produk Direstock
+                          </span>
+                        </div>
+                        <span className="text-[18px] font-medium text-[#2563EB] mt-1">
+                          {restockData.products.length} Produk
+                        </span>
+                      </div>
+                      <SVGBlock2 />
+                    </div>
+                  </div>
+                ) : (
                   <div className="p-3">
                     <div className="grid grid-cols-4 gap-4">
                       <div className="w-full bg-indigo-100 rounded px-4 py-5 flex justify-between items-start relative">
@@ -257,7 +296,7 @@ export const RestockDetail = () => {
                             </span>
                           </div>
                           <span className="text-[18px] font-medium text-orange-500 mt-1">
-                            {restockData?.store[0]?.store_name ?? "Nama Toko"}
+                            {restockData?.store?.store_name ?? "Nama Toko"}
                           </span>
                         </div>
                       </div>
@@ -271,50 +310,12 @@ export const RestockDetail = () => {
                           </div>
                           <span className="text-[18px] font-medium text-green-500 mt-1">
                             Rp.
-                            {restockData?.store[0]?.total_price.toLocaleString(
+                            {restockData?.store?.total_price.toLocaleString(
                               "id-ID"
                             ) ?? "total harga"}
                           </span>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="w-full bg-[#EEF2FF] rounded px-4 pt-5 flex justify-between items-start relative">
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2 text-[#4F46E5] font-medium">
-                          <Calendar className="w-5 h-5" />
-                          <span className="text-sm text-slate-600">
-                            Tanggal
-                          </span>
-                        </div>
-                        <span className="text-[18px] font-medium text-[#2563EB] mt-1">
-                          {new Date(restockData.created_at).toLocaleDateString(
-                            "id-ID",
-                            {
-                              day: "2-digit",
-                              month: "long",
-                              year: "numeric",
-                            }
-                          )}
-                        </span>
-                      </div>
-                      <SVGBlock />
-                    </div>
-                    <div className="w-full bg-[#EEF2FF] rounded px-4 pt-5 flex justify-between items-start relative">
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2 text-[#4F46E5] font-medium">
-                          <BoxIcon className="w-5 h-5" />
-                          <span className="text-sm text-slate-600">
-                            Produk Direstock
-                          </span>
-                        </div>
-                        <span className="text-[18px] font-medium text-[#2563EB] mt-1">
-                          {restockData.products.length} Produk
-                        </span>
-                      </div>
-                      <SVGBlock2 />
                     </div>
                   </div>
                 )}
