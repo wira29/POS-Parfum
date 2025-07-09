@@ -1,14 +1,14 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { FiPlus, FiMoreVertical } from "react-icons/fi";
-import { Breadcrumb } from "@/views/components/Breadcrumb";
-import { SearchInput } from "@/views/components/SearchInput";
-import { Filter } from "@/views/components/Filter";
 import { useApiClient } from "@/core/helpers/ApiClient";
-import { Eye, LogOut, Pencil, Trash, X } from "lucide-react";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
-import Swal from "sweetalert2";
+import { Breadcrumb } from "@/views/components/Breadcrumb";
+import { Filter } from "@/views/components/Filter";
 import { LoadingCards } from "@/views/components/Loading";
+import { SearchInput } from "@/views/components/SearchInput";
+import { Eye, Pencil, Trash, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { FiMoreVertical, FiPlus } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const BundlingFilterModal = ({
   open,
@@ -122,6 +122,7 @@ type BundlingPackage = {
   name: string;
   kode_Bundling: string;
   harga: number;
+  image: string | null;
   stock: number;
   status: string;
   category: string;
@@ -364,15 +365,12 @@ console.log(packages);
                 </div>
 
                 <div className="flex justify-center mb-4 -space-x-3">
-                  {(pkg.bundling_material || []).slice(0, 3).map((mat, idx) => (
-                    <img
-                      key={idx}
-                      src={ImageHelper(mat.image)}
-                      alt={pkg.name + " " + (idx + 1)}
+                  <img
+                      src={ImageHelper(pkg.image)}
+                      alt={pkg.name}
                       className="w-16 h-16 rounded-full border-2 border-white object-cover bg-gray-200"
                       onClick={() => handleDetail(pkg)}
                     />
-                  ))}
                 </div>
 
                 <div className="text-center">
