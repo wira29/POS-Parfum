@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import Swal from "sweetalert2";
 import { toast } from "sonner";
+import { getStorageOrDefaultFile, getStorageUrl } from "@/core/helpers/ServerUrl";
 
 const PRODUCTS_PER_PAGE = 10;
 
@@ -305,7 +306,8 @@ export const RequestStockCreate = () => {
                         title={isSelected ? "Already selected" : ""}
                       >
                         <div className="relative">
-                          <img src={product.image || "/images/big/img8.jpg"} alt={product.name} className="w-full h-32 object-contain" />
+                          <img src={getStorageOrDefaultFile(product.image)} alt={product.name} className="w-full h-32 object-contain" />
+
                           <span className="absolute top-1 left-1 bg-gray-800 text-white text-xs px-2 py-0.5 rounded">
                             {product.product_detail?.length || 0} Variants
                           </span>
