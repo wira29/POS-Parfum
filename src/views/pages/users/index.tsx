@@ -196,6 +196,8 @@ export default function UserPage() {
     }
   }, [showFilter]);
 
+  console.log("Filtered Users:", filteredUsers);
+
   return (
     <div className="p-6 space-y-6">
       <Breadcrumb title="Daftar Pengguna" desc="Kelola daftar akun pengguna pada sistem." />

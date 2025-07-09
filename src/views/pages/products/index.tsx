@@ -278,12 +278,12 @@ export const ProductIndex = () => {
                         <div className="flex gap-2 items-center">
                           <ViewIcon to={product.is_bundling ? `/bundlings/${product.id}/detail` : `/products/${product.id}`} />
                           <IsRole role={["warehouse", "outlet"]}>
-                            <div className="flex gap-2 items-center">
-                              {!product.is_bundling && (
-                                <EditIcon to={`/products/${product.id}/edit`} />
-                              )}
+                            {!product.is_bundling && (
+                              <EditIcon to={`/products/${product.id}/edit`} />
+                            )}
+                            {!product.is_bundling && (
                               <DeleteIcon onClick={confirmDelete(product.id)} />
-                            </div>
+                            )}
                           </IsRole>
                         </div>
                       </td>
