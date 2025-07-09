@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import Swal from "sweetalert2";
 import { toast } from "sonner";
-import { getStorageOrDefaultFile, getStorageUrl } from "@/core/helpers/ServerUrl";
+import { getStorageOrDefaultFile } from "@/core/helpers/ServerUrl";
 
 const PRODUCTS_PER_PAGE = 10;
 
