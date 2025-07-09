@@ -13,10 +13,12 @@ interface UserFilterModalProps {
   endDate: string;
   setEndDate: (value: string) => void;
   onApply: () => void;
+  onSuccess: () => void;
 }
 
 export const UserFilterModal = ({
   open,
+  onSuccess,
   onClose,
   selectedRole,
   setSelectedRole,
@@ -36,6 +38,8 @@ export const UserFilterModal = ({
   };
 
   const handleReset = () => {
+    onSuccess();
+    onClose();
     setSelectedRole("");
     setSelectedStatus("");
     setStartDate("");
@@ -67,7 +71,7 @@ export const UserFilterModal = ({
               <select
                 value={selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value)}
-                className="w-full border rounded-lg px-3 py-2 text-sm text-gray-700"
+                className="w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent border-gray-300"
               >
                 <option value="">Ketik atau pilih...</option>
                 {availableRoles.map((role, i) => (
@@ -85,7 +89,7 @@ export const UserFilterModal = ({
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="w-full border rounded-lg px-3 py-2 text-sm text-gray-700"
+                className="w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent border-gray-300"
               >
                 <option value="">Pilih Status</option>
                 <option value="Online">Online</option>
@@ -101,7 +105,7 @@ export const UserFilterModal = ({
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full border rounded-lg px-3 py-2 text-sm text-gray-700"
+                className="w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent border-gray-300"
               />
             </div>
 
@@ -113,7 +117,7 @@ export const UserFilterModal = ({
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full border rounded-lg px-3 py-2 text-sm text-gray-700"
+                className="w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent border-gray-300"
               />
             </div>
           </div>
@@ -122,13 +126,13 @@ export const UserFilterModal = ({
         <div className="flex justify-end items-center gap-2 p-5 border-gray-400 border-t">
           <button
             onClick={handleReset}
-            className="px-4 py-2 border rounded-lg text-sm text-gray-700 hover:bg-gray-100"
+            className="px-4 py-2 border border-gray-200 cursor-pointer rounded-lg text-sm text-gray-700 hover:bg-gray-100"
           >
             Reset
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-2 border rounded-lg text-sm text-gray-700 bg-gray-100"
+            className="px-4 py-2 border border-gray-200 cursor-pointer rounded-lg text-sm text-gray-700 hover:bg-gray-100"
           >
             Batal
           </button>
@@ -137,7 +141,7 @@ export const UserFilterModal = ({
               onApply();
               onClose();
             }}
-            className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700"
+            className="px-4 py-2 bg-blue-600 border cursor-pointer border-gray-200 text-white text-sm rounded-lg hover:bg-blue-700"
           >
             Terapkan
           </button>

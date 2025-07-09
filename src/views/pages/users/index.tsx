@@ -189,6 +189,17 @@ export default function UserPage() {
     setShowFilter(false);
   };
 
+  const handleReset = () => {
+    setSelectedRole("");
+    setStartDate("");
+    setEndDate("");
+    setDraftRole("");
+    setDraftStartDate("");
+    setDraftEndDate("");
+    setShowFilter(false);
+    fetchUsers(1);
+  };
+
   useEffect(() => {
     if (showFilter) {
       setDraftRole(selectedRole);
@@ -326,6 +337,7 @@ export default function UserPage() {
         setStartDate={setDraftStartDate}
         endDate={draftEndDate}
         setEndDate={setDraftEndDate}
+        onSuccess={handleReset}
         onApply={handleApplyFilter}
       />
     </div>

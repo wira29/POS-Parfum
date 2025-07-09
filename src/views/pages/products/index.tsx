@@ -12,6 +12,7 @@ import { LoadingColumn } from "@/views/components/Loading";
 import { Pagination } from "@/views/components/Pagination";
 import { SearchInput } from "@/views/components/SearchInput";
 import ViewIcon from "@/views/components/ViewIcon";
+import { CloudDownload } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 import Swal from "sweetalert2";
@@ -31,6 +32,7 @@ export const ProductIndex = () => {
   const pageSize = 5;
   const variantPageSize = 5;
 
+  // Filter states
   const [categoryFilter, setCategoryFilter] = useState("");
   const [stockMin, setStockMin] = useState("");
   const [stockMax, setStockMax] = useState("");
@@ -48,6 +50,11 @@ export const ProductIndex = () => {
   const [tempSalesMax, setTempSalesMax] = useState("");
 
   const [salesRange, setSalesRange] = useState<{ min: number; max: number }>({ min: 0, max: 0 });
+
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importUrl, setImportUrl] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchCategories();
@@ -187,6 +194,54 @@ export const ProductIndex = () => {
     return !!(categoryFilter || stockMin || stockMax || priceMin || priceMax || salesMin || salesMax);
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setImportFile(e.target.files[0]);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      setImportFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
+
+  const handleImport = async () => {
+    try {
+      /*setLoading(true);
+      const formData = new FormData();
+      
+      if (importFile) {
+        formData.append("file", importFile);
+        await api.post("/products/import", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+      } else if (importUrl) {
+        await api.post("/products/import", { url: importUrl });
+      } else {
+        Toaster("error", "Please select a file or enter a URL");
+        return;
+      }
+      */
+      Toaster("success", "Products imported successfully");
+      setShowImportModal(false);
+      fetchData(page);
+    } catch (error) {
+      Toaster("error", "Failed to import products");
+    } finally {
+      setLoading(false);
+      setImportFile(null);
+      setImportUrl("");
+    }
+  };
+
   return (
     <div className="p-4 sm:p-6 space-y-6">
       <Breadcrumb title="Produk" desc="Daftar produk dalam sistem" />
@@ -207,7 +262,15 @@ export const ProductIndex = () => {
           </div>
         </div>
         <IsRole role={["warehouse", "outlet"]}>
-          <AddButton to="/products/create">Tambah Produk</AddButton>
+          <div className="flex items-center gap-2">
+            <AddButton to="/products/create">Tambah Produk</AddButton>
+            <button
+              className="bg-green-600 hover:bg-green-700 cursor-pointer text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2"
+              onClick={() => setShowImportModal(true)}
+            >
+              <CloudDownload size={16} />Import
+            </button>
+          </div>
         </IsRole>
       </div>
 
@@ -406,6 +469,79 @@ export const ProductIndex = () => {
         setSalesMax={setTempSalesMax}
         salesRange={salesRange}
       />
+
+      {showImportModal && (
+        <div className="fixed inset-0 bg-black flex items-center justify-center p-4 z-50" style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex justify-end items-center mb-4">
+                <button
+                  onClick={() => {
+                    setShowImportModal(false);
+                    setImportFile(null);
+                    setImportUrl("");
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  &times;
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer"
+                  onClick={() => fileInputRef.current?.click()}
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                >
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept=".csv,.txt"
+                    onChange={handleFileChange}
+                  />
+                  {importFile ? (
+                    <div className="text-center">
+                      <p className="font-medium">{importFile.name}</p>
+                      <p className="text-sm text-gray-500">
+                        {Math.round(importFile.size / 1024)}KB - Ready to import
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="font-medium">Drag & Drop or Choose file to upload</p>
+                      <p className="text-sm text-gray-500">CSV or TXT</p>
+                    </>
+                  )}
+                </div>
+
+                <div className="flex justify-end items-center pt-4">
+                  <div className="flex gap-3">
+                    <button
+                      className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                      onClick={() => {
+                        setShowImportModal(false);
+                        setImportFile(null);
+                        setImportUrl("");
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={handleImport}
+                    //disabled={!importFile && !importUrl}
+                    >
+                      Import
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

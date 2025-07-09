@@ -131,7 +131,7 @@ export const RetailIndex = () => {
             />
           </div>
           <div className="w-full sm:w-auto">
-            <IsRole role={["admin", "superadmin"]}>
+            <IsRole role={["warehouse"]}>
               <button
                 className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 px-4 py-2 rounded-lg font-medium cursor-pointer"
                 onClick={handleTambah}

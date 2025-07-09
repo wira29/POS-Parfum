@@ -83,23 +83,18 @@ export default function BundlingDetailPage() {
   }
 
   const allVariants = packageData.bundling_material || [];
-  const selectedVariant = allVariants[selectedOptionIndex] || null;
-  const mainImage = "/images/placeholder.jpg";
 
   return (
     <div className="p-6">
       <Breadcrumb title="Detail Bundling Produk" desc="Data Bundling Produk" />
 
       <div className="bg-white p-6 rounded-xl shadow-md mt-4">
-        <div className="flex flex-col md:flex-row gap-12">
-          <div className="w-full md:w-[420px]">
+        <div className="flex flex-col lg:flex-row gap-12">
+          <div className="w-full lg:w-[420px]">
             <img
-              src={ImageHelper(mainImage)}
+              src={ImageHelper(packageData.image)}
               alt={packageData.name}
               className="w-full h-[480px] object-cover rounded-xl shadow"
-              onError={(e) => {
-                e.currentTarget.src = "/images/placeholder.jpg";
-              }}
             />
           </div>
 
@@ -121,12 +116,9 @@ export default function BundlingDetailPage() {
                   className="w-full flex items-start gap-3 border border-gray-200 bg-gray-50 p-3 rounded-2xl shadow-sm hover:bg-gray-100 transition"
                 >
                   <img
-                    src={"/images/placeholder.jpg"}
+                    src={ImageHelper(packageData.image)}
                     className="w-10 h-10 rounded-full object-cover"
-                    alt="variant"
-                    onError={(e) => {
-                      e.currentTarget.src = "/images/placeholder.jpg";
-                    }}
+                    alt={variant.product_name}
                   />
                   <div className="flex flex-col items-start">
                     <span className="text-sm text-gray-800 font-semibold">
@@ -171,7 +163,7 @@ export default function BundlingDetailPage() {
 
         <div className="w-full flex justify-end">
           <button
-            className="mt-8 bg-gray-400 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition"
+            className="mt-8 bg-gray-400 cursor-pointer text-white px-4 py-2 rounded-md hover:bg-gray-600 transition"
             onClick={() => navigate(-1)}
           >
             <span className="flex items-center gap-2">

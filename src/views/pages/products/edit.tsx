@@ -236,24 +236,24 @@ export const ProductEdit = () => {
                 setDescription(data.description || "");
                 setImages(data.image ? [data.image] : []);
 
-                const details = data.product_detail || data.product_details || [];
-
-                if (details[0]?.category_id) {
-                    const categoryId = String(details[0].category_id);
-                    setCategory(categoryId);
-                    const found = categories.find((c) => String(c.value) === categoryId);
-                    const catLabel = found?.label || "";
-                    setSelectedCategoryName(catLabel);
-                    setIsParfumCategory(catLabel.toLowerCase().includes("parfum"));
+                if (data.category) {
+                    const foundCategory = categories.find(cat => cat.label === data.category);
+                    if (foundCategory) {
+                        setCategory(foundCategory.value);
+                        setSelectedCategoryName(data.category);
+                        setIsParfumCategory(data.category.toLowerCase().includes("parfum"));
+                    }
                 }
 
-                if (details[0]?.unit_id) {
-                    setSelectedUnit(String(details[0].unit_id));
+                if (data.unit_id) {
+                    setSelectedUnit(data.unit_id);
                 }
 
                 if (data.density) {
                     setDensity(data.density);
                 }
+
+                const details = data.product_detail || [];
 
                 if (!details.length) {
                     setVariations([]);
@@ -264,8 +264,6 @@ export const ProductEdit = () => {
                 }
 
                 const isSingleVariant = details.length === 1 &&
-                    (!details[0].opsi || details[0].opsi === "") &&
-                    (!details[0].variant || details[0].variant === "") &&
                     (!details[0].variant_name || !details[0].variant_name.includes("-"));
 
                 if (isSingleVariant) {
@@ -273,7 +271,7 @@ export const ProductEdit = () => {
                     setProductCode(d.product_code || "");
                     setPrice(Number(d.price));
                     setStock(Number(d.stock || 0));
-                    setSelectedUnit(String(d.unit_id || ""));
+                    setSelectedUnit(d.unit_id || "");
 
                     setVariations([]);
                     setVariantMatrix([]);
@@ -282,12 +280,19 @@ export const ProductEdit = () => {
                     return;
                 }
 
-                const groups = {};
-                details.forEach((d) => {
-                    const mainName = d.variant || (d.variant_name ? d.variant_name.split("-")[0] : "");
-                    const optionName = d.opsi || (d.variant_name && d.variant_name.split("-")[1]) || "";
-                    if (!groups[mainName]) groups[mainName] = [];
-                    groups[mainName].push({ ...d, optionName });
+                // Handle multiple variants
+                const variantGroups = {};
+                details.forEach((detail) => {
+                    // Split variant_name into main name and option
+                    const [mainName, option] = detail.variant_name ? detail.variant_name.split("-") : ["", ""];
+                    
+                    if (!variantGroups[mainName]) {
+                        variantGroups[mainName] = [];
+                    }
+                    variantGroups[mainName].push({
+                        ...detail,
+                        optionName: option
+                    });
                 });
 
                 const newVariations = [];
@@ -295,7 +300,7 @@ export const ProductEdit = () => {
                 const newVariantImages = [];
                 const newVariantUnits = [];
 
-                Object.entries(groups).forEach(([mainName, group]) => {
+                Object.entries(variantGroups).forEach(([mainName, group]) => {
                     const options = group.map((g) => g.optionName || "");
                     newVariations.push({
                         name: mainName,
@@ -509,7 +514,6 @@ export const ProductEdit = () => {
                     });
                 }
             });
-
         }
 
         try {
