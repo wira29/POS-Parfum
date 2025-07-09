@@ -302,6 +302,9 @@ export default function BundlingEdit() {
   };
 
   const toggleSelectVariant = (productId, productName, variantId, variantName) => {
+    const product = products.find((p) => p.id === productId);
+    const variant = product?.variants.find((v) => v.id === variantId);
+
     const exists = materials.some((mat) => mat.product_detail_id === variantId);
     if (exists) {
       setMaterials((prev) => prev.filter((mat) => mat.product_detail_id !== variantId));
@@ -314,7 +317,12 @@ export default function BundlingEdit() {
     } else {
       setMaterials((prev) => [
         ...prev,
-        { product_detail_id: variantId },
+        {
+          product_detail_id: variantId,
+          quantity: null,
+          unit_id: variant?.unit_id,
+          unit_code: variant?.unit_code
+        },
       ]);
       setComposition((prev) => [
         ...prev,
@@ -717,11 +725,11 @@ export default function BundlingEdit() {
           setShowQtyModal(false);
           setActiveQtyId(null);
         }}
-        onSubmit={(qty, unitId) => {
+        onSubmit={(qty) => {
           setMaterials((prev) =>
             prev.map((mat) =>
               mat.product_detail_id === activeQtyId
-                ? { ...mat, quantity: qty, unit_id: unitId }
+                ? { ...mat, quantity: qty }
                 : mat
             )
           );
@@ -729,19 +737,25 @@ export default function BundlingEdit() {
         initialValue={
           materials.find((mat) => mat.product_detail_id === activeQtyId)?.quantity || ""
         }
-        units={units}
-        selectedUnit={
-          materials.find((mat) => mat.product_detail_id === activeQtyId)?.unit_id || ""
+        unit={
+          (() => {
+            const material = materials.find(mat => mat.product_detail_id === activeQtyId);
+            if (!material) return undefined;
+
+            const product = products.find(p =>
+              p.variants.some(v => v.id === material.product_detail_id)
+            );
+            if (!product) return undefined;
+
+            const variant = product.variants.find(v => v.id === material.product_detail_id);
+            if (!variant) return undefined;
+
+            return {
+              id: variant.unit_id,
+              code: variant.unit_code
+            };
+          })()
         }
-        setSelectedUnit={(unitId) => {
-          setMaterials((prev) =>
-            prev.map((mat) =>
-              mat.product_detail_id === activeQtyId
-                ? { ...mat, unit_id: unitId }
-                : mat
-            )
-          );
-        }}
       />
     </div>
   );

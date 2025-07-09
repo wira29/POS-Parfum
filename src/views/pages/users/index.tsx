@@ -223,7 +223,7 @@ export default function UserPage() {
           </div>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
-          <IsRole role={["admin", "superadmin"]}>
+          <IsRole role={["warehouse", "outlet", "owner"]}>
             <button
               className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 px-4 py-2 rounded-lg font-medium cursor-pointer"
               onClick={() => navigate("/users/create")}
