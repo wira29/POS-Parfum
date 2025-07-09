@@ -64,7 +64,7 @@ const getMenuItems = (userRoles: string[]) => [
       { label: "Laporan Laba Rugi", icon: <FaMoneyBillTransfer />, path: "/laba-rugi", roles: ["owner", "outlet", "warehouse"] },
       { label: "Shift", icon: <Repeat size={16} />, path: "/shift", roles: ["outlet"] },
       { label: "Tambah Pengguna", icon: <FiUsers />, path: "/users", roles: ["owner", "warehouse", "outlet"] },
-      { label: "Role", icon: <FaUserTag />, path: "/roles", roles: ["warehouse", "retail"] },
+      { label: "Role", icon: <FaUserTag />, path: "/roles", roles: ["admin"] },
       { label: "Pengeluaran", icon: <Wallet2Icon />, path: "/pengeluaran", roles: ["outlet"] },
     ],
   },

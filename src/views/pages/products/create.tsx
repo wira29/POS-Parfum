@@ -35,7 +35,7 @@ export const ProductCreate = () => {
   const [variantUnits, setVariantUnits] = useState([]);
   const [isParfumCategory, setIsParfumCategory] = useState(false);
   const [conversionGram, setConversionGram] = useState("");
-  const [conversionMg, setConversionMg] = useState("");
+  const [conversionMl, setConversionMl] = useState("");
   const [density, setDensity] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -47,7 +47,7 @@ export const ProductCreate = () => {
       try {
         const res = await apiClient.get("/unit/no-paginate");
         setUnits(res.data.data);
-      } catch (error) { }
+      } catch (error) {}
     };
     fetchUnits();
   }, []);
@@ -103,7 +103,7 @@ export const ProductCreate = () => {
           label: cat.name,
         })) || [];
         setCategories(mapped);
-      } catch (error) { }
+      } catch (error) {}
     };
     fetchCategories();
   }, []);
@@ -153,18 +153,38 @@ export const ProductCreate = () => {
     setVariantMatrix(matrix);
   }, [variations]);
 
+  const handleConversionGram = (e) => {
+    let value = e.target.value;
+    if (value === "") {
+      setConversionGram("");
+      return;
+    }
+    value = Math.max(0, Math.min(100, Number(value)));
+    setConversionGram(value);
+  };
+
+  const handleConversionMl = (e) => {
+    let value = e.target.value;
+    if (value === "") {
+      setConversionMl("");
+      return;
+    }
+    value = Math.max(0, Math.min(100, Number(value)));
+    setConversionMl(value);
+  };
+
   useEffect(() => {
     if (isParfumCategory) {
       const gram = parseFloat(selectedUnitCode === "G" ? 1 : conversionGram);
-      const mg = parseFloat(selectedUnitCode === "MG" ? 1 : conversionMg);
+      const ml = parseFloat(selectedUnitCode === "ML" ? 1 : conversionMl);
 
-      if (!isNaN(gram) && !isNaN(mg) && mg !== 0) {
-        setDensity((gram / mg).toFixed(2));
+      if (!isNaN(gram) && !isNaN(ml) && ml !== 0) {
+        setDensity((gram / ml).toFixed(2));
       } else {
         setDensity("");
       }
     }
-  }, [conversionGram, conversionMg, selectedUnitCode, isParfumCategory]);
+  }, [conversionGram, conversionMl, selectedUnitCode, isParfumCategory]);
 
   const setVariantName = (index, name) => {
     setVariations((prev) =>
@@ -219,8 +239,8 @@ export const ProductCreate = () => {
       const codes = [...(variant.codes || Array(optionCount).fill(""))];
 
       for (let idx = 0; idx < optionCount; idx++) {
-        if (globalPrice !== "") prices[idx] = globalPrice;
-        if (globalStock !== "") stocks[idx] = globalStock;
+        if (globalPrice !== "") prices[idx] = Math.max(0, globalPrice);
+        if (globalStock !== "") stocks[idx] = Math.max(0, globalStock);
         if (globalCode !== "") codes[idx] = globalCode;
       }
 
@@ -276,9 +296,16 @@ export const ProductCreate = () => {
     }
 
     if (!hasVariant) {
-      if (!price || isNaN(price)) {
-        setErrors({ message: ["Harga produk wajib diisi"] });
-        Toaster("error", "Harga produk wajib diisi");
+      if (!price || isNaN(price) || price < 0) {
+        setErrors({ message: ["Harga produk wajib diisi dan tidak boleh kurang dari 0"] });
+        Toaster("error", "Harga produk wajib diisi dan tidak boleh kurang dari 0");
+        setLoading(false);
+        return;
+      }
+
+      if (stock < 0) {
+        setErrors({ message: ["Stok produk tidak boleh kurang dari 0"] });
+        Toaster("error", "Stok produk tidak boleh kurang dari 0");
         setLoading(false);
         return;
       }
@@ -307,14 +334,14 @@ export const ProductCreate = () => {
           const price = Number(variant.prices?.[j]) || 0;
           const stock = Number(variant.stocks?.[j]) || 0;
 
-          if (price <= 0) {
+          if (price < 0) {
             hasVariantError = true;
-            setErrors({ message: [`Harga untuk varian ${variant.aroma} ${option || ""} tidak valid`] });
+            setErrors({ message: [`Harga untuk varian ${variant.aroma} ${option || ""} tidak boleh kurang dari 0`] });
           }
 
           if (stock < 0) {
             hasVariantError = true;
-            setErrors({ message: [`Stok untuk varian ${variant.aroma} ${option || ""} tidak valid`] });
+            setErrors({ message: [`Stok untuk varian ${variant.aroma} ${option || ""} tidak boleh kurang dari 0`] });
           }
         });
       });
@@ -468,9 +495,10 @@ export const ProductCreate = () => {
                   label="Atur Harga Produk"
                   labelClass={labelClass}
                   value={price}
-                  onChange={(e) => setPrice(e.target.value === "" ? "" : +e.target.value)}
+                  onChange={(e) => setPrice(Math.max(0, e.target.value === "" ? "" : +e.target.value))}
                   placeholder="500.000"
                   prefix="Rp"
+                  min={0}
                 />
                 <div>
                   <label className={labelClass}>
@@ -483,7 +511,7 @@ export const ProductCreate = () => {
                       placeholder="Masukan Quantity"
                       className="w-full pl-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       value={stock}
-                      onChange={(e) => setStock(e.target.value)}
+                      onChange={(e) => setStock(Math.max(0, e.target.value))}
                     />
                   </div>
                 </div>
@@ -527,10 +555,12 @@ export const ProductCreate = () => {
                 <div className="relative w-full">
                   <input
                     type="number"
-                    value={selectedUnitCode === "G" ? 1 : conversionGram}
+                    value={selectedUnitCode === "G" ? 1 : density}
                     readOnly={selectedUnitCode === "G"}
-                    onChange={(e) => setConversionGram(e.target.value)}
+                    onChange={handleConversionGram}
                     placeholder="1"
+                    min={0}
+                    max={100}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none"
                   />
                   <div className="absolute inset-y-0 right-0 w-16 bg-gray-100 border-l border-gray-300 rounded-r-lg px-2 flex items-center justify-center">
@@ -543,20 +573,22 @@ export const ProductCreate = () => {
                 <div className="relative w-full">
                   <input
                     type="number"
-                    value={selectedUnitCode === "MG" ? 1 : conversionMg}
-                    readOnly={selectedUnitCode === "MG"}
-                    onChange={(e) => setConversionMg(e.target.value)}
+                    value={selectedUnitCode === "ML" ? 1 : density}
+                    readOnly={selectedUnitCode === "ML"}
+                    onChange={handleConversionMl}
                     placeholder="10"
+                    min={0}
+                    max={100}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none"
                   />
                   <div className="absolute inset-y-0 right-0 w-16 bg-gray-100 border-l border-gray-300 rounded-r-lg px-2 flex items-center justify-center">
-                    MG
+                    ML
                   </div>
                 </div>
               </div>
               {density && (
                 <div className="mt-2 text-sm text-gray-600">
-                  Density: {density} g/mg
+                  Density: {density} g/ml
                 </div>
               )}
             </div>
@@ -629,14 +661,16 @@ export const ProductCreate = () => {
                     placeholder="Harga"
                     className="w-1/3 px-3 py-2 focus:outline-none"
                     value={globalPrice}
-                    onChange={(e) => setGlobalPrice(e.target.value)}
+                    min={0}
+                    onChange={(e) => setGlobalPrice(Math.max(0, e.target.value))}
                   />
                   <input
                     type="number"
                     placeholder="Stok"
                     className="w-1/3 px-3 py-2 focus:outline-none"
                     value={globalStock}
-                    onChange={(e) => setGlobalStock(e.target.value)}
+                    min={0}
+                    onChange={(e) => setGlobalStock(Math.max(0, e.target.value))}
                   />
                   <input
                     type="text"
@@ -692,10 +726,11 @@ export const ProductCreate = () => {
                             className="w-full pl-4 py-2 text-gray-800 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Harga"
                             value={variant.prices[j] || ""}
+                            min={0}
                             onChange={(e) => {
                               const updated = [...variantMatrix];
                               if (!updated[i].prices) updated[i].prices = [];
-                              updated[i].prices[j] = e.target.value;
+                              updated[i].prices[j] = Math.max(0, e.target.value);
                               setVariantMatrix(updated);
                             }}
                           />
@@ -711,7 +746,7 @@ export const ProductCreate = () => {
                           onChange={(e) => {
                             const updated = [...variantMatrix];
                             if (!updated[i].stocks) updated[i].stocks = [];
-                            updated[i].stocks[j] = e.target.value;
+                            updated[i].stocks[j] = Math.max(0, e.target.value);
                             setVariantMatrix(updated);
                           }}
                         />

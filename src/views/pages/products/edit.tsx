@@ -38,7 +38,7 @@ export const ProductEdit = () => {
     const [selectedCategoryName, setSelectedCategoryName] = useState("");
     const [isParfumCategory, setIsParfumCategory] = useState(false);
     const [conversionGram, setConversionGram] = useState("");
-    const [conversionMg, setConversionMg] = useState("");
+    const [conversionMl, setConversionMl] = useState("");
     const [density, setDensity] = useState("");
 
     const selectedUnitData = units.find((u) => u.id === selectedUnit);
@@ -140,8 +140,8 @@ export const ProductEdit = () => {
             const codes = [...(variant.codes || Array(optionCount).fill(""))];
 
             for (let idx = 0; idx < optionCount; idx++) {
-                if (globalPrice !== "") prices[idx] = globalPrice;
-                if (globalStock !== "") stocks[idx] = globalStock;
+                if (globalPrice !== "") prices[idx] = Math.max(0, globalPrice);
+                if (globalStock !== "") stocks[idx] = Math.max(0, globalStock);
                 if (globalCode !== "") codes[idx] = globalCode;
             }
 
@@ -163,9 +163,7 @@ export const ProductEdit = () => {
             try {
                 const res = await apiClient.get("/unit/no-paginate");
                 setUnits(res.data.data);
-            } catch (error) {
-                console.error("Failed to fetch units:", error);
-            }
+            } catch (error) {}
         };
         fetchUnits();
     }, []);
@@ -179,9 +177,7 @@ export const ProductEdit = () => {
                     label: cat.name,
                 })) || [];
                 setCategories(mapped);
-            } catch (error) {
-                console.error("Failed to fetch categories:", error);
-            }
+            } catch (error) {}
         };
         fetchCategories();
     }, []);
@@ -189,24 +185,22 @@ export const ProductEdit = () => {
     useEffect(() => {
         if (isParfumCategory) {
             const gram = parseFloat(selectedUnitCode === "G" ? 1 : conversionGram);
-            const mg = parseFloat(selectedUnitCode === "MG" ? 1 : conversionMg);
+            const ml = parseFloat(selectedUnitCode === "ML" ? 1 : conversionMl);
 
-            if (!isNaN(gram) && !isNaN(mg) && mg !== 0) {
-                setDensity((gram / mg).toFixed(2));
+            if (!isNaN(gram) && !isNaN(ml) && ml !== 0) {
+                setDensity((gram / ml).toFixed(2));
             } else {
                 setDensity("");
             }
         }
-    }, [conversionGram, conversionMg, selectedUnitCode, isParfumCategory]);
+    }, [conversionGram, conversionMl, selectedUnitCode, isParfumCategory]);
 
     const handleQuantityChange = (e) => {
         const value = e.target.value;
-
         if (Number(value) < 0) {
             Toaster("error", "Jumlah stok tidak boleh negatif");
             return;
         }
-
         setStock(value);
     };
 
@@ -337,7 +331,6 @@ export const ProductEdit = () => {
                     setStock(Number(newVariantMatrix[0].stocks[0]));
                 }
             } catch (error) {
-                console.error("Error fetching product:", error);
                 Toaster("error", "Gagal memuat data produk");
             } finally {
                 setLoading(false);
@@ -460,7 +453,6 @@ export const ProductEdit = () => {
                 return;
             }
 
-            // Only send file if it's a File, not a string/path
             const aromaImageMap = {};
             variantMatrix.forEach((variant, i) => {
                 const aroma = variant.aroma;
@@ -542,6 +534,26 @@ export const ProductEdit = () => {
         }
     };
 
+    const handleConversionGram = (e) => {
+        let value = e.target.value;
+        if (value === "") {
+            setConversionGram("");
+            return;
+        }
+        value = Math.max(0, Math.min(100, Number(value)));
+        setConversionGram(value);
+    };
+
+    const handleConversionMl = (e) => {
+        let value = e.target.value;
+        if (value === "") {
+            setConversionMl("");
+            return;
+        }
+        value = Math.max(0, Math.min(100, Number(value)));
+        setConversionMl(value);
+    };
+
     const labelClass = "block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2 mt-5";
 
     if (loading) return <LoadingCards />;
@@ -619,7 +631,7 @@ export const ProductEdit = () => {
                                     label="Atur Harga Produk"
                                     labelClass={labelClass}
                                     value={price}
-                                    onChange={(e) => setPrice(e.target.value === "" ? "" : +e.target.value)}
+                                    onChange={(e) => setPrice(Math.max(0, e.target.value === "" ? "" : +e.target.value))}
                                     placeholder="500.000"
                                     prefix="Rp"
                                     error={errors["product_details.0.price"]?.[0]}
@@ -682,12 +694,14 @@ export const ProductEdit = () => {
                                         type="number"
                                         value={selectedUnitCode === "G" ? 1 : density}
                                         readOnly={selectedUnitCode === "G"}
-                                        onChange={(e) => setConversionGram(e.target.value)}
+                                        onChange={handleConversionGram}
                                         placeholder="1"
+                                        min={0}
+                                        max={100}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none"
                                     />
                                     <div className="absolute inset-y-0 right-0 w-16 bg-gray-100 border-l border-gray-300 rounded-r-lg px-2 flex items-center justify-center">
-                                        G
+                                        g
                                     </div>
                                 </div>
 
@@ -696,20 +710,22 @@ export const ProductEdit = () => {
                                 <div className="relative w-full">
                                     <input
                                         type="number"
-                                        value={selectedUnitCode === "MG" ? 1 : density}
-                                        readOnly={selectedUnitCode === "MG"}
-                                        onChange={(e) => setConversionMg(e.target.value)}
+                                        value={selectedUnitCode === "ML" ? 1 : density}
+                                        readOnly={selectedUnitCode === "ML"}
+                                        onChange={handleConversionMl}
                                         placeholder="10"
+                                        min={0}
+                                        max={100}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none"
                                     />
                                     <div className="absolute inset-y-0 right-0 w-16 bg-gray-100 border-l border-gray-300 rounded-r-lg px-2 flex items-center justify-center">
-                                        MG
+                                        ml
                                     </div>
                                 </div>
                             </div>
                             {density && (
                                 <div className="mt-2 text-sm text-gray-600">
-                                    Density: {density} g/mg
+                                    Density: {density} g/ml
                                 </div>
                             )}
                         </div>
@@ -778,14 +794,16 @@ export const ProductEdit = () => {
                                         placeholder="Harga"
                                         className="w-1/3 px-3 py-2 focus:outline-none"
                                         value={globalPrice}
-                                        onChange={(e) => setGlobalPrice(e.target.value)}
+                                        min={0}
+                                        onChange={(e) => setGlobalPrice(Math.max(0, e.target.value))}
                                     />
                                     <input
                                         type="number"
                                         placeholder="Stok"
                                         className="w-1/3 px-3 py-2 focus:outline-none"
                                         value={globalStock}
-                                        onChange={(e) => setGlobalStock(e.target.value)}
+                                        min={0}
+                                        onChange={(e) => setGlobalStock(Math.max(0, e.target.value))}
                                     />
                                     <input
                                         type="text"
@@ -841,10 +859,11 @@ export const ProductEdit = () => {
                                                         className="w-full pl-4 py-2 text-gray-800 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                         placeholder="Harga"
                                                         value={variant.prices[j] || ""}
+                                                        min={0}
                                                         onChange={(e) => {
                                                             const updated = [...variantMatrix];
                                                             if (!updated[i].prices) updated[i].prices = [];
-                                                            updated[i].prices[j] = e.target.value;
+                                                            updated[i].prices[j] = Math.max(0, e.target.value);
                                                             setVariantMatrix(updated);
                                                         }}
                                                     />
@@ -860,7 +879,7 @@ export const ProductEdit = () => {
                                                     onChange={(e) => {
                                                         const updated = [...variantMatrix];
                                                         if (!updated[i].stocks) updated[i].stocks = [];
-                                                        updated[i].stocks[j] = e.target.value;
+                                                        updated[i].stocks[j] = Math.max(0, e.target.value);
                                                         setVariantMatrix(updated);
                                                     }}
                                                 />
