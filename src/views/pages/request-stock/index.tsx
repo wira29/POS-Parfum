@@ -154,7 +154,7 @@ export const RequestStockIndex = () => {
   return (
     <div className="p-6 space-y-6">
       <Breadcrumb
-        title="Restock Produk"
+        title="Request Stock Produk"
         desc="Menampilkan daftar restock dari gudang"
       />
 

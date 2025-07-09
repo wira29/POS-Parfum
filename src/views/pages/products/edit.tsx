@@ -266,7 +266,11 @@ export const ProductEdit = () => {
 
                 const details = data.product_detail || [];
 
-                if (!details.length) {
+                if (details.length === 1 && !details[0].variant_name) {
+                    const mainDetail = details[0];
+                    setProductCode(mainDetail.product_code || "");
+                    setPrice(mainDetail.price || 0);
+                    setStock(mainDetail.stock || "0");
                     setVariations([]);
                     setVariantMatrix([]);
                     setVariantImages([]);
@@ -370,7 +374,6 @@ export const ProductEdit = () => {
                 setLoading(false);
             }
         };
-
 
         if (id && categories.length > 0 && units.length > 0) {
             fetchProduct();
@@ -818,9 +821,10 @@ export const ProductEdit = () => {
                                     </div>
                                 </div>
                             ))}
+
                         </div>
 
-                        {variantMatrix.length > 0 && (
+                        {variantMatrix.length > 0 && hasVariant && (
                             <>
                                 <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
                                     <div className="flex flex-col sm:flex-row border rounded-lg overflow-hidden divide-y sm:divide-y-0 sm:divide-x w-full max-w-3xl">
