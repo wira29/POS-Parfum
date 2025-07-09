@@ -76,7 +76,7 @@ export const RestockCreate = () => {
     const fetchProducts = async () => {
       try {
         const res = await apiClient.get<ApiResponse<Product[]>>(
-          "/products/no-paginate"
+          "/products/without-bundling"
         );
         setProducts(res.data.data || []);
       } catch (e) {

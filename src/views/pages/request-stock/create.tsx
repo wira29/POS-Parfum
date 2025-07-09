@@ -58,7 +58,7 @@ export const RequestStockCreate = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await apiClient.get("/products/no-paginate");
+        const res = await apiClient.get("/products/without-bundling");
         setProducts(res.data.data || []);
       } catch (e) {
         setProducts([]);
