@@ -1,62 +1,21 @@
+import { formatNum } from "@/core/helpers/FormatNumber";
+import { TransactionDetailType, useTransactionStore } from "@/core/stores/TransactionStore";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
 import Card from "@/views/components/Card/Card";
 import { Calendar, CheckCircle, CreditCard, User } from "lucide-react";
-import { useState } from "react";
+import moment from "moment";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 
 export const DetailRiwayatTransaksi = () => {
-  const [open, setOpen] = useState(false);
-  const products = [
-    {
-      name: "Parfum 9pm Edo",
-      variant: "Varian Sang Seri Edo",
-      price: 300000,
-      qty: 30,
-      discount: 50,
-      total: 150000,
-    },
-    {
-      name: "Parfum 9pm Edo",
-      variant: "Varian Sang Seri Edo",
-      price: 300000,
-      qty: 30,
-      discount: 50,
-      total: 150000,
-    },
-    {
-      name: "Parfum 9pm Edo",
-      variant: "Varian Sang Seri Edo",
-      price: 300000,
-      qty: 30,
-      discount: 50,
-      total: 150000,
-    },
-    {
-      name: "Parfum 9pm Edo",
-      variant: "Varian Sang Seri Edo",
-      price: 300000,
-      qty: 50,
-      discount: 50,
-      total: 150000,
-    },
-    {
-      name: "Parfum 9pm Edo",
-      variant: "Varian Sang Seri Edo",
-      price: 300000,
-      qty: 30,
-      discount: 60,
-      total: 150000,
-    },
-  ];
+  const { id } = useParams<{id: string}>()
+  const { current_item, getDetail } = useTransactionStore()
+  const data = current_item as TransactionDetailType|undefined
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    })
-      .format(amount)
-      .replace("IDR", "Rp");
-  };
+
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => getDetail(id), [id])
 
   return (
     <div className="w-full py-5 px-4">
@@ -73,9 +32,9 @@ export const DetailRiwayatTransaksi = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-slate-500 font-semibold mb-4">
-            <h1 className="text-lg">Detail Transaksi#3321</h1>
+            <h1 className="text-lg">Detail Transaksi#{data?.transaction_code}</h1>
             <h1 className="font-medium text-sm sm:text-base mt-2 sm:mt-0">
-              Tanggal 12 Juni 2025
+              Tanggal {moment(data?.created_at).format('DD MMMM YYYY')}
             </h1>
           </div>
           <hr className="border border-gray-200 mt-3" />
@@ -85,7 +44,7 @@ export const DetailRiwayatTransaksi = () => {
                 Nama Penjual:
               </h3>
               <p className="text-gray-600 text-sm">
-                Retail Monoeluka,
+                {data?.buyer_name ?? '-'},
                 <br />
                 Jl27 Braded2780910 Jl Sobo Pihak Pno42 Sukemaharja,
                 <br />
@@ -97,7 +56,7 @@ export const DetailRiwayatTransaksi = () => {
                 Nama Pembeli:
               </h3>
               <p className="text-gray-600 text-sm">
-                Yusuf Asslam,
+                {data?.kasir_name},
                 <br />
                 Kd Sisx45678910
               </p>
@@ -126,7 +85,7 @@ export const DetailRiwayatTransaksi = () => {
                 </tr>
               </thead>
               <tbody>
-                {products.map((product, index) => (
+                {data?.details.map((product, index) => (
                   <tr
                     key={index}
                     className="border-b border-gray-100 hover:bg-gray-50"
@@ -134,26 +93,26 @@ export const DetailRiwayatTransaksi = () => {
                     <td className="py-3 px-2">
                       <div>
                         <p className="text-gray-800 font-semibold">
-                          {product.name}
+                          {product.product_name ?? '-'}
                         </p>
-                        {product.variant && (
+                        {product.variant_name && (
                           <p className="text-xs text-gray-500 mt-1">
-                            {product.variant}
+                            {product.variant_name ?? '-'}
                           </p>
                         )}
                       </div>
                     </td>
                     <td className="py-3 px-2 text-gray-600 font-semibold">
-                      {formatCurrency(product.price)}
+                      Rp {formatNum(product.price, true)}
                     </td>
                     <td className="py-3 px-2 text-gray-600 font-semibold">
-                      {product.qty} Pcs
+                      {product.quantity}
                     </td>
                     <td className="py-3 px-2 text-gray-600 font-semibold">
                       {product.discount}%
                     </td>
                     <td className="py-3 px-2 text-gray-600 font-semibold">
-                      {formatCurrency(product.total)}
+                      Rp {formatNum(product.total_price, true)}
                     </td>
                   </tr>
                 ))}
@@ -168,30 +127,30 @@ export const DetailRiwayatTransaksi = () => {
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Subtotal Transaksi</span>
                     <span className="font-medium">
-                      {formatCurrency(1500000)}
+                      Rp {formatNum(data?.details.reduce((acc, item) => acc + item.price, 0) as number, true)}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Harga Barang</span>
                     <span className="font-medium">
-                      {formatCurrency(1500000)}
+                      Rp {formatNum(data?.total_barang ?? 0, true)}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Diskon</span>
                     <span className="font-medium">
-                      {formatCurrency(750000)}
+                      Rp {formatNum(data?.total_discount ?? 0, true)}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Pajak</span>
-                    <span className="font-medium">{formatCurrency(10000)}</span>
+                    <span className="font-medium">Rp {formatNum(data?.total_tax ?? 0, true)}</span>
                   </div>
                   <hr className="border-gray-200" />
                   <div className="flex justify-between text-base font-semibold">
                     <span className="text-gray-800">Total Transaksi</span>
                     <span className="text-gray-800">
-                      {formatCurrency(750000)}
+                      Rp {formatNum(data?.total_price ?? 0, true)}
                     </span>
                   </div>
                 </div>
@@ -211,11 +170,11 @@ export const DetailRiwayatTransaksi = () => {
               </h2>
             </div>
 
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-start justify-between mb-8">
               <div>
                 <h3 className="font-medium text-gray-600 mb-2">Detail:</h3>
                 <p className="text-3xl font-bold text-gray-900">
-                  {formatCurrency(750000)}
+                  Rp {formatNum(data?.details.reduce((acc, item) => acc + item.total_price, 0) as number, true)}
                 </p>
               </div>
               <div>
@@ -235,7 +194,7 @@ export const DetailRiwayatTransaksi = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-700">
                     Nama Kasir:{" "}
-                    <span className="font-normal text-gray-600">Yustiar</span>
+                    <span className="font-normal text-gray-600">{data?.kasir_name ?? '-'}</span>
                   </p>
                 </div>
               </div>
@@ -248,7 +207,7 @@ export const DetailRiwayatTransaksi = () => {
                   <p className="text-sm font-medium text-gray-700">
                     Waktu:{" "}
                     <span className="font-normal text-gray-600">
-                      23:00 WIB | 23 Juni 2025
+                      {moment(data?.created_at).format('HH:mm')} WIB | {moment(data?.created_at).format('DD MMMM YYYY')}
                     </span>
                   </p>
                 </div>
@@ -260,7 +219,7 @@ export const DetailRiwayatTransaksi = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-700">
-                    Dibayar Dengan Cash
+                    Dibayar Dengan {data?.payment_method ?? '-'}
                   </p>
                 </div>
               </div>
