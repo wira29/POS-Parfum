@@ -21,8 +21,7 @@ export const ProductIndex = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [categoryOptions, setCategoryOptions] = useState<{ id: number; name: string }[]>([]);
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState(search);
+  const [searchQuery, setSearchQuery] = useState("");
   const [expandedProducts, setExpandedProducts] = useState<string[]>([]);
   const expandRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [showFilter, setShowFilter] = useState(false);
@@ -51,19 +50,13 @@ export const ProductIndex = () => {
   const [salesRange, setSalesRange] = useState<{ min: number; max: number }>({ min: 0, max: 0 });
 
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(search);
-    }, 400);
-    return () => clearTimeout(handler);
-  }, [search]);
-
-  useEffect(() => {
     fetchCategories();
   }, []);
 
   useEffect(() => {
-    fetchData(page);
-  }, [page, debouncedSearch, categoryFilter, stockMin, stockMax, priceMin, priceMax, salesMin, salesMax]);
+    setPage(1);
+    fetchData(1);
+  }, [searchQuery, categoryFilter, stockMin, stockMax, priceMin, priceMax, salesMin, salesMax]);
 
   const fetchCategories = async () => {
     try {
@@ -78,13 +71,13 @@ export const ProductIndex = () => {
     return variants.find((v) => !!v.unit_code)?.unit_code || "G";
   };
 
-  const fetchData = async (page: number = 1) => {
+  const fetchData = async (pageNumber: number = 1) => {
     setLoading(true);
     try {
       const query = new URLSearchParams({
-        page: page.toString(),
+        page: pageNumber.toString(),
         per_page: pageSize.toString(),
-        search: debouncedSearch,
+        search: searchQuery,
         category: categoryFilter,
         min_stock: stockMin,
         max_stock: stockMax,
@@ -200,11 +193,11 @@ export const ProductIndex = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex flex-col sm:flex-row gap-3">
           <SearchInput
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
+            value={searchQuery}
+            onChange={(val) => {
+              setSearchQuery(val);
             }}
+            placeholder="Cari produk..."
           />
           <div className="relative">
             <Filter onClick={openFilterModal} />

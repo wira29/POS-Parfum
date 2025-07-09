@@ -191,7 +191,7 @@ export default function BundlingPage() {
       if (appliedFilter.maxMaterial) params.append("max_material", appliedFilter.maxMaterial);
       if (searchQuery) params.append("search", searchQuery);
 
-      const res = await apiClient.get(`/product-bundling?${params.toString()}`);      
+      const res = await apiClient.get(`/product-bundling?${params.toString()}`);
       setPackages(res.data.data);
       setPagination((prev) => ({
         ...prev,
@@ -295,7 +295,12 @@ export default function BundlingPage() {
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
         <div className="flex items-center gap-2 w-full sm:w-auto max-w-lg">
-          <SearchInput value={searchQuery} onChange={(value) => setSearchQuery(value)} />
+          <SearchInput
+            value={searchQuery}
+            onChange={(val) => {
+              setSearchQuery(val);
+            }}
+          />
           <div className="relative">
             <Filter onClick={() => setShowFilter(true)} />
             {isFilterActive && (
@@ -405,8 +410,8 @@ export default function BundlingPage() {
                   key={page}
                   onClick={() => goToPage(page)}
                   className={`px-3 py-1 border rounded text-sm ${pagination.current_page === page
-                      ? "bg-blue-600 text-white"
-                      : "hover:bg-gray-100 text-gray-700"
+                    ? "bg-blue-600 text-white"
+                    : "hover:bg-gray-100 text-gray-700"
                     }`}
                 >
                   {page}
