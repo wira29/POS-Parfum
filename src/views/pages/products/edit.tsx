@@ -1,15 +1,15 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import InputSelect from "@/views/components/Input-v2/InputSelect";
-import InputText from "@/views/components/Input-v2/InputText";
-import InputNumber from "@/views/components/Input-v2/InputNumber";
-import InputOneImage from "@/views/components/Input-v2/InputOneImage";
-import PreviewCard from "@/views/components/Card/PreviewCard";
-import { Barcode, DollarSign, ImageIcon, Plus, Info, X, GitCompareArrows, ArrowLeftRight } from "lucide-react";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Toaster } from "@/core/helpers/BaseAlert";
+import PreviewCard from "@/views/components/Card/PreviewCard";
 import InputManyText from "@/views/components/Input-v2/InputManyText";
+import InputNumber from "@/views/components/Input-v2/InputNumber";
+import InputOneImage from "@/views/components/Input-v2/InputOneImage";
+import InputSelect from "@/views/components/Input-v2/InputSelect";
+import InputText from "@/views/components/Input-v2/InputText";
 import { LoadingCards } from "@/views/components/Loading";
+import { ArrowLeftRight, Barcode, DollarSign, GitCompareArrows, ImageIcon, Info, Plus, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 export const ProductEdit = () => {
     const navigate = useNavigate();
@@ -242,10 +242,15 @@ export const ProductEdit = () => {
                 }
 
                 const data = res.data.data;
+                console.log(data)
 
                 setProductName(data.name || "");
                 setDescription(data.description || "");
                 setImages(data.image ? [data.image] : []);
+
+                // set density 
+                setConversionGram((1 / data.density).toFixed(1))
+                setConversionMl( (1 / data.density).toFixed(1))
 
                 if (data.category) {
                     const foundCategory = categories.find(cat => cat.label === data.category);
@@ -730,6 +735,7 @@ export const ProductEdit = () => {
                                 <div className="relative w-full">
                                     <input
                                         type="number"
+                                        step={0.01}
                                         value={selectedUnitCode === "G" ? 1 : conversionGram}
                                         readOnly={selectedUnitCode === "G"}
                                         onChange={handleConversionGram}
@@ -748,6 +754,7 @@ export const ProductEdit = () => {
                                 <div className="relative w-full">
                                     <input
                                         type="number"
+                                        step={0.01}
                                         value={selectedUnitCode === "ML" ? 1 : conversionMl}
                                         readOnly={selectedUnitCode === "ML"}
                                         onChange={handleConversionMl}

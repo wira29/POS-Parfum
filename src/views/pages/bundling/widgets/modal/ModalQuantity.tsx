@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface Unit {
   id: string;
@@ -99,7 +99,7 @@ export default function ModalQuantity({
                   <option value="" disabled>
                     Pilih Unit
                   </option>
-                  {units.map((u) => (
+                  {Array.isArray(units) && units.map((u: Unit) => (
                     <option key={u.id} value={u.id}>
                       {u.code}
                     </option>
