@@ -1,10 +1,10 @@
-import { Breadcrumb } from "@/views/components/Breadcrumb";
-import { useNavigate, useParams } from "react-router-dom";
-import { useState, useEffect } from "react";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Toaster } from "@/core/helpers/BaseAlert";
+import { Breadcrumb } from "@/views/components/Breadcrumb";
 import InputOneImage from "@/views/components/Input-v2/InputOneImage";
 import { LoadingCards } from "@/views/components/Loading";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 export default function RetailEdit() {
   const navigate = useNavigate();
@@ -33,7 +33,7 @@ export default function RetailEdit() {
             address: outlet.address || "",
             telp: outlet.telp || "",
             image: outlet.image
-              ? `${import.meta.env.VITE_API_BASE_URL}${outlet.image}`
+              ? `${import.meta.env.VITE_BASE_STORAGE}${outlet.image}`
               : null,
           });
         }

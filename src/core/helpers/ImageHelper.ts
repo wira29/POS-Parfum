@@ -3,7 +3,7 @@ export function ImageHelper(NameFile: string | File | undefined | null) {
     return "/images/dummy-image.jpg";
   }
   if (typeof NameFile === "string") {
-    return `${import.meta.env.VITE_API_BASE_URL}${NameFile.startsWith('/') ? NameFile.slice(1) : NameFile}`;
+    return `${import.meta.env.VITE_BASE_STORAGE}${NameFile.startsWith('/') ? NameFile.slice(1) : NameFile}`;
   }
   if (typeof File !== "undefined" && NameFile instanceof File) {
     return URL.createObjectURL(NameFile);
