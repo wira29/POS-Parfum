@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { useState } from "react"
 import { useApiClient } from "@/core/helpers/ApiClient"
 import { Toaster } from "@/core/helpers/BaseAlert"
+import InputOneImage from "@/views/components/Input-v2/InputOneImage"
 
 export default function WarehouseCreate() {
   const navigate = useNavigate()
@@ -111,6 +112,21 @@ export default function WarehouseCreate() {
       <Breadcrumb title="Tambah Warehouse" desc="Tambahkan Warehouse baru." />
       <div className="bg-white rounded-xl p-6 shadow">
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="flex items-center gap-4">
+            <div className="space-y-2 flex-col">
+              <label className="block text-sm font-medium">
+                Gambar <span className="text-red-500">*</span>
+              </label>
+              <InputOneImage
+                images={formData.image ? [formData.image] : []}
+                onImageUpload={handleFileChange}
+                label="Foto User"
+                className="w-32 h-32" onRemoveImage={function (index: number): void {
+                  throw new Error("Function not implemented.")
+                }} />
+              {errors.image && <p className="text-red-500 text-sm">{errors.image}</p>}
+            </div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="block text-sm font-medium">
@@ -155,19 +171,6 @@ export default function WarehouseCreate() {
                 placeholder="No telepon warehouse"
               />
               {errors.telp && <p className="text-red-500 text-sm">{errors.telp}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium">
-                Gambar<span className="text-red-500">*</span>
-              </label>
-              <input
-                type="file"
-                name="image"
-                onChange={handleFileChange}
-                className="w-full border border-gray-200 rounded-lg bg-[#F5F8FA] text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#E9EFF5] file:text-gray-700"
-              />
-              {errors.image && <p className="text-red-500 text-sm">{errors.image}</p>}
             </div>
           </div>
 
