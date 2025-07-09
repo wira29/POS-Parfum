@@ -570,6 +570,15 @@ export const RestockCreate = () => {
                             className="w-full max-w-[150px] border outline-none border-gray-300 rounded-lg px-3 py-2"
                             placeholder="Masukan Jumlah"
                             value={variant.qty}
+                            onKeyDown={(e) => {
+                              if (
+                                e.key === "e" ||
+                                e.key === "E" ||
+                                e.key === "-"
+                              ) {
+                                e.preventDefault();
+                              }
+                            }}
                             onChange={(e) =>
                               handleVariantQtyChange(
                                 item.product.id,

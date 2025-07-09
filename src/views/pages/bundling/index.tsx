@@ -185,16 +185,13 @@ export default function BundlingPage() {
         per_page: "8",
         page: pagination.current_page.toString(),
       });
-      // if (appliedFilter.status) params.append("status", appliedFilter.status);
-      // if (appliedFilter.minStock) params.append("min_stock", appliedFilter.minStock);
-      // if (appliedFilter.maxStock) params.append("max_stock", appliedFilter.maxStock);
       if (appliedFilter.minPrice) params.append("min_price", appliedFilter.minPrice);
       if (appliedFilter.maxPrice) params.append("max_price", appliedFilter.maxPrice);
       if (appliedFilter.minMaterial) params.append("min_material", appliedFilter.minMaterial);
       if (appliedFilter.maxMaterial) params.append("max_material", appliedFilter.maxMaterial);
       if (searchQuery) params.append("search", searchQuery);
 
-      const res = await apiClient.get(`/product-bundling?${params.toString()}`);
+      const res = await apiClient.get(`/product-bundling?${params.toString()}`);      
       setPackages(res.data.data);
       setPagination((prev) => ({
         ...prev,
@@ -330,7 +327,7 @@ export default function BundlingPage() {
               >
                 <div className="absolute top-3 right-3" ref={dropdownOpenId === pkg.id ? dropdownRef : null}>
                   <button
-                    className="p-1 rounded-full hover:bg-gray-100"
+                    className="p-1 rounded-full cursor-pointer hover:bg-gray-100"
                     onClick={() => handleDropdownToggle(pkg.id)}
                   >
                     <FiMoreVertical size={18} className="text-gray-600" />
@@ -368,7 +365,6 @@ export default function BundlingPage() {
                       className="w-16 h-16 rounded-full border-2 border-white object-cover bg-gray-200"
                       style={{ zIndex: 10 - idx }}
                       onClick={() => handleDetail(pkg)}
-                      onError={(e) => (e.currentTarget.src = "/images/placeholder.jpg")}
                     />
                   ))}
                 </div>

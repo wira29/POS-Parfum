@@ -72,7 +72,7 @@ export default function UserPage() {
         name: item.name,
         email: item.email,
         role: item.roles?.[0] || "-",
-        image: item.image ? `${item.image}` : "/images/profile/user-1.jpg",
+        image: item.image,
         created_at: item.created_at,
         roles: item.roles?.map((r: string) => ({ name: r })) || [],
       }));
@@ -195,6 +195,7 @@ export default function UserPage() {
       setDraftEndDate(endDate);
     }
   }, [showFilter]);
+
   return (
     <div className="p-6 space-y-6">
       <Breadcrumb title="Daftar Pengguna" desc="Kelola daftar akun pengguna pada sistem." />

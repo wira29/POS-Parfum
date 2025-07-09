@@ -117,7 +117,7 @@ export default function RetailCreate() {
     <div className="p-6 space-y-6">
       <Breadcrumb title="Tambah Retail" desc="Tambahkan Retail baru." />
       <div className="bg-white rounded-xl p-6 shadow">
-        {isLoading && <LoadingCards className="mb-4" />}
+        {isLoading && <LoadingCards/>}
         <form onSubmit={handleSubmit} className="space-y-6">
           <fieldset disabled={isLoading} className="space-y-6">
             <div className="space-y-2">
@@ -176,7 +176,7 @@ export default function RetailCreate() {
 
             <div className="space-y-2">
               <label className="block text-sm font-medium">
-                Alamat <span className="text-red-500">*</span>
+                Alamat
               </label>
               <textarea
                 name="address"

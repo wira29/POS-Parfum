@@ -173,7 +173,7 @@ export default function WarehouseCreate() {
 
           <div className="space-y-2">
             <label className="block text-sm font-medium">
-              Alamat<span className="text-red-500">*</span>
+              Alamat
             </label>
             <textarea
               name="address"

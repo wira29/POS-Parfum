@@ -131,8 +131,6 @@ export function DiscountCreate() {
 
   const validateForm = (): Partial<DiscountFormData & { discount: string }> => {
     const errors: Partial<DiscountFormData & { discount: string }> = {};
-
-    if (!formData.name) errors.name = "Nama diskon wajib diisi";
     if (
       !formData.minimum_purchase ||
       isNaN(parseInt(formData.minimum_purchase)) ||
@@ -145,10 +143,6 @@ export function DiscountCreate() {
         formData.percentage > 100
       ) {
         errors.discount = "Nilai diskon harus antara 1-100%";
-      }
-    } else {
-      if (formData.nominal == null || formData.nominal <= 0) {
-        errors.discount = "Nilai diskon harus lebih dari 0";
       }
     }
 
@@ -218,12 +212,12 @@ export function DiscountCreate() {
       }
 
       navigate("/discounts");
-    } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.message || "Gagal menyimpan diskon";
-      setApiError(errorMessage);
-      Toaster("error", errorMessage);
-      if (errorMessage.includes("Produk yang dipilih tidak valid")) {
+    } catch (error: any) {
+     const allErrors = error.response?.data?.data || {};
+      const messages = Object.values(allErrors).flat();
+      messages.forEach((msg) => Toaster("error", msg));
+      setApiError(allErrors);
+      if (messages.includes("Produk yang dipilih tidak valid")) {
         setFormErrors((prev) => ({
           ...prev,
           product_detail_id: "Produk tidak valid untuk toko Anda",
@@ -233,6 +227,9 @@ export function DiscountCreate() {
       setLoading(false);
     }
   };
+
+  console.log(apiError);
+  
 
   const getCurrentDiscountValue = () => {
     return formData.type === "percentage"
@@ -258,7 +255,6 @@ export function DiscountCreate() {
         <h2 className="text-lg font-semibold text-gray-800">
           {id ? "Ubah Diskon" : "Tambah Diskon"}
         </h2>
-        {apiError && <div className="text-red-500 text-sm">{apiError}</div>}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
