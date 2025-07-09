@@ -2,6 +2,7 @@ import { useApiClient } from "@/core/helpers/ApiClient";
 import { Toaster } from "@/core/helpers/BaseAlert";
 import { Breadcrumb } from "@/views/components/Breadcrumb";
 import InputOneImage from "@/views/components/Input-v2/InputOneImage";
+import { LoadingCards } from "@/views/components/Loading";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -24,7 +25,7 @@ export default function UserEdit() {
   const [userData, setUserData] = useState({
     username: "",
     email: "",
-    role: [""],
+    role: [],
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -39,11 +40,11 @@ export default function UserEdit() {
     const fetchAll = async () => {
       try {
         const response = await api.get(`/users/${id}`);
-        const user = response.data?.data;
+        const user = response.data?.data;        
         setUserData({
           username: user.name || "",
           email: user.email || "",
-          role: user.role || [""],
+          role: user.roles || [""],
           password: "",
         });
         if (user.image) {
@@ -164,7 +165,7 @@ export default function UserEdit() {
   const labelClass = "block mb-1 text-sm font-semibold";
 
   if (loading) {
-    return <div className="p-6">Loading...</div>;
+    return <LoadingCards/>
   }
 
   return (
@@ -236,7 +237,7 @@ export default function UserEdit() {
                         (r) => !selectedRolesExceptCurrent.includes(r.value)
                       )
                       .map((r) => (
-                        <option key={r.value} value={r.value}>
+                        <option  selected={r.value === role} key={r.value} value={r.value}>
                           {r.label}
                         </option>
                       ))}
@@ -245,7 +246,7 @@ export default function UserEdit() {
                     <button
                       type="button"
                       onClick={() => handleRemoveRole(i)}
-                      className="text-red-600 hover:text-red-800"
+                      className="text-red-600 cursor-pointer hover:text-red-800"
                       title="Hapus role"
                     >
                       &times;
@@ -257,7 +258,7 @@ export default function UserEdit() {
             <button
               type="button"
               onClick={handleAddRole}
-              className="text-blue-600 text-sm flex items-center gap-1 mt-1"
+              className="text-blue-600 text-sm cursor-pointer flex items-center gap-1 mt-1"
             >
               + Tambah Role
             </button>
