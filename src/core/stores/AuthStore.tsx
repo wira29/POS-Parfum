@@ -45,14 +45,13 @@ export const useAuthStore = create<AuthType>()((set, get) => ({
         }
     },
     updateUser: () => {
-        console.log("updateUser")
         const token = getToken()
         if(token) {
             apiClient.get('/me')
                 .then((res) => {
                     set(() => ({isAuth: true}))
                     set(() => ({user: res.data.data}))
-                    set(() => ({role: res.data.data.role.map(((role:{[key:string]:any}) => role.name))}))
+                    set(() => ({role: res.data.data.role}))
                 }).catch(() => {
                     get().setUserDefault()
                 })
