@@ -21,7 +21,7 @@ type VariantSelectModalProps = {
       id: string;
       name: string;
       stock?: number;
-      unit?: string;
+      unit_code?: string; // Changed from unit to unit_code to match JSON
       category?: string;
       product_image?: string;
     }>;
@@ -32,8 +32,9 @@ type VariantSelectModalProps = {
     productId: string,
     productName: string,
     variantId: string,
-    variantName: string
-  ) => void;
+    variantName: string,
+    productUnit: string
+  ) => void; // Fixed parameter order and naming
   compositions: Array<{ id: string }>;
 };
 
@@ -115,18 +116,27 @@ const VariantSelectModal: React.FC<VariantSelectModalProps> = ({
                     ? variant.stock
                     : product.totalStock?.toLocaleString?.() || 0;
 
+                const productUnit = hasOneVariant && variant ? variant.unit_code || "Unit Code" : product.unit || "";
+
                 return (
                   <React.Fragment key={product.id}>
                     <tr
-                      className={`border-b border-gray-100 cursor-pointer ${isAlreadyAdded
+                      className={`border-b border-gray-100 cursor-pointer ${
+                        isAlreadyAdded
                           ? "bg-red-50 text-red-500"
                           : isSelected
-                            ? "bg-blue-50 text-blue-600"
-                            : "hover:bg-gray-50"
-                        }`}
+                          ? "bg-blue-50 text-blue-600"
+                          : "hover:bg-gray-50"
+                      }`}
                       onClick={() => {
                         if (hasOneVariant && variant) {
-                          toggleSelectVariant(product.id, product.name, variant.id, variant.name);
+                          toggleSelectVariant(
+                            product.id,
+                            product.name,
+                            variant.id,
+                            variant.name,
+                            variant.unit_code || "Unit Code"
+                          );
                         } else {
                           toggleExpand(product.id);
                         }
@@ -161,7 +171,7 @@ const VariantSelectModal: React.FC<VariantSelectModalProps> = ({
                       </td>
                       <td className="px-6 py-4 text-sm">{product.category || "-"}</td>
                       <td className="px-6 py-4 text-sm">
-                        {productStock} {product.unit || ""}
+                        {productStock} {productUnit}
                       </td>
                     </tr>
 
@@ -177,18 +187,20 @@ const VariantSelectModal: React.FC<VariantSelectModalProps> = ({
                           return (
                             <tr
                               key={variant.id}
-                              className={`border-b border-gray-100 cursor-pointer ${isAlreadyAdded
+                              className={`border-b border-gray-100 cursor-pointer ${
+                                isAlreadyAdded
                                   ? "bg-red-50 text-red-500"
                                   : isSelected
-                                    ? "bg-blue-50 border-blue-200 text-blue-600"
-                                    : "hover:bg-gray-50"
-                                }`}
+                                  ? "bg-blue-50 border-blue-200 text-blue-600"
+                                  : "hover:bg-gray-50"
+                              }`}
                               onClick={() =>
                                 toggleSelectVariant(
                                   product.id,
                                   product.name,
                                   variant.id,
-                                  variant.name
+                                  variant.name,
+                                  variant.unit_code || "Unit Code" 
                                 )
                               }
                             >
@@ -221,7 +233,7 @@ const VariantSelectModal: React.FC<VariantSelectModalProps> = ({
                               </td>
                               <td className="px-6 py-3 text-sm">{variant.category || "-"}</td>
                               <td className="px-6 py-3 text-sm">
-                                {variant.stock?.toLocaleString() || 0} {variant.unit || ""}
+                                {variant.stock?.toLocaleString() || 0} {variant.unit_code || ""}
                               </td>
                             </tr>
                           );
