@@ -9,6 +9,12 @@ import InputOneImage from "@/views/components/Input-v2/InputOneImage";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
 import ModalQuantity from "./modal/ModalQuantity";
 
+function Skeleton({ className = "" }) {
+  return (
+    <div className={`animate-pulse bg-gray-200 rounded ${className}`} />
+  );
+}
+
 export default function BundlingEdit() {
   const navigate = useNavigate();
   const apiClient = useApiClient();
@@ -26,6 +32,9 @@ export default function BundlingEdit() {
   const [composition, setComposition] = useState([]);
   const [description, setDescription] = useState("");
   const [materials, setMaterials] = useState([]);
+  const [deletedMaterials, setDeletedMaterials] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   const [showModal, setShowModal] = useState(false);
   const [selectedVariants, setSelectedVariants] = useState([]);
@@ -45,38 +54,21 @@ export default function BundlingEdit() {
   const [activeQtyId, setActiveQtyId] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    setInitialLoading(true);
+    const fetchAll = async () => {
       try {
-        const res = await apiClient.get("/categories");
-        const mapped = res.data?.data?.map((cat) => ({
+        const [catRes, unitRes, prodRes] = await Promise.all([
+          apiClient.get("/categories"),
+          apiClient.get("/unit/no-paginate"),
+          apiClient.get("/products/no-paginate"),
+        ]);
+        const mappedCategories = catRes.data?.data?.map((cat) => ({
           value: cat.id,
           label: cat.name,
         })) || [];
-        setCategories(mapped);
-      } catch (error) {
-        setCategories([]);
-      }
-    };
-    fetchCategories();
-  }, []);
-
-  useEffect(() => {
-    const fetchUnits = async () => {
-      try {
-        const res = await apiClient.get("/unit/no-paginate");
-        setUnits(res.data?.data || []);
-      } catch (error) {
-        setUnits([]);
-      }
-    };
-    fetchUnits();
-  }, []);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await apiClient.get("/products/no-paginate");
-        const mapped = res.data?.data?.map((p) => ({
+        setCategories(mappedCategories);
+        setUnits(unitRes.data?.data || []);
+        const mappedProducts = prodRes.data?.data?.map((p) => ({
           id: p.id,
           category: p.category,
           name: p.name,
@@ -89,14 +81,17 @@ export default function BundlingEdit() {
             product_image: v.product_image,
           })),
         }));
-        setProducts(mapped);
-        setFilteredProducts(mapped);
-      } catch (error) {
+        setProducts(mappedProducts);
+        setFilteredProducts(mappedProducts);
+      } catch {
+        setCategories([]);
+        setUnits([]);
         setProducts([]);
         setFilteredProducts([]);
       }
+      setInitialLoading(false);
     };
-    fetchProducts();
+    fetchAll();
   }, []);
 
   useEffect(() => {
@@ -122,8 +117,9 @@ export default function BundlingEdit() {
   }, []);
 
   useEffect(() => {
+    if (!id) return;
+    setInitialLoading(true);
     const fetchBundling = async () => {
-      if (!id) return;
       try {
         const res = await apiClient.get(`/product-bundling/${id}`);
         const data = res.data?.data;
@@ -164,14 +160,13 @@ export default function BundlingEdit() {
         if (data.image && data.image !== "default/Default.jpeg") {
           setImages([data.image]);
         }
-      } catch (error) {
+      } catch {
         Toaster("error", "Gagal mengambil data bundling");
       }
+      setInitialLoading(false);
     };
-
     fetchBundling();
   }, [id, categories]);
-
 
   useEffect(() => {
     const handler = (e) => {
@@ -210,10 +205,27 @@ export default function BundlingEdit() {
     }
   };
 
+  const handleRemoveComposition = (index) => {
+    const item = composition[index];
+    const [productName, variantName] = item.split(" - ");
+    const prod = products.find((p) => p.name === productName);
+    const variant = prod?.variants.find((v) => v.name === variantName);
+
+    if (variant?.id) {
+      setDeletedMaterials((prev) => [...prev, variant.id]);
+    }
+    setComposition((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
-    if (!materials.length || materials.some(mat => !mat.product_detail_id)) {
+    const filteredMaterials = materials.filter(
+      (mat) => !deletedMaterials.includes(mat.product_detail_id)
+    );
+
+    if (!filteredMaterials.length || filteredMaterials.some(mat => !mat.product_detail_id)) {
       setErrors({
         ...errors,
         details: [
@@ -223,12 +235,14 @@ export default function BundlingEdit() {
         ]
       });
       Toaster("error", "Pilih minimal satu varian produk bundling.");
+      setLoading(false);
       return;
     }
 
-    const isQtyInvalid = materials.some((mat) => !mat.quantity || !mat.unit_id);
+    const isQtyInvalid = filteredMaterials.some((mat) => !mat.quantity || !mat.unit_id);
     if (isQtyInvalid) {
       Toaster("error", "Semua varian harus memiliki quantity dan unit.");
+      setLoading(false);
       return;
     }
 
@@ -239,7 +253,7 @@ export default function BundlingEdit() {
       stock: stock,
       description: description,
       category_id: category,
-      details: materials.map((mat) => ({
+      details: filteredMaterials.map((mat) => ({
         product_detail_id: mat.product_detail_id,
         quantity: mat.quantity,
         unit_id: mat.unit_id
@@ -257,6 +271,8 @@ export default function BundlingEdit() {
       } else {
         Toaster("error", "Terjadi kesalahan saat update bundling.");
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -297,22 +313,44 @@ export default function BundlingEdit() {
     setShowModal(false);
   };
 
-  const handleRemoveComposition = (index) => {
-    const item = composition[index];
-    const [productName, variantName] = item.split(" - ");
-    const prod = products.find((p) => p.name === productName);
-    const variant = prod?.variants.find((v) => v.name === variantName);
-    setComposition((prev) => prev.filter((_, i) => i !== index));
-    setMaterials((prev) =>
-      prev.filter((mat) => mat.product_detail_id !== variant?.id)
-    );
-  };
-
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
 
   const filteredCategories = categories.filter((cat) =>
     cat.label.toLowerCase().includes(categorySearch.toLowerCase())
   );
+
+  if (initialLoading) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="h-8 w-1/3 mb-4"><Skeleton className="h-8 w-full" /></div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-8 space-y-6">
+            <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+              <Skeleton className="h-6 w-1/2 mb-4" />
+              <Skeleton className="h-12 w-full mb-4" />
+              <Skeleton className="h-12 w-full mb-4" />
+              <Skeleton className="h-32 w-full mb-4" />
+              <Skeleton className="h-10 w-1/3 mb-4" />
+              <Skeleton className="h-10 w-1/3 mb-4" />
+              <Skeleton className="h-10 w-1/3 mb-4" />
+            </div>
+            <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+              <Skeleton className="h-6 w-1/2 mb-4" />
+              <Skeleton className="h-32 w-full mb-4" />
+              <Skeleton className="h-10 w-1/3 mb-4" />
+            </div>
+          </div>
+          <div className="lg:col-span-4">
+            <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-6">
+              <Skeleton className="h-6 w-1/2 mb-4" />
+              <Skeleton className="h-32 w-full mb-4" />
+              <Skeleton className="h-10 w-1/3 mb-4" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -456,19 +494,6 @@ export default function BundlingEdit() {
                             const variant = prod?.variants.find((v) => v.name === variantName);
                             const quantity = materials.find(mat => mat.product_detail_id === variant?.id)?.quantity;
 
-                            const handleSetQuantity = () => {
-                              const input = prompt("Masukkan quantity dalam G:", quantity || "");
-                              if (input !== null) {
-                                setMaterials(prev =>
-                                  prev.map(mat =>
-                                    mat.product_detail_id === variant?.id
-                                      ? { ...mat, quantity: input }
-                                      : mat
-                                  )
-                                );
-                              }
-                            };
-
                             return (
                               <div
                                 key={index}
@@ -518,6 +543,7 @@ export default function BundlingEdit() {
                                   </button>
                                 </div>
                                 <button
+                                  type="button"
                                   onClick={() => handleRemoveComposition(index)}
                                   className="w-8 h-8 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-full"
                                 >
@@ -591,14 +617,26 @@ export default function BundlingEdit() {
                 type="button"
                 onClick={() => navigate("/bundlings")}
                 className="px-8 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                disabled={loading}
               >
                 Batal
               </button>
               <button
                 type="submit"
-                className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+                className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer flex items-center justify-center"
+                disabled={loading}
               >
-                Simpan
+                {loading ? (
+                  <>
+                    <svg className="animate-spin mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                    </svg>
+                    Loading...
+                  </>
+                ) : (
+                  "Simpan"
+                )}
               </button>
             </div>
           </div>
@@ -687,8 +725,6 @@ export default function BundlingEdit() {
           );
         }}
       />
-
-
     </div>
   );
 }
