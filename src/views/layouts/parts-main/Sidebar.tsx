@@ -17,12 +17,61 @@ import {
   FiUsers,
 } from "react-icons/fi";
 import { TbShoppingCart } from "react-icons/tb";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
-const getMenuItems = (userRoles: string[]) => [
+const ownerMenu = [
+  {
+    label: "Beranda",
+    children: [
+      { label: "Beranda", icon: <FiHome />, path: "/dashboard-owner" },
+    ],
+  },
+  {
+    label: "Transaksi",
+    children: [
+      {
+        label: "Riwayat Transaksi",
+        icon: <FiTag />,
+        path: "/riwayat-penjualan",
+      },
+    ],
+  },
+  {
+    label: "Product",
+    children: [
+      { label: "Produk", icon: <FiBox />, path: "/products" },
+      {
+        label: "Request Stok",
+        icon: <FaBoxesPacking />,
+        path: "/requeststock",
+      },
+      { label: "Diskon", icon: <FiPercent />, path: "/discounts" },
+    ],
+  },
+  {
+    label: "Lainnya",
+    children: [
+      { label: "Warehouse", icon: <FiBox />, path: "/#" },
+      {
+        label: "Retail",
+        icon: <FaBoxesPacking />,
+        path: "/retails",
+      },
+      {
+        label: "Laporan Laba Rugi",
+        icon: <FaMoneyBillTransfer />,
+        path: "/laba-rugi",
+      },
+      { label: "Pengguna", icon: <FiUsers />, path: "/users" },
+    ],
+  },
+];
+
+const menuItems = [
   {
     label: "Beranda",
     icon: <FiHome />,
-    path: userRoles.includes("owner") ? "/dashboard-owner" : "/dashboard",
+    path: "/dashboard",
     roles: ["admin", "warehouse", "owner", "outlet"],
   },
   {
@@ -31,10 +80,15 @@ const getMenuItems = (userRoles: string[]) => [
     icon: <TbShoppingCart />,
     path: "/outlets",
     isDropdown: true,
-    roles: ["warehouse", "owner", "outlet"],
+    roles: ["warehouse", "owner","outlet"],
     children: [
-      { label: "Kasir", icon: <TbShoppingCart />, path: "/outlets", roles: ["warehouse", "cashier"] },
-      { label: "Riwayat Penjualan", icon: <FiTag />, path: "/riwayat-penjualan", roles: ["warehouse", "owner", "outlet"] },
+      { label: "Kasir", icon: <TbShoppingCart />, path: "/outlets", roles:["warehouse","cashier"] },
+      {
+        label: "Riwayat Penjualan",
+        icon: <FiTag />,
+        path: "/riwayat-penjualan",
+        roles: ["warehouse", "owner","outlet"]
+      },
     ],
   },
   {
@@ -42,32 +96,120 @@ const getMenuItems = (userRoles: string[]) => [
     label: "Request Pembelian",
     icon: <FiTag />,
     path: "/request-pembelian",
-    roles: ["warehouse"],
+    roles: ["warehouse", "owner"],
   },
   {
     label: "Produk",
     children: [
-      { label: "Kategori", icon: <FiLayers />, path: "/categories", roles: ["warehouse", "outlet"] },
-      { label: "Produk", icon: <FiBox />, path: "/products", roles: ["owner", "warehouse", "outlet"] },
-      { label: "Bundling", icon: <ShoppingCart size={16} />, path: "/bundlings", roles: [ "warehouse", "outlet"] },
-      { label: "Blending Produk", icon: <FiCoffee />, path: "/blendings", roles: ["warehouse"] },
-      { label: "Request Stock", icon: <FaBoxesPacking />, path: "/requeststock", roles: ["outlet", "owner"] },
-      { label: "Restock", icon: <ContainerIcon />, path: "/restock", roles: ["warehouse"] },
-      { label: "Unit", icon: <LayoutGrid />, path: "/units", roles: ["admin", "warehouse", "outlet"] },
-      { label: "Audit", icon: <AiOutlineFileSearch />, path: "/audit", roles: ["admin", "outlet"] },
-      { label: "Diskon", icon: <FiPercent />, path: "/discounts", roles: ["owner", "warehouse", "outlet"] },
+      {
+        label: "Kategori",
+        icon: <FiLayers />,
+        path: "/categories",
+        roles: ["warehouse", "outlet"],
+      },
+      {
+        label: "Produk",
+        icon: <FiBox />,
+        path: "/products",
+        roles: ["owner", "warehouse", "outlet"],
+      },
+      {
+        label: "Bundling",
+        icon: <ShoppingCart size={16} />,
+        path: "/bundlings",
+        roles: ["warehouse", "outlet"],
+      },
+      {
+        label: "Blending Produk",
+        icon: <FiCoffee />,
+        path: "/blendings",
+        roles: ["warehouse"],
+      },
+      {
+        label: "Request Stock",
+        icon: <FaBoxesPacking />,
+        path: "/requeststock",
+        roles: ["outlet", "owner"],
+      },
+      {
+        label: "Restock",
+        icon: <ContainerIcon />,
+        path: "/restock",
+        roles: ["warehouse"],
+      },
+      {
+        label: "Unit",
+        icon: <LayoutGrid />,
+        path: "/units",
+        roles: ["admin", "warehouse", "outlet"],
+      },
+      {
+        label: "Audit",
+        icon: <AiOutlineFileSearch />,
+        path: "/audit",
+        roles: ["admin", "outlet", "owner"],
+      },
+      {
+        label: "Diskon",
+        icon: <FiPercent />,
+        path: "/discounts",
+        roles: ["owner", "warehouse", "outlet"],
+      },
+    ],
+    more: [
+      { label: "Produk Lainnya", icon: <FiBox />, path: "/produk-lainnya" },
+      { label: "Produk Arsip", icon: <FiBox />, path: "/produk-arsip" },
     ],
   },
   {
     label: "Lainnya",
     children: [
-      { label: "Warehouse", icon: <FaShop />, path: "/warehouses", roles: ["owner", "admin"] },
-      { label: "Retail", icon: <FaShop />, path: "/retails", roles: ["owner", "warehouse"] },
-      { label: "Laporan Laba Rugi", icon: <FaMoneyBillTransfer />, path: "/laba-rugi", roles: ["owner", "outlet", "warehouse"] },
-      { label: "Shift", icon: <Repeat size={16} />, path: "/shift", roles: ["outlet"] },
-      { label: "Tambah Pengguna", icon: <FiUsers />, path: "/users", roles: ["owner", "warehouse", "outlet"] },
-      { label: "Role", icon: <FaUserTag />, path: "/roles", roles: ["warehouse", "retail"] },
-      { label: "Pengeluaran", icon: <Wallet2Icon />, path: "/pengeluaran", roles: [ "outlet"] },
+      {
+        label: "Retail",
+        icon: <FaShop />,
+        path: "/retails",
+        roles: ["owner", "warehouse"],
+      },
+      {
+        label: "Laporan Laba Rugi",
+        icon: <FaMoneyBillTransfer />,
+        path: "/laba-rugi",
+        roles: ["outlet", "warehouse", "owner"],
+      },
+      {
+        label: "Warehouse",
+        icon: <FaShop />,
+        path: "/warehouses",
+        roles: ["owner", "admin"],
+      },
+      {
+        label: "Shift",
+        icon: <Repeat size={16} />,
+        path: "/shift",
+        roles: ["outlet"],
+      },
+      {
+        label: "Tambah Pengguna",
+        icon: <FiUsers />,
+        path: "/users",
+        roles: ["owner", "warehouse", "outlet"],
+      },
+      {
+        label: "Role",
+        icon: <FaUserTag />,
+        path: "/roles",
+        roles: [ "warehouse", "retail"],
+      },
+      {
+        label: "Pengeluaran",
+        icon: <Wallet2Icon />,
+        path: "/pengeluaran",
+        roles: ["owner", "outlet"],
+      },
+    ],
+    more: [
+      { label: "Lainnya 1", icon: <FiTag />, path: "/lainnya-1" },
+      { label: "Lainnya 2", icon: <FiTag />, path: "/lainnya-2" },
     ],
   },
 ];
@@ -76,10 +218,11 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const isCollapsed = sidebar === "mini-sidebar";
-
   const [userRoles, setUserRoles] = useState<string[]>([]);
-  const [menuItems, setMenuItems] = useState<any[]>([]);
-  const [openDropdowns, setOpenDropdowns] = useState<{ [key: string]: boolean }>({});
+  const [showMore, setShowMore] = useState<{ [key: string]: boolean }>({});
+  const [openDropdowns, setOpenDropdowns] = useState<{
+    [key: string]: boolean;
+  }>({});
   const [loading, setLoading] = useState(false);
   const apiClient = useApiClient();
 
@@ -88,23 +231,15 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
       try {
         setLoading(true);
         const res = await apiClient.get("/me");
-        const data = res.data.data;
-
-        const roleFromStrings = Array.isArray(data.role) ? data.role : [];
-        const roleFromObjects =
-          Array.isArray(data.roles) && typeof data.roles[0] === "object"
-            ? data.roles.map((r: any) => r.name)
-            : [];
-
-        const roles = [...new Set([...roleFromStrings, ...roleFromObjects])];
+        const roles = res.data.data.roles.map((role: any) => role.name);
         setUserRoles(roles);
 
-        const newMenu = getMenuItems(roles);
-        setMenuItems(newMenu);
-
-        const allPaths = newMenu.flatMap((item) => {
+        const allPaths = menuItems.flatMap((item) => {
           if (!item.roles && item.children) {
-            return item.children.map((child) => ({ path: child.path, roles: child.roles ?? [] }));
+            return item.children.map((child) => ({
+              path: child.path,
+              roles: child.roles ?? [],
+            }));
           } else if (item.children) {
             return item.children.map((child) => ({
               path: child.path,
@@ -116,12 +251,16 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
         });
 
         const currentPath = location.pathname;
-        const match = allPaths.find((route) => currentPath.startsWith(route.path));
-        const isAllowed = !match || match.roles.length === 0 || match.roles.some((role) => roles.includes(role));
+        const match = allPaths.find((route) =>
+          currentPath.startsWith(route.path)
+        );
 
-        if (!isAllowed) {
-          const redirectPath = roles.includes("owner") ? "/dashboard-owner" : "/dashboard";
-          navigate(redirectPath, { replace: true });
+        if (
+          match &&
+          match.roles.length > 0 &&
+          !match.roles.some((role) => roles.includes(role))
+        ) {
+          navigate("/dashboard", { replace: true });
           Toaster("error", "User tidak memiliki role yang sesuai.");
         }
       } catch (error) {
@@ -131,7 +270,6 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
         setLoading(false);
       }
     };
-
     fetchUserRoles();
   }, [location.pathname]);
 
@@ -144,33 +282,121 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
     .map((item) => {
       if (!hasAccess(item.roles)) return null;
       if (item.children) {
-        const filteredChildren = item.children.filter((child) => hasAccess(child.roles));
+        const filteredChildren = item.children.filter((child) =>
+          hasAccess(child.roles)
+        );
         if (filteredChildren.length === 0) return null;
-        return { ...item, children: filteredChildren };
+        return { ...item, children: filteredChildren, more: item.more };
       }
       return item;
     })
     .filter(Boolean);
 
+  // if (userRoles.includes("owner")) {
+  //   return (
+  //     <aside
+  //       className={`h-screen fixed left-0 top-0 shadow-md z-20 transition-all duration-300 ${isCollapsed ? "w-20" : "w-64"
+  //         } bg-white`}
+  //     >
+  //       <div className="flex py-3 px-4">
+  //         <div className="flex items-center justify-center mx-auto">
+  //           <img
+  //             src={
+  //               isCollapsed
+  //                 ? "../../../../public/images/logos/logo-mini-new.png"
+  //                 : "../../../../public/images/logos/logo-new.png"
+  //             }
+  //             alt="Logo"
+  //             className={`transition-all duration-300 ${isCollapsed ? "w-16 h-11" : "w-full h-12"
+  //               }`}
+  //           />
+  //         </div>
+  //       </div>
+  //       <nav
+  //         className={`p-4 space-y-6 ${isCollapsed ? "overflow-visible" : "overflow-y-auto"
+  //           } h-[calc(100vh-4rem)]`}
+  //       >
+  //         {ownerMenu.map((section, idx) => (
+  //           <div key={idx}>
+  //             <p
+  //               className={`text-xs font-bold uppercase mb-2 text-gray-400 ${isCollapsed ? "text-center text-[10px]" : ""
+  //                 }`}
+  //             >
+  //               {section.label}
+  //             </p>
+  //             <ul className="space-y-1">
+  //               {section.children.map((item, i) => (
+  //                 <li key={i}>
+  //                   <Link
+  //                     to={item.path}
+  //                     className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${location.pathname.startsWith(item.path)
+  //                         ? "bg-blue-600 text-white hover:bg-blue-600"
+  //                         : "text-gray-700"
+  //                       } ${isCollapsed ? "justify-center" : ""}`}
+  //                   >
+  //                     <span className="text-lg">{item.icon}</span>
+  //                     {!isCollapsed && item.label}
+  //                   </Link>
+  //                 </li>
+  //               ))}
+  //               {section.more && (
+  //                 <>
+  //                   {showMore[section.label] && (
+  //                     <ul className="mt-2 space-y-1">
+  //                       {section.more.map((moreItem, mi) => (
+  //                         <li key={mi}>
+  //                           <Link
+  //                             to={moreItem.path}
+  //                             className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${location.pathname.startsWith(moreItem.path)
+  //                                 ? "bg-blue-600 text-white hover:bg-blue-600"
+  //                                 : "text-gray-700"
+  //                               } ${isCollapsed ? "justify-center" : ""}`}
+  //                           >
+  //                             <span className="text-lg">{moreItem.icon}</span>
+  //                             {!isCollapsed && moreItem.label}
+  //                           </Link>
+  //                         </li>
+  //                       ))}
+  //                     </ul>
+  //                   )}
+  //                   <li>
+  //                     <button
+  //                       className="px-3 py-1 border border-gray-300 rounded text-xs text-gray-700 hover:bg-gray-100 transition w-fit mt-2"
+  //                       style={{ minWidth: 100 }}
+  //                       type="button"
+  //                       onClick={() =>
+  //                         setShowMore((prev) => ({
+  //                           ...prev,
+  //                           [section.label]: !prev[section.label],
+  //                         }))
+  //                       }
+  //                     >
+  //                       {showMore[section.label]
+  //                         ? "Sembunyikan"
+  //                         : "Selengkapnya"}
+  //                     </button>
+  //                   </li>
+  //                 </>
+  //               )}
+  //             </ul>
+  //           </div>
+  //         ))}
+  //       </nav>
+  //     </aside>
+  //   );
+  // }
+
   if (loading) {
-    return (
-      <aside className={`h-screen fixed left-0 top-0 shadow-md z-20 transition-all duration-300 ${isCollapsed ? "w-20" : "w-64"} bg-white`}>
-        <div className="flex py-3 px-4">
-          <div className="flex items-center justify-center mx-auto">
-            <div className={`bg-gray-200 rounded ${isCollapsed ? "w-16 h-11" : "w-full h-12"} animate-pulse`} />
-          </div>
-        </div>
-        <nav className={`p-4 space-y-4 ${isCollapsed ? "overflow-visible" : "overflow-y-auto"} h-[calc(100vh-4rem)]`}>
-          {Array.from({ length: 6 }).map((_, idx) => (
-            <div key={idx} className={`h-10 rounded-lg bg-gray-200 animate-pulse ${isCollapsed ? "w-10 mx-auto" : "w-full"}`} />
-          ))}
-        </nav>
-      </aside>
-    );
+    <h1 className="text-xl text-center animate-pulse font-semibold">
+      Memuat...
+    </h1>;
   }
 
   return (
-    <aside className={`h-screen fixed left-0 top-0 shadow-md z-20 transition-all duration-300 ${isCollapsed ? "w-20" : "w-64"} bg-white`}>
+    <aside
+      className={`h-screen fixed left-0 top-0 shadow-md z-20 transition-all duration-300 ${isCollapsed ? "w-20" : "w-64"
+        } bg-white`}
+    >
       <div className="flex py-3 px-4">
         <div className="flex items-center justify-center mx-auto">
           <img
@@ -180,22 +406,40 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                 : "../../../../public/images/logos/logo-new.png"
             }
             alt="Logo"
-            className={`transition-all duration-300 ${isCollapsed ? "w-16 h-11" : "w-full h-12"}`}
+            className={`transition-all duration-300 ${isCollapsed ? "w-16 h-11" : "w-full h-12"
+              }`}
           />
         </div>
       </div>
-
-      <nav className={`p-4 space-y-2.5 ${isCollapsed ? "overflow-visible" : "overflow-y-auto"} h-[calc(100vh-4rem)]`}>
+      <nav
+        className={`p-4 space-y-2.5 ${isCollapsed ? "overflow-visible" : "overflow-y-auto"
+          } h-[calc(100vh-4rem)]`}
+      >
         {filteredMenuItems.map((item, i) => (
           <div key={i}>
             {item.group ? (
-              <>
+              <div>
                 {!isCollapsed &&
-                  i === filteredMenuItems.findIndex((m: any) => m.group === item.group) && (
-                    <p className="text-xs font-bold uppercase mb-2 text-gray-400">{item.group}</p>
+                  i ===
+                  filteredMenuItems.findIndex(
+                    (m: any) => m.group === item.group
+                  ) && (
+                    <p className="text-xs font-bold uppercase mb-2 text-gray-400">
+                      {item.group}
+                    </p>
                   )}
+                {isCollapsed &&
+                  i ===
+                  filteredMenuItems.findIndex(
+                    (m: any) => m.group === item.group
+                  ) && (
+                    <p className="text-xs font-bold uppercase mb-2 text-center text-[10px] text-gray-400">
+                      {item.group}
+                    </p>
+                  )}
+
                 {item.isDropdown ? (
-                  <div>
+                  <div className="relative group">
                     <button
                       onClick={() =>
                         !isCollapsed &&
@@ -204,13 +448,14 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                           [item.label]: !prev[item.label],
                         }))
                       }
-                      className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${
-                        location.pathname.startsWith(item.path) ||
-                        (item.children &&
-                          item.children.some((child: any) => location.pathname.startsWith(child.path)))
+                      className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${location.pathname.startsWith(item.path) ||
+                          (item.children &&
+                            item.children.some((child) =>
+                              location.pathname.startsWith(child.path)
+                            ))
                           ? "bg-blue-600 text-white hover:bg-blue-600"
                           : "text-gray-700"
-                      } ${isCollapsed ? "justify-center" : "justify-between"}`}
+                        } ${isCollapsed ? "justify-center" : "justify-between"}`}
                     >
                       <div className="flex items-center gap-3">
                         <span className="text-lg">{item.icon}</span>
@@ -218,27 +463,34 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                       </div>
                       {!isCollapsed && (
                         <span className="text-lg">
-                          {openDropdowns[item.label] ? <FiChevronUp /> : <FiChevronDown />}
+                          {openDropdowns[item.label] ? (
+                            <FiChevronUp />
+                          ) : (
+                            <FiChevronDown />
+                          )}
                         </span>
                       )}
                     </button>
 
                     {!isCollapsed && openDropdowns[item.label] && (
                       <ul className="mt-2 space-y-1 ml-4">
-                        {item.children?.map((child: any, idx: number) => {
-                          const isActive = location.pathname.startsWith(child.path);
+                        {item.children?.map((child, idx) => {
+                          const isActive = location.pathname.startsWith(
+                            child.path
+                          );
                           return (
                             <li key={idx}>
                               <Link
                                 to={child.path}
-                                className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-50 text-sm transition-all duration-300 ${
-                                  isActive ? "bg-blue-100 text-blue-600" : "text-gray-600"
-                                }`}
+                                className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-50 text-sm transition-all duration-300 ${isActive
+                                    ? "bg-blue-100 text-blue-600"
+                                    : "text-gray-600"
+                                  }`}
                               >
                                 <span
-                                  className={`w-2.5 h-2.5 rounded-full ${
-                                    isActive ? "bg-blue-500" : "bg-white border-2 border-blue-300"
-                                  }`}
+                                  className={`w-2.5 h-2.5 rounded-full bg-blue-500 border-2 border-blue-300 ${!isActive &&
+                                    "opacity-50 bg-white border-blue-300"
+                                    }`}
                                 ></span>
                                 {child.label}
                               </Link>
@@ -247,36 +499,77 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                         })}
                       </ul>
                     )}
+
+                    {isCollapsed && openDropdowns[item.label] && (
+                      <div className="absolute left-full top-0 ml-2 bg-white shadow-lg rounded-lg z-[9999] min-w-48">
+                        {item.children?.map((child, idx) => {
+                          const isActive = location.pathname.startsWith(
+                            child.path
+                          );
+                          return (
+                            <Link
+                              key={idx}
+                              to={child.path}
+                              className={`flex items-center gap-3 px-4 py-3 hover:bg-blue-50 text-sm transition-all duration-300 ${isActive
+                                  ? "bg-blue-200 text-blue-600"
+                                  : "text-gray-600"
+                                }`}
+                            >
+                              <span className="text-lg">{child.icon}</span>
+                              {child.label}
+                            </Link>
+                          );
+                        })}
+                        <button
+                          className="px-3 py-1 border border-gray-300 rounded text-xs text-gray-700 hover:bg-gray-100 transition w-fit m-2"
+                          style={{ minWidth: 100 }}
+                          type="button"
+                          onClick={() =>
+                            setOpenDropdowns((prev) => ({
+                              ...prev,
+                              [item.label]: false,
+                            }))
+                          }
+                        >
+                          Sembunyikan
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <Link
                     to={item.path}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${
-                      location.pathname.startsWith(item.path)
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${location.pathname.startsWith(item.path)
                         ? "bg-blue-600 text-white hover:bg-blue-600"
                         : "text-gray-700"
-                    } ${isCollapsed ? "justify-center" : ""}`}
+                      } ${isCollapsed ? "justify-center" : ""}`}
                   >
                     <span className="text-lg">{item.icon}</span>
                     {!isCollapsed && item.label}
                   </Link>
                 )}
-              </>
+              </div>
             ) : (
               <div>
-                <p className={`text-xs font-bold uppercase mb-2 ${isCollapsed ? "text-gray-400 text-center text-[10px]" : "text-gray-400"}`}>
+                <p
+                  className={`text-xs font-bold uppercase mb-2 transition-all duration-300 ${isCollapsed
+                      ? "text-gray-400 text-center text-[10px]"
+                      : "text-gray-400"
+                    }`}
+                >
                   {item.label}
                 </p>
                 <ul className="space-y-1">
-                  {(item.children || [item]).map((child: any, idx: number) => {
+                  {(item.children || [item]).map((child, idx) => {
                     const isActive = location.pathname.startsWith(child.path);
                     return (
                       <li key={idx}>
                         <Link
                           to={child.path}
-                          className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${
-                            isActive ? "bg-blue-600 text-white hover:bg-blue-600" : "text-gray-700"
-                          } ${isCollapsed ? "justify-center" : ""}`}
+                          className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${isActive
+                              ? "bg-blue-600 text-white hover:bg-blue-600"
+                              : "text-gray-700"
+                            } ${isCollapsed ? "justify-center" : ""}`}
                         >
                           <span className="text-lg">{child.icon}</span>
                           {!isCollapsed && child.label}
