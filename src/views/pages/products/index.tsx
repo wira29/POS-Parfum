@@ -28,11 +28,11 @@ export const ProductIndex = () => {
   const [showFilter, setShowFilter] = useState(false);
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [variantPage, setVariantPage] = useState<Record<string, number>>({});
   const pageSize = 5;
   const variantPageSize = 5;
 
-  // Filter states
   const [categoryFilter, setCategoryFilter] = useState("");
   const [stockMin, setStockMin] = useState("");
   const [stockMax, setStockMax] = useState("");
@@ -58,6 +58,7 @@ export const ProductIndex = () => {
 
   useEffect(() => {
     fetchCategories();
+    fetchData(1);
   }, []);
 
   useEffect(() => {
@@ -74,8 +75,11 @@ export const ProductIndex = () => {
     }
   };
 
-  const getUnitCode = (variants: any[]) => {
-    return variants.find((v) => !!v.unit_code)?.unit_code || "G";
+  const getUnitCode = (product: any, variant?: any) => {
+    if (variant?.unit_code) return variant.unit_code;
+    if (product.product_detail?.[0]?.unit_code) return product.product_detail[0].unit_code;
+    if (product.unit_code) return product.unit_code;
+    return "G";
   };
 
   const downloadExampleFile = async () => {
@@ -83,32 +87,25 @@ export const ProductIndex = () => {
       const response = await api.get("/product/download-example", {
         responseType: 'blob',
       });
-
       const blob = new Blob([response.data], { type: response.headers['content-type'] });
-
       const contentDisposition = response.headers['content-disposition'];
       let filename = 'product-import-example.xlsx';
-
       if (contentDisposition) {
         const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
         if (filenameMatch && filenameMatch[1]) {
           filename = filenameMatch[1];
         }
       }
-
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', filename);
       document.body.appendChild(link);
       link.click();
-
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-
       Toaster("success", "Example file downloaded successfully");
     } catch (error) {
-      console.error("Download error:", error);
       Toaster("error", "Failed to download example file");
     }
   };
@@ -130,14 +127,22 @@ export const ProductIndex = () => {
       });
 
       const res = await api.get(`/products?${query.toString()}`);
-      const pagination = res.data.pagination;
+      const responseData = res.data.data || [];
+      const paginationData = res.data.pagination || {
+        total: 0,
+        per_page: pageSize,
+        current_page: pageNumber,
+        last_page: 1,
+        from: 1,
+        to: 1
+      };
 
-      const newProducts = res.data.data;
-      setProducts(newProducts);
-      setPage(pagination.current_page);
-      setLastPage(pagination.last_page);
+      setProducts(responseData);
+      setPage(paginationData.current_page);
+      setLastPage(paginationData.last_page);
+      setTotalItems(paginationData.total);
 
-      const allVariants = newProducts.flatMap((product: any) => getVariants(product));
+      const allVariants = responseData.flatMap((product: any) => getVariants(product));
       const salesValues = allVariants.map((v) => v.penjualan || 0);
       const minSales = salesValues.length ? Math.min(...salesValues) : 0;
       const maxSales = salesValues.length ? Math.max(...salesValues) : 0;
@@ -161,20 +166,20 @@ export const ProductIndex = () => {
         category: detail.category || product.category || { name: "Umum" },
         penjualan: 0,
         image: product.image,
-        unit_code: detail.unit_code ?? "G",
+        unit_code: detail.unit_code || product.unit_code || "G"
       }));
     }
 
     return (product.product_detail || []).map((detail: any) => ({
       id: detail.id,
-      name: detail.variant_name || detail.material || "Varian",
-      code: detail.product_code || detail.product_varian_id?.slice(0, 8),
+      name: detail.variant_name || product.name || "Varian",
+      code: detail.product_code || "-",
       stock: detail.stock ?? 0,
       price: detail.price ?? 0,
       category: detail.category || product.category || { name: "Umum" },
       penjualan: detail.transaction_details_count || 0,
       image: detail.product_image || product.image,
-      unit_code: detail.unit_code ?? "G",
+      unit_code: detail.unit_code || product.unit_code || "G",
     }));
   };
 
@@ -249,32 +254,32 @@ export const ProductIndex = () => {
   const handleImport = async () => {
     try {
       setLoading(true);
-
       if (!importFile) {
         Toaster("error", "Please select a file to import");
         return;
       }
-
       const formData = new FormData();
       formData.append("file", importFile);
-
       await api.post("/product/import", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-
       Toaster("success", "Products imported successfully");
       setShowImportModal(false);
       fetchData(page);
     } catch (error) {
       Toaster("error", "Failed to import products");
-      console.error("Import error:", error);
     } finally {
       setLoading(false);
       setImportFile(null);
       setImportUrl("");
     }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    fetchData(newPage);
   };
 
   return (
@@ -284,9 +289,7 @@ export const ProductIndex = () => {
         <div className="flex flex-col sm:flex-row gap-3">
           <SearchInput
             value={searchQuery}
-            onChange={(val) => {
-              setSearchQuery(val);
-            }}
+            onChange={(val) => setSearchQuery(val)}
             placeholder="Cari produk..."
           />
           <div className="relative">
@@ -330,9 +333,7 @@ export const ProductIndex = () => {
               products.map((product) => {
                 const variants = getVariants(product);
                 const singleVariant = !product.is_bundling && product.product_detail?.length === 1 ? variants[0] : null;
-                const productCode = singleVariant
-                  ? singleVariant.code || product.id
-                  : "-";
+                const productCode = singleVariant ? singleVariant.code || product.id : "-";
                 return (
                   <React.Fragment key={product.id}>
                     <tr className="hover:bg-gray-50">
@@ -340,15 +341,13 @@ export const ProductIndex = () => {
                         <img src={ImageHelper(product.image)} alt={product.name} className="w-14 h-14 rounded-md object-cover" />
                         <div>
                           <div className="font-semibold">{product.name}</div>
-                          {singleVariant ? (
-                            <div className="text-gray-500 text-xs">Kode Product: {productCode || "-"}</div>
-                          ) : (
-                            <div></div>
+                          {singleVariant && (
+                            <div className="text-gray-500 text-xs">Kode Product: {productCode}</div>
                           )}
                         </div>
                       </td>
-                      <td className="p-4 align-top">{product.category ?? "-"}</td>
-                      <td className="p-4 align-top">{singleVariant ? singleVariant.penjualan : (product.sales ?? 0)}</td>
+                      <td className="p-4 align-top">{product.category?.name ?? "-"}</td>
+                      <td className="p-4 align-top">{singleVariant ? singleVariant.penjualan : (product.sum_purchase ?? 0)}</td>
                       <td className="p-4 align-top">
                         {product.is_bundling
                           ? `Rp ${product.bundling_price?.toLocaleString("id-ID")}`
@@ -366,22 +365,18 @@ export const ProductIndex = () => {
                       </td>
                       <td className="p-4 align-top">
                         {product.is_bundling
-                          ? `${variants.reduce((sum, v) => sum + v.stock, 0)} ${getUnitCode(variants)}`
+                          ? `${variants.reduce((sum, v) => sum + v.stock, 0)} ${getUnitCode(product)}`
                           : singleVariant
-                            ? `${singleVariant.stock} ${getUnitCode(variants)}`
-                            : `${variants.reduce((sum, v) => sum + v.stock, 0)} ${getUnitCode(variants)}`
+                            ? `${singleVariant.stock} ${getUnitCode(product, singleVariant)}`
+                            : `${variants.reduce((sum, v) => sum + v.stock, 0)} ${getUnitCode(product, variants[0])}`
                         }
                       </td>
                       <td className="p-4 align-top">
                         <div className="flex gap-2 items-center">
                           <ViewIcon to={product.is_bundling ? `/bundlings/${product.id}/detail` : `/products/${product.id}`} />
                           <IsRole role={["warehouse", "outlet"]}>
-                            {!product.is_bundling && (
-                              <EditIcon to={`/products/${product.id}/edit`} />
-                            )}
-                            {!product.is_bundling && (
-                              <DeleteIcon onClick={confirmDelete(product.id)} />
-                            )}
+                            {!product.is_bundling && <EditIcon to={`/products/${product.id}/edit`} />}
+                            {!product.is_bundling && <DeleteIcon onClick={confirmDelete(product.id)} />}
                           </IsRole>
                         </div>
                       </td>
@@ -437,7 +432,7 @@ export const ProductIndex = () => {
                                           <div className="font-medium">{variant.name}</div>
                                           <div className="text-xs text-gray-500">Kode Varian: {variant.code}</div>
                                         </div>
-                                        <div>{variant.category ?? "-"}</div>
+                                        <div>{variant.category?.name ?? "-"}</div>
                                         <div>{variant.penjualan}</div>
                                         <div>Rp {variant.price.toLocaleString("id-ID")}</div>
                                         <div>{variant.stock} {variant.unit_code}</div>
@@ -470,7 +465,13 @@ export const ProductIndex = () => {
       </div>
 
       {lastPage > 1 && (
-        <Pagination currentPage={page} totalPages={lastPage} onPageChange={setPage} />
+        <Pagination 
+          currentPage={page} 
+          totalPages={lastPage} 
+          totalItems={totalItems}
+          itemsPerPage={pageSize}
+          onPageChange={handlePageChange} 
+        />
       )}
 
       <FilterModal
@@ -506,10 +507,11 @@ export const ProductIndex = () => {
       />
 
       {showImportModal && (
-        <div className="fixed inset-0 bg-black flex items-center justify-center p-4 z-50" style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
             <div className="p-6">
-              <div className="flex justify-end items-center mb-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Import Products</h3>
                 <button
                   onClick={() => {
                     setShowImportModal(false);

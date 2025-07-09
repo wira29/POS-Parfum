@@ -162,11 +162,11 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
           <img
             src={
               isCollapsed
-                ? "../../../../public/images/logos/logo-mini-new.png"
-                : "../../../../public/images/logos/logo-new.png"
+                ? "https://core-parfum.mijurnal.com/logo-new.png"
+                : "https://core-parfum.mijurnal.com/logo-new.png"
             }
             alt="Logo"
-            className={`transition-all duration-300 ${isCollapsed ? "w-16 h-11" : "w-full h-12"}`}
+            className={`transition-all duration-300 ${isCollapsed ? "w-18 h-9" : "w-full h-12"}`}
           />
         </div>
       </div>

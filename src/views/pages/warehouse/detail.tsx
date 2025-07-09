@@ -13,21 +13,29 @@ export default function WarehouseDetail() {
   const [warehouse, setWarehouse] = useState<any>(null);
   const [stocks, setStocks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [meta, setMeta] = useState<any>({});
-  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    lastPage: 1,
+    links: [],
+    perPage: 5,
+    total: 0
+  });
 
   useEffect(() => {
     const fetchWarehouseDetail = async () => {
       setLoading(true);
       try {
-        const response = await apiClient.get(`/warehouses/${id}?page=${currentPage}`);
+        const response = await apiClient.get(`/warehouses/${id}?page=${pagination.currentPage}`);
         const data = response.data?.data;
         setWarehouse(data?.warehouse || null);
         setStocks(Array.isArray(data?.product_stocks?.data) ? data.product_stocks.data : []);
-        setMeta({
-          currentPage: data?.product_stocks?.current_page,
-          lastPage: data?.product_stocks?.last_page,
-          links: data?.product_stocks?.links,
+        
+        setPagination({
+          currentPage: data?.product_stocks?.current_page || 1,
+          lastPage: data?.product_stocks?.last_page || 1,
+          links: data?.product_stocks?.links || [],
+          perPage: data?.product_stocks?.per_page || 5,
+          total: data?.product_stocks?.total || 0
         });
       } catch (error) {
         console.error("Failed to fetch warehouse detail:", error);
@@ -37,12 +45,16 @@ export default function WarehouseDetail() {
     };
 
     fetchWarehouseDetail();
-  }, [id, currentPage]);
+  }, [id, pagination.currentPage]);
 
   if (loading) return <div className="p-6">Loading...</div>;
   if (!warehouse) return <div className="p-6">Warehouse tidak ditemukan</div>;
 
   const pemilik = warehouse.users?.[0];
+
+  const handlePageChange = (page: number) => {
+    setPagination(prev => ({ ...prev, currentPage: page }));
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -162,36 +174,45 @@ export default function WarehouseDetail() {
           </table>
         </div>
 
-        {/* Pagination */}
-        {meta.lastPage > 1 && (
-          <div className="flex justify-end mt-6 flex-wrap gap-2">
-            {meta.links?.map((link: any, index: number) => {
-              let label = link.label;
-              if (label.includes("Previous")) label = "← Prev";
-              else if (label.includes("Next")) label = "Next →";
-              else label = label.replace(/(<([^>]+)>)/gi, ""); // Remove HTML tags if any
-
-              return (
+        {pagination.lastPage > 1 && (
+          <div className="flex justify-between items-center mt-6 flex-wrap gap-2">
+            <div className="text-sm text-gray-600">
+              Showing {((pagination.currentPage - 1) * pagination.perPage) + 1} to{' '}
+              {Math.min(pagination.currentPage * pagination.perPage, pagination.total)} of{' '}
+              {pagination.total} entries
+            </div>
+            
+            <div className="flex gap-2">
+              <button
+                onClick={() => handlePageChange(pagination.currentPage - 1)}
+                disabled={pagination.currentPage === 1}
+                className="px-3 py-1 text-sm rounded-md border bg-white text-gray-700 border-gray-300 hover:bg-gray-100 disabled:opacity-50"
+              >
+                Previous
+              </button>
+              
+              {Array.from({ length: pagination.lastPage }, (_, i) => i + 1).map(page => (
                 <button
-                  key={index}
-                  onClick={() => {
-                    if (link.url) {
-                      const url = new URL(link.url);
-                      const page = url.searchParams.get("page");
-                      if (page) setCurrentPage(Number(page));
-                    }
-                  }}
-                  disabled={!link.url}
+                  key={page}
+                  onClick={() => handlePageChange(page)}
                   className={`px-3 py-1 text-sm rounded-md border min-w-[40px] text-center ${
-                    link.active
+                    page === pagination.currentPage
                       ? "bg-blue-600 text-white border-blue-600"
-                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100 disabled:opacity-50"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
                   }`}
                 >
-                  {label}
+                  {page}
                 </button>
-              );
-            })}
+              ))}
+              
+              <button
+                onClick={() => handlePageChange(pagination.currentPage + 1)}
+                disabled={pagination.currentPage === pagination.lastPage}
+                className="px-3 py-1 text-sm rounded-md border bg-white text-gray-700 border-gray-300 hover:bg-gray-100 disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
           </div>
         )}
       </div>

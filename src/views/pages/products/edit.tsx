@@ -274,31 +274,13 @@ export const ProductEdit = () => {
                     return;
                 }
 
-                const variantGroups = {};
+                const hasVariants = details.some(detail => detail.variant_name);
 
-                details.forEach((detail) => {
-                    if (!detail.variant_name) {
-                        setProductCode(detail.product_code || "");
-                        setPrice(detail.price || 0);
-                        setStock(detail.stock || "0");
-                        return;
-                    }
-
-                    const split = detail.variant_name.split("-");
-                    const mainName = split[0]?.trim() || "Varian";
-                    const option = split[1]?.trim() || detail.variant_name;
-
-                    if (!variantGroups[mainName]) {
-                        variantGroups[mainName] = [];
-                    }
-
-                    variantGroups[mainName].push({
-                        ...detail,
-                        optionName: option,
-                    });
-                });
-
-                if (Object.keys(variantGroups).length === 0) {
+                if (!hasVariants) {
+                    const mainDetail = details[0];
+                    setProductCode(mainDetail.product_code || "");
+                    setPrice(mainDetail.price || 0);
+                    setStock(mainDetail.stock || "0");
                     setVariations([]);
                     setVariantMatrix([]);
                     setVariantImages([]);
@@ -306,35 +288,55 @@ export const ProductEdit = () => {
                     return;
                 }
 
+                const variantGroups = {};
+
+                details.forEach((detail) => {
+                    if (!detail.variant_name) return;
+
+                    const split = detail.variant_name.split("-");
+                    const mainName = split[0]?.trim() || "Varian";
+                    const option = split[1]?.trim() || detail.variant_name;
+
+                    if (!variantGroups[mainName]) {
+                        variantGroups[mainName] = {
+                            options: [],
+                            prices: [],
+                            stocks: [],
+                            codes: [],
+                            units: [],
+                            images: []
+                        };
+                    }
+
+                    variantGroups[mainName].options.push(option);
+                    variantGroups[mainName].prices.push(String(detail.price || ""));
+                    variantGroups[mainName].stocks.push(String(detail.stock || ""));
+                    variantGroups[mainName].codes.push(detail.product_code || "");
+                    variantGroups[mainName].units.push(String(detail.unit_id || ""));
+                    variantGroups[mainName].images.push(detail.product_image || "");
+                });
+
                 const newVariations = [];
                 const newVariantMatrix = [];
                 const newVariantImages = [];
                 const newVariantUnits = [];
 
                 Object.entries(variantGroups).forEach(([mainName, group]) => {
-                    const options = group.map((g) => g.optionName || "");
-
                     newVariations.push({
                         name: mainName,
-                        options,
+                        options: group.options
                     });
-
-                    const prices = group.map((g) => String(g.price || ""));
-                    const stocks = group.map((g) => String(g.stock || ""));
-                    const codes = group.map((g) => g.product_code || "");
-                    const volumes = options;
-                    const units = group.map((g) => String(g.unit_id || ""));
 
                     newVariantMatrix.push({
                         aroma: mainName,
-                        prices,
-                        stocks,
-                        codes,
-                        volumes,
+                        prices: group.prices,
+                        stocks: group.stocks,
+                        codes: group.codes,
+                        volumes: group.options
                     });
 
-                    newVariantImages.push(group.map((g) => g.product_image || ""));
-                    newVariantUnits.push(units);
+                    newVariantImages.push(group.images);
+                    newVariantUnits.push(group.units);
                 });
 
                 setVariations(newVariations);
@@ -362,7 +364,7 @@ export const ProductEdit = () => {
                     if (allSameCode) setGlobalCode(firstCode);
                 }
             } catch (error) {
-                console.error("❌ Error fetchProduct", error);
+                console.error("Error fetchProduct", error);
                 Toaster("error", "Gagal memuat data produk");
             } finally {
                 setLoading(false);

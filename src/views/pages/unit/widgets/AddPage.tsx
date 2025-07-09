@@ -19,7 +19,7 @@ export default function AddUnitModal({ open, onClose, onSuccess }) {
 
     try {
       await ApiClient.post("/unit", { name, code });
-      Toast("success", "Berhasil membjuat data unit");
+      Toaster("success", "Berhasil membjuat data unit");
       setName("");
       setCode("");
       onSuccess();
