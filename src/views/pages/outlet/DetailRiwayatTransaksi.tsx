@@ -41,24 +41,24 @@ export const DetailRiwayatTransaksi = () => {
           <div className="flex justify-between gap-4 mt-10 mb-6">
             <div>
               <h3 className="font-semibold text-gray-700 mb-2">
-                Nama Penjual:
+                Nama Pembeli:
               </h3>
               <p className="text-gray-600 text-sm">
-                {data?.buyer_name ?? '-'},
+                {data?.buyer_name ?? '-'}
+                {/* <br />
+                -,
                 <br />
-                Jl27 Braded2780910 Jl Sobo Pihak Pno42 Sukemaharja,
-                <br />
-                Kabupaten, Kab Malang
+                - */}
               </p>
             </div>
             <div>
               <h3 className="font-semibold text-gray-700 mb-2">
-                Nama Pembeli:
+                Nama Kasir:
               </h3>
               <p className="text-gray-600 text-sm">
-                {data?.kasir_name},
-                <br />
-                Kd Sisx45678910
+                {data?.kasir_name}
+                {/* <br />
+                Kd Sisx45678910 */}
               </p>
             </div>
           </div>
@@ -124,14 +124,14 @@ export const DetailRiwayatTransaksi = () => {
             <div className="flex justify-end">
               <div className="w-full sm:w-80">
                 <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
+                  {/* <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Subtotal Transaksi</span>
                     <span className="font-medium">
                       Rp {formatNum(data?.details.reduce((acc, item) => acc + item.price, 0) as number, true)}
                     </span>
-                  </div>
+                  </div> */}
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Harga Barang</span>
+                    <span className="text-gray-600">Sub Total</span>
                     <span className="font-medium">
                       Rp {formatNum(data?.total_barang ?? 0, true)}
                     </span>
@@ -174,16 +174,16 @@ export const DetailRiwayatTransaksi = () => {
               <div>
                 <h3 className="font-medium text-gray-600 mb-2">Detail:</h3>
                 <p className="text-3xl font-bold text-gray-900">
-                  Rp {formatNum(data?.details.reduce((acc, item) => acc + item.total_price, 0) as number, true)}
+                  Rp {formatNum(data?.total_price as number, true)}
                 </p>
               </div>
-              <div>
+              {/* <div>
                 <select className="text-sm border cursor-pointer border-gray-300 rounded-lg px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option>Dibayar</option>
                   <option>Pending</option>
                   <option>Gagal</option>
                 </select>
-              </div>
+              </div> */}
             </div>
 
             <div className="space-y-4 mb-6">
@@ -219,13 +219,13 @@ export const DetailRiwayatTransaksi = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-700">
-                    Dibayar Dengan {data?.payment_method ?? '-'}
+                    Dibayar Dengan {data?.payment_method.toUpperCase() ?? '-'}
                   </p>
                 </div>
               </div>
             </div>
 
-            <hr className="border-gray-200 mb-6" />
+            {/* <hr className="border-gray-200 mb-6" />
 
             <div className="space-y-4">
               <div className="flex items-center gap-3">
@@ -288,7 +288,7 @@ export const DetailRiwayatTransaksi = () => {
               className="text-blue-600 cursor-pointer text-sm font-medium hover:text-blue-700 transition-colors"
             >
               {open ? "Lebih Sedikit" : "Selengkapnya"}
-            </button>
+            </button> */}
           </div>
         </Card>
       </div>
