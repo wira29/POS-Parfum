@@ -162,8 +162,8 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
           <img
             src={
               isCollapsed
-                ? "https://core-parfum.mijurnal.com/logo-new.png"
-                : "https://core-parfum.mijurnal.com/logo-new.png"
+                ? import.meta.env.VITE_BASE_SERVER+"logo-new.png"
+                : import.meta.env.VITE_BASE_SERVER+"logo-new.png"
             }
             alt="Logo"
             className={`transition-all duration-300 ${isCollapsed ? "w-18 h-9" : "w-full h-12"}`}
