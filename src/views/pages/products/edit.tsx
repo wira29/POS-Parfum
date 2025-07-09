@@ -38,7 +38,7 @@ export const ProductEdit = () => {
     const [selectedCategoryName, setSelectedCategoryName] = useState("");
     const [isParfumCategory, setIsParfumCategory] = useState(false);
     const [conversionGram, setConversionGram] = useState("");
-    const [conversionMl, setConversionMl] = useState("");
+    const [conversionMg, setConversionMg] = useState("");
     const [density, setDensity] = useState("");
 
     const selectedUnitData = units.find((u) => u.id === selectedUnit);
@@ -189,15 +189,15 @@ export const ProductEdit = () => {
     useEffect(() => {
         if (isParfumCategory) {
             const gram = parseFloat(selectedUnitCode === "G" ? 1 : conversionGram);
-            const ml = parseFloat(selectedUnitCode === "ML" ? 1 : conversionMl);
+            const mg = parseFloat(selectedUnitCode === "MG" ? 1 : conversionMg);
 
-            if (!isNaN(gram) && !isNaN(ml) && ml !== 0) {
-                setDensity((gram / ml).toFixed(2));
+            if (!isNaN(gram) && !isNaN(mg) && mg !== 0) {
+                setDensity((gram / mg).toFixed(2));
             } else {
                 setDensity("");
             }
         }
-    }, [conversionGram, conversionMl, selectedUnitCode, isParfumCategory]);
+    }, [conversionGram, conversionMg, selectedUnitCode, isParfumCategory]);
 
     const handleQuantityChange = (e) => {
         const value = e.target.value;
@@ -209,6 +209,21 @@ export const ProductEdit = () => {
 
         setStock(value);
     };
+
+    useEffect(() => {
+        if (variations.length === 0) return setVariantMatrix([]);
+        const matrix = variations.map((variation, i) => {
+            const filteredOptions = (variation.options || []).filter(opt => opt && opt.trim() !== "");
+            return {
+                aroma: variation.name || `Varian ${i + 1}`,
+                prices: [variantMatrix?.[i]?.prices?.[0] || ""],
+                stocks: [variantMatrix?.[i]?.stocks?.[0] || ""],
+                codes: [variantMatrix?.[i]?.codes?.[0] || ""],
+                ...(filteredOptions.length > 0 ? { volumes: filteredOptions } : {})
+            };
+        });
+        setVariantMatrix(matrix);
+    }, [variations]);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -355,6 +370,8 @@ export const ProductEdit = () => {
             return;
         }
 
+        setLoading(true);
+
         const formData = new FormData();
         formData.append("name", productName);
 
@@ -374,12 +391,14 @@ export const ProductEdit = () => {
             if (!price || isNaN(price)) {
                 setErrors({ message: ["Harga produk wajib diisi"] });
                 Toaster("error", "Harga produk wajib diisi");
+                setLoading(false);
                 return;
             }
 
             if (stock === "" || isNaN(stock) || Number(stock) < 0) {
                 setErrors({ message: ["Stok produk tidak boleh kosong atau negatif"] });
                 Toaster("error", "Stok produk tidak valid");
+                setLoading(false);
                 return;
             }
 
@@ -402,34 +421,51 @@ export const ProductEdit = () => {
             let hasVariantError = false;
 
             variantMatrix.forEach((variant, i) => {
-                const options = variant.volumes?.filter(Boolean) || [null];
+                const options = variant.volumes?.filter(Boolean) || [];
 
-                options.forEach((option, j) => {
-                    const variantPrice = Number(variant.prices?.[j]) || 0;
-                    const variantStock = Number(variant.stocks?.[j]) || 0;
+                if (!variant.volumes || options.length === 0) {
+                    const variantPrice = Number(variant.prices?.[0]) || 0;
+                    const variantStock = Number(variant.stocks?.[0]) || 0;
 
                     if (variantPrice <= 0) {
                         hasVariantError = true;
-                        setErrors({ message: [`Harga untuk varian ${variant.aroma} ${option || ""} tidak valid`] });
+                        setErrors({ message: [`Harga untuk varian ${variant.aroma} tidak valid`] });
                     }
 
                     if (variantStock < 0) {
                         hasVariantError = true;
-                        setErrors({ message: [`Stok untuk varian ${variant.aroma} ${option || ""} tidak valid`] });
+                        setErrors({ message: [`Stok untuk varian ${variant.aroma} tidak valid`] });
                     }
-                });
+                } else {
+                    options.forEach((option, j) => {
+                        const variantPrice = Number(variant.prices?.[j]) || 0;
+                        const variantStock = Number(variant.stocks?.[j]) || 0;
+
+                        if (variantPrice <= 0) {
+                            hasVariantError = true;
+                            setErrors({ message: [`Harga untuk varian ${variant.aroma} ${option || ""} tidak valid`] });
+                        }
+
+                        if (variantStock < 0) {
+                            hasVariantError = true;
+                            setErrors({ message: [`Stok untuk varian ${variant.aroma} ${option || ""} tidak valid`] });
+                        }
+                    });
+                }
             });
 
             if (hasVariantError) {
                 Toaster("error", "Validasi varian gagal");
+                setLoading(false);
                 return;
             }
 
+            // Only send file if it's a File, not a string/path
             const aromaImageMap = {};
             variantMatrix.forEach((variant, i) => {
                 const aroma = variant.aroma;
                 const image = variantImages[i]?.[0];
-                if (aroma && image && !aromaImageMap[aroma]) {
+                if (aroma && image && typeof image !== "string" && !aromaImageMap[aroma]) {
                     aromaImageMap[aroma] = image;
                 }
             });
@@ -437,29 +473,51 @@ export const ProductEdit = () => {
             let detailIdx = 0;
             variantMatrix.forEach((variant, i) => {
                 const aroma = variant.aroma || `Varian ${i + 1}`;
-                const options = variant.volumes?.filter(Boolean) || [null];
+                const options = variant.volumes?.filter(Boolean) || [];
 
-                options.forEach((option, j) => {
+                if (!variant.volumes || options.length === 0) {
                     formData.append(`product_details[${detailIdx}][category_id]`, category);
                     formData.append(`product_details[${detailIdx}][variant]`, aroma);
-                    formData.append(`product_details[${detailIdx}][opsi]`, option || "");
-                    formData.append(`product_details[${detailIdx}][stock]`, variant.stocks?.[j] || "0");
-                    formData.append(`product_details[${detailIdx}][price]`, variant.prices?.[j] || "0");
-                    formData.append(`product_details[${detailIdx}][product_code]`, variant.codes?.[j] || "");
-                    formData.append(`product_details[${detailIdx}][unit_id]`, variantUnits[i]?.[j] || selectedUnit);
+                    formData.append(`product_details[${detailIdx}][opsi]`, "");
+                    formData.append(`product_details[${detailIdx}][stock]`, variant.stocks?.[0] || "0");
+                    formData.append(`product_details[${detailIdx}][price]`, variant.prices?.[0] || "0");
+                    formData.append(`product_details[${detailIdx}][product_code]`, variant.codes?.[0] || "");
+                    formData.append(`product_details[${detailIdx}][unit_id]`, variantUnits[i]?.[0] || selectedUnit);
 
                     if (density) {
                         formData.append(`product_details[${detailIdx}][density]`, density);
                     }
 
                     const imageToUse = aromaImageMap[aroma];
-                    if (imageToUse instanceof File) {
+                    if (imageToUse && typeof imageToUse !== "string") {
                         formData.append(`product_details[${detailIdx}][product_image]`, imageToUse);
                     }
 
                     detailIdx++;
-                });
+                } else {
+                    options.forEach((option, j) => {
+                        formData.append(`product_details[${detailIdx}][category_id]`, category);
+                        formData.append(`product_details[${detailIdx}][variant]`, aroma);
+                        formData.append(`product_details[${detailIdx}][opsi]`, option || "");
+                        formData.append(`product_details[${detailIdx}][stock]`, variant.stocks?.[j] || "0");
+                        formData.append(`product_details[${detailIdx}][price]`, variant.prices?.[j] || "0");
+                        formData.append(`product_details[${detailIdx}][product_code]`, variant.codes?.[j] || "");
+                        formData.append(`product_details[${detailIdx}][unit_id]`, variantUnits[i]?.[j] || selectedUnit);
+
+                        if (density) {
+                            formData.append(`product_details[${detailIdx}][density]`, density);
+                        }
+
+                        const imageToUse = aromaImageMap[aroma];
+                        if (imageToUse && typeof imageToUse !== "string") {
+                            formData.append(`product_details[${detailIdx}][product_image]`, imageToUse);
+                        }
+
+                        detailIdx++;
+                    });
+                }
             });
+
         }
 
         try {
@@ -479,6 +537,8 @@ export const ProductEdit = () => {
             } else {
                 Toaster("error", "Terjadi kesalahan saat mengupdate produk.");
             }
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -620,7 +680,7 @@ export const ProductEdit = () => {
                                 <div className="relative w-full">
                                     <input
                                         type="number"
-                                        value={selectedUnitCode === "G" ? 1 : density}
+                                        value={selectedUnitCode === "G" ? 1 : conversionGram}
                                         readOnly={selectedUnitCode === "G"}
                                         onChange={(e) => setConversionGram(e.target.value)}
                                         placeholder="1"
@@ -636,20 +696,20 @@ export const ProductEdit = () => {
                                 <div className="relative w-full">
                                     <input
                                         type="number"
-                                        value={selectedUnitCode === "ML" ? 1 : density}
-                                        readOnly={selectedUnitCode === "ML"}
-                                        onChange={(e) => setConversionMl(e.target.value)}
+                                        value={selectedUnitCode === "MG" ? 1 : conversionMg}
+                                        readOnly={selectedUnitCode === "MG"}
+                                        onChange={(e) => setConversionMg(e.target.value)}
                                         placeholder="10"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none"
                                     />
                                     <div className="absolute inset-y-0 right-0 w-16 bg-gray-100 border-l border-gray-300 rounded-r-lg px-2 flex items-center justify-center">
-                                        ML
+                                        MG
                                     </div>
                                 </div>
                             </div>
                             {density && (
                                 <div className="mt-2 text-sm text-gray-600">
-                                    Density: {density} g/ml
+                                    Density: {density} g/mg
                                 </div>
                             )}
                         </div>
@@ -762,7 +822,7 @@ export const ProductEdit = () => {
                                     ).map((option, j) => (
                                         <div key={`${i}-${j}`} className="grid grid-cols-5 items-start bg-white border-b border-gray-100">
                                             {j === 0 ? (
-                                                <div className="p-3" rowSpan={variant.volumes.length}>
+                                                <div className="p-3" rowSpan={variant.volumes?.length || 1}>
                                                     <p className="font-medium mb-2">{variant.aroma}</p>
                                                     <InputOneImage
                                                         images={variantImages[i]?.[0] ? [variantImages[i][0]] : []}
@@ -827,8 +887,21 @@ export const ProductEdit = () => {
                     </div>
 
                     <div className="flex justify-end gap-4">
-                        <button type="button" onClick={() => navigate("/products")} className="border border-gray-300 rounded-lg px-4 py-2 cursor-pointer">Kembali</button>
-                        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer">Simpan</button>
+                        <button
+                            type="button"
+                            onClick={() => navigate("/products")}
+                            className="border border-gray-300 rounded-lg px-4 py-2 cursor-pointer"
+                            disabled={loading}
+                        >
+                            Kembali
+                        </button>
+                        <button
+                            type="submit"
+                            className="bg-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer"
+                            disabled={loading}
+                        >
+                            {loading ? "Loading..." : "Simpan"}
+                        </button>
                     </div>
                 </div>
 

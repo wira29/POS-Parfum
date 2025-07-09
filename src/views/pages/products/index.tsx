@@ -22,6 +22,7 @@ export const ProductIndex = () => {
   const [categoryOptions, setCategoryOptions] = useState<{ id: number; name: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
   const [expandedProducts, setExpandedProducts] = useState<string[]>([]);
   const expandRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [showFilter, setShowFilter] = useState(false);
@@ -50,12 +51,19 @@ export const ProductIndex = () => {
   const [salesRange, setSalesRange] = useState<{ min: number; max: number }>({ min: 0, max: 0 });
 
   useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  useEffect(() => {
     fetchCategories();
   }, []);
 
   useEffect(() => {
     fetchData(page);
-  }, [page, search, categoryFilter, stockMin, stockMax, priceMin, priceMax, salesMin, salesMax]);
+  }, [page, debouncedSearch, categoryFilter, stockMin, stockMax, priceMin, priceMax, salesMin, salesMax]);
 
   const fetchCategories = async () => {
     try {
@@ -76,7 +84,7 @@ export const ProductIndex = () => {
       const query = new URLSearchParams({
         page: page.toString(),
         per_page: pageSize.toString(),
-        search,
+        search: debouncedSearch,
         category: categoryFilter,
         min_stock: stockMin,
         max_stock: stockMax,
@@ -231,6 +239,10 @@ export const ProductIndex = () => {
               products.map((product) => {
                 const variants = getVariants(product);
                 const singleVariant = !product.is_bundling && product.product_detail?.length === 1 ? variants[0] : null;
+                const productCode = singleVariant
+                  ? singleVariant.code || product.id
+                  : "-";
+                  console.log("Product Code:", singleVariant);
                 return (
                   <React.Fragment key={product.id}>
                     <tr className="hover:bg-gray-50">
@@ -238,7 +250,7 @@ export const ProductIndex = () => {
                         <img src={ImageHelper(product.image)} alt={product.name} className="w-14 h-14 rounded-md object-cover" />
                         <div>
                           <div className="font-semibold">{product.name}</div>
-                          <div className="text-gray-500 text-xs">ID Produk: {product.code || "-"}</div>
+                          <div className="text-gray-500 text-xs">ID Produk: {productCode || "-"}</div>
                         </div>
                       </td>
                       <td className="p-4 align-top">{product.category ?? "-"}</td>
@@ -267,11 +279,13 @@ export const ProductIndex = () => {
                         }
                       </td>
                       <td className="p-4 align-top">
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 items-center">
                           <ViewIcon to={product.is_bundling ? `/bundlings/${product.id}/detail` : `/products/${product.id}`} />
                           <IsRole role={["warehouse", "outlet"]}>
-                            <EditIcon to={`/products/${product.id}/edit`} />
-                            <DeleteIcon onClick={confirmDelete(product.id)} />
+                            <div className="flex gap-2 items-center">
+                              <EditIcon to={`/products/${product.id}/edit`} />
+                              <DeleteIcon onClick={confirmDelete(product.id)} />
+                            </div>
                           </IsRole>
                         </div>
                       </td>
@@ -330,7 +344,7 @@ export const ProductIndex = () => {
                                         <div>{variant.category ?? "-"}</div>
                                         <div>{variant.penjualan}</div>
                                         <div>Rp {variant.price.toLocaleString("id-ID")}</div>
-                                        <div>{variant.stock} G</div>
+                                        <div>{variant.stock} {variant.unit_code}</div>
                                       </div>
                                     ))}
                                     {totalVariantPages > 1 && (
