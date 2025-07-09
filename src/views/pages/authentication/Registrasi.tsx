@@ -3,9 +3,10 @@ import { useNavigate, Link } from "react-router-dom";
 import { z } from "zod";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { useAuthStore } from "@/core/stores/AuthStore";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import { setToken } from "@/core/helpers/TokenHandle";
 import { Eye, EyeOff } from "lucide-react";
+import { Toaster } from "@/core/helpers/BaseAlert";
 
 const UsernameEmailPasswordSchema = z
   .object({
@@ -135,10 +136,10 @@ export const Register = () => {
         const formattedErrors: { [key: string]: string[] } = {};
         err.errors.forEach(
           (e: { path: string[]; message: string }) =>
-            (formattedErrors[e.path[0]] = [
-              ...(formattedErrors[e.path[0]] || []),
-              e.message,
-            ])
+          (formattedErrors[e.path[0]] = [
+            ...(formattedErrors[e.path[0]] || []),
+            e.message,
+          ])
         );
         setFormErrorMsg(formattedErrors);
 
@@ -161,10 +162,10 @@ export const Register = () => {
         const formattedErrors: { [key: string]: string[] } = {};
         err.errors.forEach(
           (e: { path: string[]; message: string }) =>
-            (formattedErrors[e.path[0]] = [
-              ...(formattedErrors[e.path[0]] || []),
-              e.message,
-            ])
+          (formattedErrors[e.path[0]] = [
+            ...(formattedErrors[e.path[0]] || []),
+            e.message,
+          ])
         );
         setFormErrorMsg(formattedErrors);
 
@@ -208,7 +209,7 @@ export const Register = () => {
       setLoading(false);
 
       if (res.data.success) {
-        toast.success(res.data.message || "Registrasi berhasil");
+        Toaster("success", "Registrasi berhasil");
 
         if (res.data.data && res.data.data.role && res.data.data.token) {
           const role_lists = res.data.data.role.map(
@@ -285,9 +286,8 @@ export const Register = () => {
           {[1, 2, 3].map((stepIndex) => (
             <div
               key={stepIndex}
-              className={`flex-1 h-1 mx-1 rounded ${
-                currentStep > stepIndex ? "bg-[#2d50ff]" : "bg-gray-200"
-              }`}
+              className={`flex-1 h-1 mx-1 rounded ${currentStep > stepIndex ? "bg-[#2d50ff]" : "bg-gray-200"
+                }`}
             />
           ))}
         </div>
@@ -300,18 +300,16 @@ export const Register = () => {
             >
               <div className="text-left">
                 <div
-                  className={`text-sm font-medium ${
-                    currentStep >= step.number
+                  className={`text-sm font-medium ${currentStep >= step.number
                       ? "text-[#2d50ff]"
                       : "text-gray-400"
-                  }`}
+                    }`}
                 >
                   {step.title}
                 </div>
                 <div
-                  className={`text-xs ${
-                    currentStep >= step.number ? "text-gray-700" : "text-black"
-                  }`}
+                  className={`text-xs ${currentStep >= step.number ? "text-gray-700" : "text-black"
+                    }`}
                 >
                   {step.subtitle}
                 </div>
@@ -325,11 +323,10 @@ export const Register = () => {
             type="button"
             onClick={() => setCurrentStep(currentStep - 1)}
             disabled={currentStep === 1}
-            className={`${
-              currentStep === 1
+            className={`${currentStep === 1
                 ? "text-gray-300 cursor-not-allowed"
                 : "text-[#2d50ff] hover:text-blue-700 cursor-pointer"
-            }`}
+              }`}
           >
             Prev
           </button>
@@ -340,11 +337,10 @@ export const Register = () => {
             type="button"
             onClick={() => setCurrentStep(currentStep + 1)}
             disabled={currentStep === 3}
-            className={`${
-              currentStep === 3
+            className={`${currentStep === 3
                 ? "text-gray-300 cursor-not-allowed"
                 : "text-[#2d50ff] hover:text-blue-700 cursor-pointer"
-            }`}
+              }`}
           >
             Next
           </button>
@@ -396,9 +392,8 @@ export const Register = () => {
                 placeholder="Username"
                 value={credentialsData.username}
                 onChange={handleCredentialsChange}
-                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  formErrorMsg.username ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formErrorMsg.username ? "border-red-500" : "border-gray-300"
+                  }`}
                 autoFocus
               />
               {formErrorMsg.username &&
@@ -420,9 +415,8 @@ export const Register = () => {
                 placeholder="Email"
                 value={credentialsData.email}
                 onChange={handleCredentialsChange}
-                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  formErrorMsg.email ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formErrorMsg.email ? "border-red-500" : "border-gray-300"
+                  }`}
               />
               {formErrorMsg.email &&
                 formErrorMsg.email.map((msg, idx) => (
@@ -444,9 +438,8 @@ export const Register = () => {
                 value={credentialsData.password}
                 onChange={handleCredentialsChange}
                 maxLength={8}
-                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  formErrorMsg.password ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formErrorMsg.password ? "border-red-500" : "border-gray-300"
+                  }`}
               />
               <button
                 type="button"
@@ -480,13 +473,12 @@ export const Register = () => {
                 value={credentialsData.confirmPassword}
                 onChange={handleCredentialsChange}
                 maxLength={8}
-                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  formErrorMsg.confirmPassword
+                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formErrorMsg.confirmPassword
                     ? "border-red-500"
                     : "border-gray-300"
-                }`}
+                  }`}
               />
-              
+
               {formErrorMsg.confirmPassword &&
                 formErrorMsg.confirmPassword.map((msg, idx) => (
                   <p key={idx} className="text-red-500 text-xs mt-1">
@@ -622,9 +614,8 @@ export const Register = () => {
                 placeholder="Nama Toko"
                 value={storeData.storeName}
                 onChange={handleStoreChange}
-                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  formErrorMsg.storeName ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formErrorMsg.storeName ? "border-red-500" : "border-gray-300"
+                  }`}
               />
               {formErrorMsg.storeName &&
                 formErrorMsg.storeName.map((msg, idx) => (
@@ -645,11 +636,10 @@ export const Register = () => {
                 value={storeData.storeAddress}
                 onChange={handleStoreChange}
                 rows={3}
-                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  formErrorMsg.storeAddress
+                className={`w-full border rounded-md px-3 py-2 mt-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formErrorMsg.storeAddress
                     ? "border-red-500"
                     : "border-gray-300"
-                }`}
+                  }`}
               />
               {formErrorMsg.storeAddress &&
                 formErrorMsg.storeAddress.map((msg, idx) => (
@@ -779,7 +769,6 @@ export const Register = () => {
 
   return (
     <div className="flex h-screen">
-      <Toaster position="top-right" richColors />
 
       {renderLeftSidebar()}
 
