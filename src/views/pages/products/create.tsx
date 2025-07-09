@@ -47,7 +47,7 @@ export const ProductCreate = () => {
       try {
         const res = await apiClient.get("/unit/no-paginate");
         setUnits(res.data.data);
-      } catch (error) {}
+      } catch (error) { }
     };
     fetchUnits();
   }, []);
@@ -103,7 +103,7 @@ export const ProductCreate = () => {
           label: cat.name,
         })) || [];
         setCategories(mapped);
-      } catch (error) {}
+      } catch (error) { }
     };
     fetchCategories();
   }, []);
@@ -555,7 +555,7 @@ export const ProductCreate = () => {
                 <div className="relative w-full">
                   <input
                     type="number"
-                    value={selectedUnitCode === "G" ? 1 : density}
+                    value={selectedUnitCode === "G" ? 1 : conversionGram}
                     readOnly={selectedUnitCode === "G"}
                     onChange={handleConversionGram}
                     placeholder="1"
@@ -574,7 +574,7 @@ export const ProductCreate = () => {
                 <div className="relative w-full">
                   <input
                     type="number"
-                    value={selectedUnitCode === "ML" ? 1 : density}
+                    value={selectedUnitCode === "ML" ? 1 : conversionMl}
                     readOnly={selectedUnitCode === "ML"}
                     onChange={handleConversionMl}
                     placeholder="10"
@@ -777,17 +777,17 @@ export const ProductCreate = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row justify-end gap-3">
-            <button 
-              type="button" 
-              onClick={() => navigate("/products")} 
-              className="border border-gray-300 rounded-lg px-4 py-2 cursor-pointer w-full sm:w-auto" 
+            <button
+              type="button"
+              onClick={() => navigate("/products")}
+              className="border border-gray-300 rounded-lg px-4 py-2 cursor-pointer w-full sm:w-auto"
               disabled={loading}
             >
               Kembali
             </button>
-            <button 
-              type="submit" 
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer flex items-center justify-center w-full sm:w-auto" 
+            <button
+              type="submit"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer flex items-center justify-center w-full sm:w-auto"
               disabled={loading}
             >
               {loading ? (
