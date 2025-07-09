@@ -39,11 +39,6 @@ export default function BundlingCreate() {
   const [showComposition, setShowComposition] = useState(true);
   const [compositionAnim, setCompositionAnim] = useState("opened");
   const categoryRef = useRef<HTMLDivElement>(null);
-  const [units, setUnits] = useState<
-    { id: string; name: string; code: string }[]
-  >([]);
-  const [selectedUnit, setSelectedUnit] = useState<string>("");
-
   const [showQtyModal, setShowQtyModal] = useState(false);
   const [activeQtyId, setActiveQtyId] = useState<string | null>(null);
 
@@ -51,9 +46,8 @@ export default function BundlingCreate() {
     setInitialLoading(true);
     const fetchAll = async () => {
       try {
-        const [catRes, unitRes, prodRes] = await Promise.all([
+        const [catRes, prodRes] = await Promise.all([
           apiClient.get("/categories"),
-          apiClient.get("/unit/no-paginate"),
           apiClient.get("/products/without-bundling"),
         ]);
         const mappedCategories =
@@ -62,7 +56,6 @@ export default function BundlingCreate() {
             label: cat.name,
           })) || [];
         setCategories(mappedCategories);
-        setUnits(unitRes.data?.data || []);
         const mappedProducts = prodRes.data?.data?.map((p) => ({
           id: p.id,
           name: p.name,
@@ -75,6 +68,7 @@ export default function BundlingCreate() {
             name: v.variant_name,
             stock: v.stock,
             price: v.price,
+            unit_id: v.unit_id,
             unit_code: v.unit_code,
             product_code: v.product_code,
             product_image: v.product_image,
@@ -84,7 +78,6 @@ export default function BundlingCreate() {
         setFilteredProducts(mappedProducts);
       } catch {
         setCategories([]);
-        setUnits([]);
         setProducts([]);
         setFilteredProducts([]);
       }
@@ -153,7 +146,7 @@ export default function BundlingCreate() {
           product_bundling_material: materials.map((mat) => ({
             product_detail_id: mat.product_detail_id,
             quantity: mat.quantity || 0,
-            unit_id: selectedUnit,
+            unit_id: mat.unit_id,
           })),
         },
       ],
@@ -165,10 +158,8 @@ export default function BundlingCreate() {
     } catch (error) {
       if (error?.response?.data?.data) {
         setErrors(error.response.data.data);
-
         const errorData = error.response.data.data;
         let messages = [];
-
         Object.keys(errorData).forEach((key) => {
           const val = errorData[key];
           if (Array.isArray(val)) {
@@ -179,7 +170,6 @@ export default function BundlingCreate() {
             });
           }
         });
-
         Toaster("error", messages.join(" | "));
       } else {
         Toaster("error", "Terjadi kesalahan saat menyimpan bundling.");
@@ -221,9 +211,12 @@ export default function BundlingCreate() {
     } else {
       setMaterials((prev) => [
         ...prev,
-        { product_detail_id: variantId, quantity: null },
+        { 
+          product_detail_id: variantId, 
+          quantity: null,
+          unit_id: variant?.unit_id
+        },
       ]);
-
       setComposition((prev) => [...prev, `${productName} - ${variantName}`]);
       setSelectedVariants((prev) => [
         ...prev,
@@ -481,16 +474,7 @@ export default function BundlingCreate() {
                                     </div>
                                     {quantity ? (
                                       <div className="text-sm">
-                                        {quantity}{" "}
-                                        {units.find(
-                                          (unit) =>
-                                            unit.id ===
-                                            materials.find(
-                                              (mat) =>
-                                                mat.product_detail_id ===
-                                                variant?.id
-                                            )?.unit_id
-                                        )?.code || "-"}
+                                        {quantity} {variant?.unit_code || "-"}
                                       </div>
                                     ) : (
                                       <div className="text-sm text-gray-400">
@@ -675,11 +659,11 @@ export default function BundlingCreate() {
           setShowQtyModal(false);
           setActiveQtyId(null);
         }}
-        onSubmit={(qty, unitId) => {
+        onSubmit={(qty) => {
           setMaterials((prev) =>
             prev.map((mat) =>
               mat.product_detail_id === activeQtyId
-                ? { ...mat, quantity: qty, unit_id: unitId }
+                ? { ...mat, quantity: qty }
                 : mat
             )
           );
@@ -688,9 +672,25 @@ export default function BundlingCreate() {
           materials.find((mat) => mat.product_detail_id === activeQtyId)
             ?.quantity || ""
         }
-        units={units}
-        selectedUnit={selectedUnit}
-        setSelectedUnit={setSelectedUnit}
+        unit={
+          (() => {
+            const material = materials.find(mat => mat.product_detail_id === activeQtyId);
+            if (!material) return null;
+            
+            const product = products.find(p => 
+              p.variants.some(v => v.id === material.product_detail_id)
+            );
+            if (!product) return null;
+            
+            const variant = product.variants.find(v => v.id === material.product_detail_id);
+            if (!variant) return null;
+            
+            return {
+              id: variant.unit_id,
+              code: variant.unit_code
+            };
+          })()
+        }
       />
     </div>
   );

@@ -78,6 +78,41 @@ export const ProductIndex = () => {
     return variants.find((v) => !!v.unit_code)?.unit_code || "G";
   };
 
+  const downloadExampleFile = async () => {
+    try {
+      const response = await api.get("/product/download-example", {
+        responseType: 'blob',
+      });
+
+      const blob = new Blob([response.data], { type: response.headers['content-type'] });
+
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = 'product-import-example.xlsx';
+
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
+        if (filenameMatch && filenameMatch[1]) {
+          filename = filenameMatch[1];
+        }
+      }
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      Toaster("success", "Example file downloaded successfully");
+    } catch (error) {
+      console.error("Download error:", error);
+      Toaster("error", "Failed to download example file");
+    }
+  };
+
   const fetchData = async (pageNumber: number = 1) => {
     setLoading(true);
     try {
@@ -213,28 +248,28 @@ export const ProductIndex = () => {
 
   const handleImport = async () => {
     try {
-      /*setLoading(true);
-      const formData = new FormData();
-      
-      if (importFile) {
-        formData.append("file", importFile);
-        await api.post("/products/import", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
-      } else if (importUrl) {
-        await api.post("/products/import", { url: importUrl });
-      } else {
-        Toaster("error", "Please select a file or enter a URL");
+      setLoading(true);
+
+      if (!importFile) {
+        Toaster("error", "Please select a file to import");
         return;
       }
-      */
+
+      const formData = new FormData();
+      formData.append("file", importFile);
+
+      await api.post("/product/import", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
       Toaster("success", "Products imported successfully");
       setShowImportModal(false);
       fetchData(page);
     } catch (error) {
       Toaster("error", "Failed to import products");
+      console.error("Import error:", error);
     } finally {
       setLoading(false);
       setImportFile(null);
@@ -488,6 +523,16 @@ export const ProductIndex = () => {
               </div>
 
               <div className="space-y-6">
+                <div className="flex justify-end">
+                  <button
+                    onClick={downloadExampleFile}
+                    className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1"
+                  >
+                    <CloudDownload size={14} />
+                    Download Example File
+                  </button>
+                </div>
+
                 <div
                   className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer"
                   onClick={() => fileInputRef.current?.click()}
@@ -498,7 +543,7 @@ export const ProductIndex = () => {
                     type="file"
                     ref={fileInputRef}
                     className="hidden"
-                    accept=".csv,.txt"
+                    accept=".xlsx,.xls,.csv"
                     onChange={handleFileChange}
                   />
                   {importFile ? (
@@ -531,7 +576,7 @@ export const ProductIndex = () => {
                     <button
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       onClick={handleImport}
-                    //disabled={!importFile && !importUrl}
+                      disabled={!importFile && !importUrl}
                     >
                       Import
                     </button>

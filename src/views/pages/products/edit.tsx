@@ -163,7 +163,7 @@ export const ProductEdit = () => {
             try {
                 const res = await apiClient.get("/unit/no-paginate");
                 setUnits(res.data.data);
-            } catch (error) {}
+            } catch (error) { }
         };
         fetchUnits();
     }, []);
@@ -177,7 +177,7 @@ export const ProductEdit = () => {
                     label: cat.name,
                 })) || [];
                 setCategories(mapped);
-            } catch (error) {}
+            } catch (error) { }
         };
         fetchCategories();
     }, []);
@@ -206,16 +206,26 @@ export const ProductEdit = () => {
 
     useEffect(() => {
         if (variations.length === 0) return setVariantMatrix([]);
+
         const matrix = variations.map((variation, i) => {
             const filteredOptions = (variation.options || []).filter(opt => opt && opt.trim() !== "");
+            const optionCount = filteredOptions.length;
+
             return {
                 aroma: variation.name || `Varian ${i + 1}`,
-                prices: [variantMatrix?.[i]?.prices?.[0] || ""],
-                stocks: [variantMatrix?.[i]?.stocks?.[0] || ""],
-                codes: [variantMatrix?.[i]?.codes?.[0] || ""],
-                ...(filteredOptions.length > 0 ? { volumes: filteredOptions } : {})
+                prices: variantMatrix?.[i]?.prices?.length === optionCount
+                    ? variantMatrix[i].prices
+                    : Array(optionCount).fill(""),
+                stocks: variantMatrix?.[i]?.stocks?.length === optionCount
+                    ? variantMatrix[i].stocks
+                    : Array(optionCount).fill(""),
+                codes: variantMatrix?.[i]?.codes?.length === optionCount
+                    ? variantMatrix[i].codes
+                    : Array(optionCount).fill(""),
+                volumes: filteredOptions,
             };
         });
+
         setVariantMatrix(matrix);
     }, [variations]);
 
@@ -232,6 +242,7 @@ export const ProductEdit = () => {
                 }
 
                 const data = res.data.data;
+
                 setProductName(data.name || "");
                 setDescription(data.description || "");
                 setImages(data.image ? [data.image] : []);
@@ -249,7 +260,7 @@ export const ProductEdit = () => {
                     setSelectedUnit(data.unit_id);
                 }
 
-                if (data.density) {
+                if (typeof data.density !== "undefined") {
                     setDensity(data.density);
                 }
 
@@ -263,37 +274,37 @@ export const ProductEdit = () => {
                     return;
                 }
 
-                const isSingleVariant = details.length === 1 &&
-                    (!details[0].variant_name || !details[0].variant_name.includes("-"));
+                const variantGroups = {};
 
-                if (isSingleVariant) {
-                    const d = details[0];
-                    setProductCode(d.product_code || "");
-                    setPrice(Number(d.price));
-                    setStock(Number(d.stock || 0));
-                    setSelectedUnit(d.unit_id || "");
+                details.forEach((detail) => {
+                    if (!detail.variant_name) {
+                        setProductCode(detail.product_code || "");
+                        setPrice(detail.price || 0);
+                        setStock(detail.stock || "0");
+                        return;
+                    }
 
+                    const split = detail.variant_name.split("-");
+                    const mainName = split[0]?.trim() || "Varian";
+                    const option = split[1]?.trim() || detail.variant_name;
+
+                    if (!variantGroups[mainName]) {
+                        variantGroups[mainName] = [];
+                    }
+
+                    variantGroups[mainName].push({
+                        ...detail,
+                        optionName: option,
+                    });
+                });
+
+                if (Object.keys(variantGroups).length === 0) {
                     setVariations([]);
                     setVariantMatrix([]);
                     setVariantImages([]);
                     setVariantUnits([]);
                     return;
                 }
-
-                // Handle multiple variants
-                const variantGroups = {};
-                details.forEach((detail) => {
-                    // Split variant_name into main name and option
-                    const [mainName, option] = detail.variant_name ? detail.variant_name.split("-") : ["", ""];
-                    
-                    if (!variantGroups[mainName]) {
-                        variantGroups[mainName] = [];
-                    }
-                    variantGroups[mainName].push({
-                        ...detail,
-                        optionName: option
-                    });
-                });
 
                 const newVariations = [];
                 const newVariantMatrix = [];
@@ -302,12 +313,13 @@ export const ProductEdit = () => {
 
                 Object.entries(variantGroups).forEach(([mainName, group]) => {
                     const options = group.map((g) => g.optionName || "");
+
                     newVariations.push({
                         name: mainName,
                         options,
                     });
 
-                    const prices = group.map((g) => String(g.price));
+                    const prices = group.map((g) => String(g.price || ""));
                     const stocks = group.map((g) => String(g.stock || ""));
                     const codes = group.map((g) => g.product_code || "");
                     const volumes = options;
@@ -330,17 +342,33 @@ export const ProductEdit = () => {
                 setVariantImages(newVariantImages);
                 setVariantUnits(newVariantUnits);
 
-                if (newVariantMatrix.length === 1 && newVariantMatrix[0].prices.length === 1) {
-                    setProductCode(newVariantMatrix[0].codes[0]);
-                    setPrice(Number(newVariantMatrix[0].prices[0]));
-                    setStock(Number(newVariantMatrix[0].stocks[0]));
+                if (newVariantMatrix.length > 0) {
+                    const firstPrice = newVariantMatrix[0].prices[0];
+                    const firstStock = newVariantMatrix[0].stocks[0];
+                    const firstCode = newVariantMatrix[0].codes[0];
+
+                    const allSamePrice = newVariantMatrix.every(v =>
+                        v.prices.every(p => p === firstPrice)
+                    );
+                    const allSameStock = newVariantMatrix.every(v =>
+                        v.stocks.every(s => s === firstStock)
+                    );
+                    const allSameCode = newVariantMatrix.every(v =>
+                        v.codes.every(c => c === firstCode)
+                    );
+
+                    if (allSamePrice) setGlobalPrice(firstPrice);
+                    if (allSameStock) setGlobalStock(firstStock);
+                    if (allSameCode) setGlobalCode(firstCode);
                 }
             } catch (error) {
+                console.error("❌ Error fetchProduct", error);
                 Toaster("error", "Gagal memuat data produk");
             } finally {
                 setLoading(false);
             }
         };
+
 
         if (id && categories.length > 0 && units.length > 0) {
             fetchProduct();
@@ -571,7 +599,8 @@ export const ProductEdit = () => {
                             {errors["message"][0]}
                         </div>
                     )}
-                    <div className="bg-white shadow rounded-2xl p-6">
+
+                    <div className="bg-white shadow rounded-2xl p-4 md:p-6">
                         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-blue-600">
                             <Info size={18} /> Informasi Produk
                         </h3>
@@ -626,11 +655,11 @@ export const ProductEdit = () => {
                     </div>
 
                     {!hasVariant && (
-                        <div className="bg-white shadow rounded-2xl p-6">
+                        <div className="bg-white shadow rounded-2xl p-4 md:p-6">
                             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-blue-600">
                                 <DollarSign size={18} /> Harga & Stok Produk
                             </h3>
-                            <div className="grid md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <InputNumber
                                     label="Atur Harga Produk"
                                     labelClass={labelClass}
@@ -655,7 +684,7 @@ export const ProductEdit = () => {
                                         />
                                     </div>
                                 </div>
-                                <div>
+                                <div className="sm:col-span-2">
                                     <label className={labelClass}>
                                         <Barcode size={16} /> Kode Produk
                                     </label>
@@ -671,7 +700,7 @@ export const ProductEdit = () => {
                         </div>
                     )}
 
-                    <div className="bg-white shadow rounded-2xl p-6">
+                    <div className="bg-white shadow rounded-2xl p-4 md:p-6">
                         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-blue-600">
                             <ImageIcon size={18} /> Gambar Produk
                         </h3>
@@ -688,15 +717,15 @@ export const ProductEdit = () => {
                     </div>
 
                     {isParfumCategory && (
-                        <div className="mb-6 bg-white shadow rounded-2xl p-6">
+                        <div className="bg-white shadow rounded-2xl p-4 md:p-6">
                             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-blue-600">
                                 <GitCompareArrows size={18} /> Konversi
                             </h3>
-                            <div className="flex gap-3 items-center">
+                            <div className="flex flex-col sm:flex-row gap-3 items-center">
                                 <div className="relative w-full">
                                     <input
                                         type="number"
-                                        value={selectedUnitCode === "G" ? 1 : density}
+                                        value={selectedUnitCode === "G" ? 1 : conversionGram}
                                         readOnly={selectedUnitCode === "G"}
                                         onChange={handleConversionGram}
                                         placeholder="1"
@@ -714,7 +743,7 @@ export const ProductEdit = () => {
                                 <div className="relative w-full">
                                     <input
                                         type="number"
-                                        value={selectedUnitCode === "ML" ? 1 : density}
+                                        value={selectedUnitCode === "ML" ? 1 : conversionMl}
                                         readOnly={selectedUnitCode === "ML"}
                                         onChange={handleConversionMl}
                                         placeholder="10"
@@ -735,13 +764,13 @@ export const ProductEdit = () => {
                         </div>
                     )}
 
-                    <div className="bg-white shadow rounded-2xl p-6">
+                    <div className="bg-white shadow rounded-2xl p-4 md:p-6">
                         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-blue-600">
                             <Info size={18} /> Variasi Produk
                         </h3>
 
                         <div className="space-y-4">
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                                 <h1 className="text-xl text-gray-500">Varian</h1>
                                 <button
                                     type="button"
@@ -753,34 +782,34 @@ export const ProductEdit = () => {
                             </div>
 
                             {variations.map((variation, i) => (
-                                <div key={i} className="bg-gray-200 p-4 rounded-lg shadow space-y-3">
-                                    <div className="flex justify-between items-center">
-                                        <div className="flex gap-4 items-center">
-                                            <span className="font-medium">Variasi {i + 1}</span>
+                                <div key={i} className="bg-gray-100 sm:bg-gray-200 p-3 sm:p-4 rounded-lg shadow space-y-3">
+                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-start sm:items-center w-full">
+                                            <span className="font-medium whitespace-nowrap">Variasi {i + 1}</span>
                                             <input
                                                 placeholder="Nama Varian"
                                                 value={variation.name}
                                                 onChange={(e) => setVariantName(i, e.target.value)}
-                                                className="w-100 border bg-white border-gray-300 rounded-lg px-3 py-2"
+                                                className="w-full sm:w-auto flex-1 border bg-white border-gray-300 rounded-lg px-3 py-2"
                                             />
                                         </div>
                                         <button
                                             type="button"
                                             onClick={() => setVariations((prev) => prev.filter((_, idx) => idx !== i))}
-                                            className="text-black"
+                                            className="text-black self-end sm:self-auto"
                                         >
                                             <X size={32} />
                                         </button>
                                     </div>
 
-                                    <div className="gap-13 flex items-center">
-                                        <span className="font-medium">Opsi</span>
+                                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 sm:items-center">
+                                        <span className="font-medium whitespace-nowrap">Opsi</span>
                                         <InputManyText
                                             items={variation.options}
                                             onChange={(j, v) => handleOptionChange(i, j, v)}
                                             onAdd={() => handleAddOption(i)}
                                             onRemove={(j) => handleRemoveOption(i, j)}
-                                            className="min-w-105"
+                                            className="min-w-0 flex-1"
                                             maxLength={50}
                                             placeholderPrefix="Opsi "
                                         />
@@ -790,137 +819,141 @@ export const ProductEdit = () => {
                         </div>
 
                         {variantMatrix.length > 0 && (
-                            <div className="mt-6 flex items-center gap-4">
-                                <div className="flex border rounded-lg overflow-hidden divide-x w-full max-w-3xl">
-                                    <div className="flex items-center px-3 bg-gray-50 text-gray-500">Rp.</div>
-                                    <input
-                                        type="number"
-                                        placeholder="Harga"
-                                        className="w-1/3 px-3 py-2 focus:outline-none"
-                                        value={globalPrice}
-                                        min={0}
-                                        onChange={(e) => setGlobalPrice(Math.max(0, e.target.value))}
-                                    />
-                                    <input
-                                        type="number"
-                                        placeholder="Stok"
-                                        className="w-1/3 px-3 py-2 focus:outline-none"
-                                        value={globalStock}
-                                        min={0}
-                                        onChange={(e) => setGlobalStock(Math.max(0, e.target.value))}
-                                    />
-                                    <input
-                                        type="text"
-                                        placeholder="Kode Varian"
-                                        className="w-1/3 px-3 py-2 focus:outline-none"
-                                        value={globalCode}
-                                        onChange={(e) => setGlobalCode(e.target.value)}
-                                    />
-                                </div>
-                                <button
-                                    type="button"
-                                    className="bg-blue-600 text-white px-3 rounded-lg cursor-pointer"
-                                    onClick={applyToAllVariants}
-                                >
-                                    Terapkan Ke Semua
-                                </button>
-                            </div>
-                        )}
-
-                        {variantMatrix.length > 0 && (
-                            <div className="mt-6">
-                                <div className="grid font-semibold bg-gray-400 text-white grid-cols-5">
-                                    <div className="p-3">Variasi</div>
-                                    <div className="p-3">Opsi</div>
-                                    <div className="p-3">Harga</div>
-                                    <div className="p-3">Stock</div>
-                                    <div className="p-3">Kode varian</div>
+                            <>
+                                <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+                                    <div className="flex flex-col sm:flex-row border rounded-lg overflow-hidden divide-y sm:divide-y-0 sm:divide-x w-full max-w-3xl">
+                                        <div className="flex items-center px-3 py-2 bg-gray-50 text-gray-500">Rp.</div>
+                                        <input
+                                            type="number"
+                                            placeholder="Harga"
+                                            className="w-full sm:w-1/3 px-3 py-2 focus:outline-none"
+                                            value={globalPrice}
+                                            min={0}
+                                            onChange={(e) => setGlobalPrice(Math.max(0, e.target.value))}
+                                        />
+                                        <input
+                                            type="number"
+                                            placeholder="Stok"
+                                            className="w-full sm:w-1/3 px-3 py-2 focus:outline-none"
+                                            value={globalStock}
+                                            min={0}
+                                            onChange={(e) => setGlobalStock(Math.max(0, e.target.value))}
+                                        />
+                                        <input
+                                            type="text"
+                                            placeholder="Kode Varian"
+                                            className="w-full sm:w-1/3 px-3 py-2 focus:outline-none"
+                                            value={globalCode}
+                                            onChange={(e) => setGlobalCode(e.target.value)}
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        className="bg-blue-600 text-white px-3 py-2 rounded-lg cursor-pointer whitespace-nowrap"
+                                        onClick={applyToAllVariants}
+                                    >
+                                        Terapkan Ke Semua
+                                    </button>
                                 </div>
 
-                                {variantMatrix.map((variant, i) =>
-                                    (variant.volumes && variant.volumes.filter(Boolean).length > 0
-                                        ? variant.volumes.filter(Boolean)
-                                        : [null]
-                                    ).map((option, j) => (
-                                        <div key={`${i}-${j}`} className="grid grid-cols-5 items-start bg-white border-b border-gray-100">
-                                            {j === 0 ? (
-                                                <div className="p-3" rowSpan={variant.volumes?.length || 1}>
-                                                    <p className="font-medium mb-2">{variant.aroma}</p>
-                                                    <InputOneImage
-                                                        images={variantImages[i]?.[0] ? [variantImages[i][0]] : []}
-                                                        onImageUpload={handleVariantImageUpload(i)}
-                                                        onRemoveImage={handleRemoveVariantImage(i)}
-                                                        label="Tambah Gambar"
-                                                    />
+                                <div className="mt-6 overflow-x-auto">
+                                    <div className="grid font-semibold bg-gray-400 text-white grid-cols-5 min-w-[800px]">
+                                        <div className="p-3">Variasi</div>
+                                        <div className="p-3">Opsi</div>
+                                        <div className="p-3">Harga</div>
+                                        <div className="p-3">Stock</div>
+                                        <div className="p-3">Kode Varian</div>
+                                    </div>
+
+                                    {variantMatrix.map((variant, i) =>
+                                        variant.volumes.map((option, j) => (
+                                            <div
+                                                key={`${i}-${j}`}
+                                                className="grid grid-cols-5 items-start bg-white border-b border-gray-100 min-w-[800px]"
+                                            >
+                                                {j === 0 ? (
+                                                    <div className={`p-3 row-span-${variant.volumes.length}`}>
+                                                        <p className="font-medium mb-2">{variant.aroma}</p>
+                                                        <InputOneImage
+                                                            images={variantImages[i]?.[0] ? [variantImages[i][0]] : []}
+                                                            onImageUpload={() => handleVariantImageUpload(i)}
+                                                            onRemoveImage={() => handleRemoveVariantImage(i)}
+                                                            label="Tambah Gambar"
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div />
+                                                )}
+
+                                                <div className="p-3 text-gray-800">{option || "-"}</div>
+
+                                                <div className="p-3">
+                                                    <div className="flex items-center">
+                                                        <span className="text-gray-500 mr-1">Rp.</span>
+                                                        <input
+                                                            type="number"
+                                                            className="w-full pl-4 py-2 text-gray-800 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                            placeholder="Harga"
+                                                            value={variant.prices[j] || ""}
+                                                            min={0}
+                                                            onChange={(e) => {
+                                                                const updated = [...variantMatrix];
+                                                                updated[i].prices[j] = e.target.value;
+                                                                setVariantMatrix(updated);
+                                                            }}
+                                                        />
+                                                    </div>
                                                 </div>
-                                            ) : <div />}
-                                            <div className="p-3 text-gray-800">{option || "-"}</div>
-                                            <div className="p-3">
-                                                <div className="flex items-center">
-                                                    <span className="text-gray-500 mr-1">Rp.</span>
+
+                                                <div className="p-3">
                                                     <input
                                                         type="number"
                                                         className="w-full pl-4 py-2 text-gray-800 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                        placeholder="Harga"
-                                                        value={variant.prices[j] || ""}
+                                                        placeholder="Stock"
                                                         min={0}
+                                                        value={variant.stocks[j] || ""}
                                                         onChange={(e) => {
                                                             const updated = [...variantMatrix];
-                                                            if (!updated[i].prices) updated[i].prices = [];
-                                                            updated[i].prices[j] = Math.max(0, e.target.value);
+                                                            updated[i].stocks[j] = e.target.value;
+                                                            setVariantMatrix(updated);
+                                                        }}
+                                                    />
+                                                </div>
+
+                                                <div className="p-3">
+                                                    <input
+                                                        type="text"
+                                                        className="w-full pl-4 pr-14 py-2 text-gray-800 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        placeholder="Kode"
+                                                        value={variant.codes[j] || ""}
+                                                        onChange={(e) => {
+                                                            const updated = [...variantMatrix];
+                                                            updated[i].codes[j] = e.target.value;
                                                             setVariantMatrix(updated);
                                                         }}
                                                     />
                                                 </div>
                                             </div>
-                                            <div className="relative w-full max-w-xs mt-3">
-                                                <input
-                                                    type="number"
-                                                    min={0}
-                                                    placeholder="0"
-                                                    className="w-full pl-4 py-2 text-gray-800 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                    value={variantMatrix[i]?.stocks?.[j] || ""}
-                                                    onChange={(e) => {
-                                                        const updated = [...variantMatrix];
-                                                        if (!updated[i].stocks) updated[i].stocks = [];
-                                                        updated[i].stocks[j] = Math.max(0, e.target.value);
-                                                        setVariantMatrix(updated);
-                                                    }}
-                                                />
-                                            </div>
-                                            <div className="p-3">
-                                                <input
-                                                    type="text"
-                                                    className="w-full pl-4 pr-14 py-2 text-gray-800 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                    placeholder="Kode"
-                                                    value={variant.codes[j] || ""}
-                                                    onChange={(e) => {
-                                                        const updated = [...variantMatrix];
-                                                        if (!updated[i].codes) updated[i].codes = [];
-                                                        updated[i].codes[j] = e.target.value;
-                                                        setVariantMatrix(updated);
-                                                    }}
-                                                />
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </>
                         )}
+
                     </div>
 
-                    <div className="flex justify-end gap-4">
+                    <div className="flex flex-col sm:flex-row justify-end gap-4">
                         <button
                             type="button"
                             onClick={() => navigate("/products")}
-                            className="border border-gray-300 rounded-lg px-4 py-2 cursor-pointer"
+                            className="border border-gray-300 rounded-lg px-4 py-2 cursor-pointer w-full sm:w-auto"
                             disabled={loading}
                         >
                             Kembali
                         </button>
                         <button
                             type="submit"
-                            className="bg-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer"
+                            className="bg-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer w-full sm:w-auto"
                             disabled={loading}
                         >
                             {loading ? "Loading..." : "Simpan"}
