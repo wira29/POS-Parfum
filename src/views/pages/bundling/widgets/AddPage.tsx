@@ -54,7 +54,7 @@ export default function BundlingCreate() {
         const [catRes, unitRes, prodRes] = await Promise.all([
           apiClient.get("/categories"),
           apiClient.get("/unit/no-paginate"),
-          apiClient.get("/products/no-paginate"),
+          apiClient.get("/products/without-bundling"),
         ]);
         const mappedCategories =
           catRes.data?.data?.map((cat) => ({
