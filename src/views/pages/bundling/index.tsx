@@ -192,6 +192,7 @@ export default function BundlingPage() {
       if (searchQuery) params.append("search", searchQuery);
 
       const res = await apiClient.get(`/product-bundling?${params.toString()}`);
+      
       setPackages(res.data.data);
       setPagination((prev) => ({
         ...prev,
@@ -283,6 +284,7 @@ export default function BundlingPage() {
     setPagination((prev) => ({ ...prev, current_page: 1 }));
     setAppliedFilter({ ...filterValues });
   };
+console.log(packages);
 
   const isFilterActive = Object.values(appliedFilter).some((v) => v && v !== "");
 
@@ -340,19 +342,19 @@ export default function BundlingPage() {
                   {dropdownOpenId === pkg.id && (
                     <div className="absolute right-0 top-8 w-40 bg-white border border-gray-300 rounded-lg shadow-lg z-20 py-1">
                       <button
-                        className="w-full text-left px-4 py-2 flex items-center gap-2 hover:bg-gray-100 text-sm"
+                        className="w-full cursor-pointer text-left px-4 py-2 flex items-center gap-2 hover:bg-gray-100 text-sm"
                         onClick={() => handleDetail(pkg)}
                       >
                         <Eye size={16} /> Detail
                       </button>
                       <button
-                        className="w-full text-left px-4 py-2 flex items-center gap-2 hover:bg-gray-100 text-sm"
+                        className="w-full cursor-pointer text-left px-4 py-2 flex items-center gap-2 hover:bg-gray-100 text-sm"
                         onClick={() => handleEdit(pkg)}
                       >
                         <Pencil size={16} /> Edit
                       </button>
                       <button
-                        className="w-full text-left px-4 py-2 flex items-center gap-2 text-red-600 hover:bg-gray-100 text-sm"
+                        className="w-full cursor-pointer text-left px-4 py-2 flex items-center gap-2 text-red-600 hover:bg-gray-100 text-sm"
                         onClick={() => handleDelete(pkg)}
                       >
                         <Trash size={16} /> Hapus
@@ -368,7 +370,6 @@ export default function BundlingPage() {
                       src={ImageHelper(mat.image)}
                       alt={pkg.name + " " + (idx + 1)}
                       className="w-16 h-16 rounded-full border-2 border-white object-cover bg-gray-200"
-                      style={{ zIndex: 10 - idx }}
                       onClick={() => handleDetail(pkg)}
                     />
                   ))}

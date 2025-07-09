@@ -425,7 +425,6 @@ export const ProductIndex = () => {
                                             src={ImageHelper(variant.image)}
                                             alt={variant.name}
                                             className="w-12 h-12 rounded object-cover"
-                                            onError={(e) => { (e.target as HTMLImageElement).src = "/images/placeholder.jpg"; }}
                                           />
                                         </div>
                                         <div>
@@ -507,9 +506,9 @@ export const ProductIndex = () => {
       />
 
       {showImportModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-            <div className="p-6">
+            <div className="px-3 py-4">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">Import Products</h3>
                 <button
@@ -528,7 +527,7 @@ export const ProductIndex = () => {
                 <div className="flex justify-end">
                   <button
                     onClick={downloadExampleFile}
-                    className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1"
+                    className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1 cursor-pointer"
                   >
                     <CloudDownload size={14} />
                     Download Example File
@@ -566,7 +565,7 @@ export const ProductIndex = () => {
                 <div className="flex justify-end items-center pt-4">
                   <div className="flex gap-3">
                     <button
-                      className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                      className="px-4 py-2 cursor-pointer border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
                       onClick={() => {
                         setShowImportModal(false);
                         setImportFile(null);
@@ -576,7 +575,7 @@ export const ProductIndex = () => {
                       Cancel
                     </button>
                     <button
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2 cursor-pointer bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       onClick={handleImport}
                       disabled={!importFile && !importUrl}
                     >
