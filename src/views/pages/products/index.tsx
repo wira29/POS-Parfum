@@ -346,7 +346,7 @@ export const ProductIndex = () => {
                           )}
                         </div>
                       </td>
-                      <td className="p-4 align-top">{product.category?.name ?? "-"}</td>
+                      <td className="p-4 align-top">{product.category ?? "-"}</td>
                       <td className="p-4 align-top">{singleVariant ? singleVariant.penjualan : (product.sum_purchase ?? 0)}</td>
                       <td className="p-4 align-top">
                         {product.is_bundling
