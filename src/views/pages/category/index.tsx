@@ -294,8 +294,8 @@ export const CategoryIndex = () => {
           <div className="flex gap-5">
             <SearchInput
               value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
+              onChange={(value) => {
+                setSearchQuery(value);
                 setCurrentPage(1);
               }}
             />

@@ -102,7 +102,7 @@ const ListReqProduct: React.FC = () => {
       const res = await apiClient.get<ApiResponse>(
         `/stock-requests/by-warehouse?${query.toString()}`
       );
-  console.log(res);
+
       if (res.data.success && Array.isArray(res.data.data)) {
         setData(res.data.data);
       } else {
@@ -147,7 +147,7 @@ const ListReqProduct: React.FC = () => {
       />
       <div className="w-1/4 mt-5">
         <SearchInput
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(val) => setSearch(val)}
           value={search}
         />
       </div>

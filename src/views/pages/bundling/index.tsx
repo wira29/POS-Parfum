@@ -33,40 +33,6 @@ const BundlingFilterModal = ({
           </button>
         </div>
         <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-            <select
-              value={filterValues.status}
-              onChange={(e) => setFilterValues((prev: any) => ({ ...prev, status: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Semua Status</option>
-              <option value="active">Tersedia</option>
-              <option value="non-active">Habis</option>
-            </select>
-          </div>
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Min Stok</label>
-              <input
-                type="number"
-                value={filterValues.minStock}
-                onChange={(e) => setFilterValues((prev: any) => ({ ...prev, minStock: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                placeholder="Min Stok"
-              />
-            </div>
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Max Stok</label>
-              <input
-                type="number"
-                value={filterValues.maxStock}
-                onChange={(e) => setFilterValues((prev: any) => ({ ...prev, maxStock: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                placeholder="Max Stok"
-              />
-            </div>
-          </div>
           <div className="flex gap-4">
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 mb-2">Min Harga</label>
@@ -127,7 +93,7 @@ const BundlingFilterModal = ({
               onApply();
               onClose();
             }}
-            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100"
+            className="px-4 py-2 text-gray-700 border cursor-pointer border-gray-300 rounded-lg hover:bg-gray-100"
           >
             Reset
           </button>
@@ -136,7 +102,7 @@ const BundlingFilterModal = ({
               onApply();
               onClose();
             }}
-            className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
+            className="px-4 py-2 text-white cursor-pointer bg-blue-600 hover:bg-blue-700 rounded-lg"
           >
             Terapkan
           </button>
@@ -219,9 +185,9 @@ export default function BundlingPage() {
         per_page: "8",
         page: pagination.current_page.toString(),
       });
-      if (appliedFilter.status) params.append("status", appliedFilter.status);
-      if (appliedFilter.minStock) params.append("min_stock", appliedFilter.minStock);
-      if (appliedFilter.maxStock) params.append("max_stock", appliedFilter.maxStock);
+      // if (appliedFilter.status) params.append("status", appliedFilter.status);
+      // if (appliedFilter.minStock) params.append("min_stock", appliedFilter.minStock);
+      // if (appliedFilter.maxStock) params.append("max_stock", appliedFilter.maxStock);
       if (appliedFilter.minPrice) params.append("min_price", appliedFilter.minPrice);
       if (appliedFilter.maxPrice) params.append("max_price", appliedFilter.maxPrice);
       if (appliedFilter.minMaterial) params.append("min_material", appliedFilter.minMaterial);
@@ -332,7 +298,7 @@ export default function BundlingPage() {
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
         <div className="flex items-center gap-2 w-full sm:w-auto max-w-lg">
-          <SearchInput value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+          <SearchInput value={searchQuery} onChange={(value) => setSearchQuery(value)} />
           <div className="relative">
             <Filter onClick={() => setShowFilter(true)} />
             {isFilterActive && (

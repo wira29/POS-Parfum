@@ -195,15 +195,13 @@ export default function UserPage() {
       setDraftEndDate(endDate);
     }
   }, [showFilter]);
-
-  console.log(users)
   return (
     <div className="p-6 space-y-6">
       <Breadcrumb title="Daftar Pengguna" desc="Kelola daftar akun pengguna pada sistem." />
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
         <div className="flex items-center gap-2 mb-4 w-full sm:w-auto max-w-lg">
-          <SearchInput value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+          <SearchInput value={searchQuery} onChange={(value) => setSearchQuery(value)} />
           <div className="relative">
             {isFilterActive && (
               <span className="absolute -top-1 -left-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white z-10" />

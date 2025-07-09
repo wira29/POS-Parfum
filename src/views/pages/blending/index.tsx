@@ -54,6 +54,7 @@ export default function BlendingIndex() {
     const params = new URLSearchParams();
     params.append("page", currentPage.toString());
     params.append("per_page", itemsPerPage.toString());
+    params.append("search", searchQuery.toString());
 
     if (filters.dateFrom) params.append("start_date", filters.dateFrom);
     if (filters.dateTo) params.append("end_date", filters.dateTo);
@@ -97,7 +98,7 @@ export default function BlendingIndex() {
 
   useEffect(() => {
     getData();
-  }, [currentPage, filters]);
+  }, [currentPage, filters,searchQuery]);
   
 
   const paginatedData = blendingData;
@@ -144,8 +145,8 @@ export default function BlendingIndex() {
           <div className="flex items-center gap-5">
             <SearchInput
               value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
+              onChange={(val) => {
+                setSearchQuery(val);
                 setCurrentPage(1);
               }}
             />

@@ -316,7 +316,7 @@ export default function RolePage() {
               <div className="flex-1 max-w-md">
                 <SearchInput
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(value) => setSearchQuery(value)}
                 />
               </div>
             </div>

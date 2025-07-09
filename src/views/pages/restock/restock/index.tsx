@@ -42,7 +42,6 @@ export const RestockIndex = () => {
   const [data, setData] = useState<RestockHistoryItem[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading, setLoading] = useState(false);
-  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
   const apiClient = useApiClient();
 
@@ -71,7 +70,7 @@ export const RestockIndex = () => {
 
       const res = await apiClient.get<{ data: RestockHistoryItem[]; pagination: Pagination }>(
         `/warehouses/history/stock?${query.toString()}`
-      );
+      );      
 
       setData(Array.isArray(res.data.data) ? res.data.data : []);
       setPagination(res.data.pagination || null);
@@ -246,12 +245,8 @@ export const RestockIndex = () => {
         <div className="flex items-center gap-2 w-full sm:w-auto max-w-lg">
           <SearchInput
             value={searchQuery}
-            onChange={(e) => {
-              const value = e.target.value;
-              if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
-              debounceTimeout.current = setTimeout(() => {
-                setSearchQuery(value);
-              }, 400);
+            onChange={(value) => {
+              setSearchQuery(value);
             }}
             placeholder="Cari riwayat restock..."
           />
