@@ -283,13 +283,6 @@ export const ProductCreate = () => {
         return;
       }
 
-      if (!stock || isNaN(stock)) {
-        setErrors({ message: ["Stok produk wajib diisi"] });
-        Toaster("error", "Stok produk wajib diisi");
-        setLoading(false);
-        return;
-      }
-
       formData.append("product_details[0][category_id]", category);
       formData.append("product_details[0][stock]", String(stock));
       formData.append("product_details[0][price]", String(price));
