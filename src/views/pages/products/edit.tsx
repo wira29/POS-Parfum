@@ -680,7 +680,7 @@ export const ProductEdit = () => {
                                 <div className="relative w-full">
                                     <input
                                         type="number"
-                                        value={selectedUnitCode === "G" ? 1 : conversionGram}
+                                        value={selectedUnitCode === "G" ? 1 : density}
                                         readOnly={selectedUnitCode === "G"}
                                         onChange={(e) => setConversionGram(e.target.value)}
                                         placeholder="1"
@@ -696,7 +696,7 @@ export const ProductEdit = () => {
                                 <div className="relative w-full">
                                     <input
                                         type="number"
-                                        value={selectedUnitCode === "MG" ? 1 : conversionMg}
+                                        value={selectedUnitCode === "MG" ? 1 : density}
                                         readOnly={selectedUnitCode === "MG"}
                                         onChange={(e) => setConversionMg(e.target.value)}
                                         placeholder="10"
