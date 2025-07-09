@@ -449,8 +449,8 @@ export default function DiscountIndex() {
           <div className="flex items-center gap-2 mb-4 w-full sm:w-auto max-w-lg">
             <SearchInput
               value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
+              onChange={(value) => {
+                setSearchQuery(value);
                 setCurrentPage(1);
               }}
             />
