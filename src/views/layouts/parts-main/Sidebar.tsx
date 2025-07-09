@@ -5,7 +5,7 @@ import {
   FiChevronDown, FiChevronUp,
 } from "react-icons/fi";
 import {
-  ContainerIcon, LayoutGrid, Repeat, Wallet2Icon,
+  ContainerIcon, LayoutGrid, Repeat, Store, Wallet2Icon,
 } from "lucide-react";
 import {
   FaMoneyBillTransfer, FaUserTag, FaBoxesPacking, FaShop,
@@ -60,7 +60,7 @@ const getMenuItems = (userRoles: string[]) => [
     label: "Lainnya",
     children: [
       { label: "Warehouse", icon: <FaShop />, path: "/warehouses", roles: ["owner", "admin"] },
-      { label: "Retail", icon: <FaShop />, path: "/retails", roles: ["owner", "warehouse"] },
+      { label: "Retail", icon: <Store size={16} />, path: "/retails", roles: ["owner", "warehouse"] },
       { label: "Laporan Laba Rugi", icon: <FaMoneyBillTransfer />, path: "/laba-rugi", roles: ["owner", "outlet", "warehouse"] },
       { label: "Shift", icon: <Repeat size={16} />, path: "/shift", roles: ["outlet"] },
       { label: "Tambah Pengguna", icon: <FiUsers />, path: "/users", roles: ["owner", "warehouse", "outlet"] },
