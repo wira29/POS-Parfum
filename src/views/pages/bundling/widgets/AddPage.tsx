@@ -132,50 +132,60 @@ export default function BundlingCreate() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSubmit = async (e : any) => {
-    e.preventDefault();
-    const body = {
-      name: productName,
-      quantity: stock,
-      harga: price,
-      kode_Blend: productCode,
-      deskripsi: description,
-      category_id: category,
-      details: [
-        {
-          product_bundling_material: materials.map((mat) => ({
-            product_detail_id: mat.product_detail_id,
-            quantity: mat.quantity || 0,
-            unit_id: mat.unit_id,
-          })),
-        },
-      ],
-    };
-    try {
-      await apiClient.post("/product-bundling", body);
-      navigate("/bundlings");
-      Toaster("success", "Bundling berhasil dibuat");
-    } catch (error) {
-      if (error?.response?.data?.data) {
-        setErrors(error.response.data.data);
-        const errorData = error.response.data.data;
-        let messages = [];
-        Object.keys(errorData).forEach((key) => {
-          const val = errorData[key];
-          if (Array.isArray(val)) {
-            messages = messages.concat(val);
-          } else if (typeof val === "object" && val !== null) {
-            Object.values(val).forEach((arr) => {
-              if (Array.isArray(arr)) messages = messages.concat(arr);
-            });
-          }
-        });
-        Toaster("error", messages.join(" | "));
-      } else {
-        Toaster("error", "Terjadi kesalahan saat menyimpan bundling.");
-      }
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  try {
+    const formData = new FormData();
+
+    formData.append("name", productName);
+    formData.append("harga", price);
+    formData.append("kode_Bundling", productCode);
+    formData.append("stock", stock);
+    formData.append("description", description);
+    formData.append("category_id", category);
+
+    if (images.length > 0 && images[0] instanceof File) {
+      formData.append("image", images[0]);
     }
-  };
+
+    // filteredMaterials.forEach((mat, index) => {
+    //   formData.append(`details[${index}][product_detail_id]`, mat.product_detail_id);
+    //   formData.append(`details[${index}][quantity]`, mat.quantity);
+    //   formData.append(`details[${index}][unit_id]`, mat.unit_id);
+    // });
+
+    await apiClient.post(`/product-bundling`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    navigate("/bundlings");
+    Toaster("success", "Bundling berhasil dibuat");
+  } catch (error) {
+    if (error?.response?.data?.data) {
+      setErrors(error.response.data.data);
+      const errorData = error.response.data.data;
+      let messages: string[] = [];
+      Object.keys(errorData).forEach((key) => {
+        const val = errorData[key];
+        if (Array.isArray(val)) {
+          messages = messages.concat(val);
+        } else if (typeof val === "object" && val !== null) {
+          Object.values(val).forEach((arr) => {
+            if (Array.isArray(arr)) messages = messages.concat(arr);
+          });
+        }
+      });
+      Toaster("error", messages.join(" | "));
+    } else {
+      console.error("❌ Gagal menyimpan:", error);
+      Toaster("error", "Terjadi kesalahan saat menyimpan bundling.");
+    }
+  }
+};
+
 
   const toggleExpand = (id) => {
     setExpandedProducts((prev) =>
@@ -211,10 +221,10 @@ export default function BundlingCreate() {
     } else {
       setMaterials((prev) => [
         ...prev,
-        { 
-          product_detail_id: variantId, 
+        {
+          product_detail_id: variantId,
           quantity: null,
-          unit_id: variant?.unit_id
+          unit_id: variant?.unit_id,
         },
       ]);
       setComposition((prev) => [...prev, `${productName} - ${variantName}`]);
@@ -672,25 +682,27 @@ export default function BundlingCreate() {
           materials.find((mat) => mat.product_detail_id === activeQtyId)
             ?.quantity || ""
         }
-        unit={
-          (() => {
-            const material = materials.find(mat => mat.product_detail_id === activeQtyId);
-            if (!material) return null;
-            
-            const product = products.find(p => 
-              p.variants.some(v => v.id === material.product_detail_id)
-            );
-            if (!product) return null;
-            
-            const variant = product.variants.find(v => v.id === material.product_detail_id);
-            if (!variant) return null;
-            
-            return {
-              id: variant.unit_id,
-              code: variant.unit_code
-            };
-          })()
-        }
+        unit={(() => {
+          const material = materials.find(
+            (mat) => mat.product_detail_id === activeQtyId
+          );
+          if (!material) return null;
+
+          const product = products.find((p) =>
+            p.variants.some((v) => v.id === material.product_detail_id)
+          );
+          if (!product) return null;
+
+          const variant = product.variants.find(
+            (v) => v.id === material.product_detail_id
+          );
+          if (!variant) return null;
+
+          return {
+            id: variant.unit_id,
+            code: variant.unit_code,
+          };
+        })()}
       />
     </div>
   );
