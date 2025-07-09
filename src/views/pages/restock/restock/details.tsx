@@ -254,7 +254,7 @@ export const RestockDetail = () => {
                   </div>
                 ) : (
                   <div className="p-3">
-                    <div className="grid grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                       <div className="w-full bg-indigo-100 rounded px-4 py-5 flex justify-between items-start relative">
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-2 text-[#4F46E5] font-medium">

@@ -127,7 +127,7 @@ export const ProductShow = () => {
             <img
               src={mainImage ?? "/images/placeholder.jpg"}
               alt={product.name}
-              className="w-full lg:max-w-[520px] w-full h-[450px] object-cover rounded-lg shadow-md mb-4 md:mb-0 md:mr-2"
+              className="w-full lg:max-w-[520px] h-[450px] object-cover rounded-lg shadow-md mb-4 md:mb-0 md:mr-2"
             />
 
             <div className="flex-1 max-w-150 space-y-4">
