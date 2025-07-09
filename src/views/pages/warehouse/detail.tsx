@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { FaLocationPin } from "react-icons/fa6";
 import { useNavigate, useParams } from "react-router-dom";
 import { useApiClient } from "@/core/helpers/ApiClient";
+import { LoadingCards } from "@/views/components/Loading";
 
 export default function WarehouseDetail() {
   const { id } = useParams();
@@ -39,13 +40,13 @@ export default function WarehouseDetail() {
     fetchWarehouseDetail();
   }, [id, currentPage]);
 
-  if (loading) return <div className="p-6">Loading...</div>;
+  if (loading) return <LoadingCards/>
   if (!warehouse) return <div className="p-6">Warehouse tidak ditemukan</div>;
 
   const pemilik = warehouse.users?.[0];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 lg:p-6 space-y-6 max-w-2xl lg:max-w-full">
       <Breadcrumb title="Detail Warehouse" desc={`Detail warehouse ${warehouse.name}`} />
 
       <div className="p-6 space-y-4 shadow-md rounded-2xl">
@@ -124,7 +125,7 @@ export default function WarehouseDetail() {
         </button>
       </div>
 
-      <div className="bg-white rounded-xl p-6 shadow space-y-6">
+      <div className="bg-white rounded-xl p-3 lg:p-6 shadow space-y-6">
         <h2 className="text-gray-800 font-semibold mb-4 flex gap-2">
           Daftar Produk di Warehouse <InfoIcon size={16} className="mt-1" />
         </h2>
