@@ -10,6 +10,7 @@ import { UserFilterModal } from "@/views/components/filter/UserFilter";
 import { Filter } from "@/views/components/Filter";
 import { LoadingCards } from "@/views/components/Loading";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
+import { IsRole } from "@/core/middlewares/is-role";
 
 type User = {
   [x: string]: ReactNode;
@@ -213,12 +214,14 @@ export default function UserPage() {
           </div>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
-          <button
-            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 px-4 py-2 rounded-lg font-medium cursor-pointer"
-            onClick={() => navigate("/users/create")}
-          >
-            <FiPlus /> Tambah Akun
-          </button>
+          <IsRole role={["admin", "superadmin"]}>
+            <button
+              className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 px-4 py-2 rounded-lg font-medium cursor-pointer"
+              onClick={() => navigate("/users/create")}
+            >
+              <FiPlus /> Tambah Akun
+            </button>
+          </IsRole>
         </div>
       </div>
 
@@ -239,12 +242,14 @@ export default function UserPage() {
                     <img src={ImageHelper(user.image)} alt={user.name} className="w-full h-full object-cover" />
                   </div>
                   <div ref={dropdownOpenId === user.id ? dropdownRef : null}>
-                    <button
-                      className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-100 cursor-pointer"
-                      onClick={() => handleDropdownToggle(user.id)}
-                    >
-                      <FiMoreHorizontal size={22} />
-                    </button>
+                    <IsRole role={["admin", "superadmin"]}>
+                      <button
+                        className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleDropdownToggle(user.id)}
+                      >
+                        <FiMoreHorizontal size={22} />
+                      </button>
+                    </IsRole>
                     {dropdownOpenId === user.id && (
                       <div className="absolute right-2 top-10 w-36 bg-white border rounded shadow-lg z-20">
                         <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm cursor-pointer" onClick={() => { setDropdownOpenId(null); handleDetail(user); }}>

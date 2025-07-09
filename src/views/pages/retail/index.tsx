@@ -8,6 +8,7 @@ import { useApiClient } from "@/core/helpers/ApiClient";
 import Swal from "sweetalert2";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
 import { LoadingCards } from "@/views/components/Loading";
+import { IsRole } from "@/core/middlewares/is-role";
 
 interface Retail {
   id: string;
@@ -130,18 +131,20 @@ export const RetailIndex = () => {
             />
           </div>
           <div className="w-full sm:w-auto">
-            <button
-              className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 px-4 py-2 rounded-lg font-medium cursor-pointer"
-              onClick={handleTambah}
-            >
-              <FiPlus /> Tambah Retail
-            </button>
+            <IsRole role={["admin", "superadmin"]}>
+              <button
+                className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 px-4 py-2 rounded-lg font-medium cursor-pointer"
+                onClick={handleTambah}
+              >
+                <FiPlus /> Tambah Retail
+              </button>
+            </IsRole>
           </div>
         </div>
 
         {loading ? (
           <>
-          <LoadingCards/>
+            <LoadingCards />
           </>
         ) : filteredRetails.length === 0 ? (
           <div className="bg-white rounded-xl p-6">
@@ -232,8 +235,8 @@ export const RetailIndex = () => {
                   onClick={() => handlePageChange(link.url)}
                   disabled={!link.url}
                   className={`px-3 py-1 border rounded text-sm ${link.active
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-600 hover:bg-gray-100"
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-600 hover:bg-gray-100"
                     } ${!link.url && "opacity-50 cursor-not-allowed"}`}
                 />
               ))}
