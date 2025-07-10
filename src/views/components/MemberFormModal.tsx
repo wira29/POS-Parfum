@@ -1,3 +1,5 @@
+import { useApiClient } from "@/core/helpers/ApiClient";
+import { Toaster } from "@/core/helpers/BaseAlert";
 import { useRef, useEffect, useState } from "react";
 
 type Props = {
@@ -10,89 +12,147 @@ type Props = {
     phone: string;
     address: string;
   };
-  onSubmit: (data: {
-    name: string;
-    email: string;
-    phone: string;
-    address: string;
-  }) => void;
   onDelete?: () => void;
 };
 
-const MemberFormModal = ({
-  isOpen,
-  onClose,
-  mode,
-  defaultValues,
-  onSubmit,
-}: Props) => {
+const MemberFormModal = ({ isOpen, onClose, mode, defaultValues }: Props) => {
   const modalRef = useRef<HTMLDivElement>(null);
+  const ApiClient = useApiClient();
 
-  const [name, setName] = useState(defaultValues?.name || "");
+  const [fullName, setFullName] = useState(defaultValues?.name || "");
   const [email, setEmail] = useState(defaultValues?.email || "");
-  const [phone, setPhone] = useState(defaultValues?.phone || "");
-  const [address, setAddress] = useState(defaultValues?.address || "");
+  const [phoneNumber, setPhoneNumber] = useState(defaultValues?.phone || "");
+  // const [address, setAddress] = useState(defaultValues?.address || "");
+  const [errors, setErrors] = useState<Record<string, string[]>>({});
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+      if (
+        modalRef.current &&
+        !modalRef.current.contains(event.target as Node)
+      ) {
         onClose();
       }
     };
-    if (isOpen) document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, [isOpen, onClose]);
 
   useEffect(() => {
     if (defaultValues) {
-      setName(defaultValues.name);
+      setFullName(defaultValues.name);
       setEmail(defaultValues.email);
-      setPhone(defaultValues.phone);
-      setAddress(defaultValues.address);
+      setPhoneNumber(defaultValues.phone);
+      // setAddress(defaultValues.address);
     }
   }, [defaultValues]);
 
-  const handleSubmit = () => {
-    onSubmit({ name, email, phone, address });
-    onClose()
+  const handleSubmit = async () => {
+    setErrors({});
+
+    if (!fullName.trim()) {
+      setErrors({ name: ["Nama tidak boleh kosong"] });
+      return;
+    }
+
+    const now = new Date();
+
+    const datePart = `${now.getFullYear()}${(now.getMonth() + 1)
+      .toString()
+      .padStart(2, "0")}${now.getDate().toString().padStart(2, "0")}`;
+
+    const timePart = `${now.getHours().toString().padStart(2, "0")}${now
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")}${now.getSeconds().toString().padStart(2, "0")}`;
+
+    const finalEmail = email.trim()
+      ? email.trim()
+      : `${fullName
+          .replace(/\s+/g, "")
+          .toLowerCase()}_${datePart}${timePart}@gmail.com`;
+
+    setEmail(finalEmail);
+
+    const payload = {
+      name: fullName.trim(),
+      email: finalEmail,
+      phone: phoneNumber.trim(),
+      role: ["member"],
+      // address: address.trim(),
+    };
+
+    try {
+      setLoading(true);
+      const response = await ApiClient.post("users", payload);
+      onClose();
+      if (response?.data?.success === true || response?.data?.code === 200) {
+        Toaster("success", "Member behasil di buat");
+        setFullName("");
+        setEmail("");
+        setPhoneNumber("");
+      }
+    } catch (error: any) {
+      Toaster("error", `Error : ${error.response?.data?.message}`);
+      if (error.response?.data?.data) {
+        setErrors(error.response.data.data);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!isOpen) return null;
 
   return (
     <div
-  className={`bg-white w-[400px] rounded-xl shadow-lg p-5 z-50 space-y-5
-    ${
-      mode === "tengah"
-        ? "fixed top-103 left-160 -translate-x-1/2 -translate-y-1/2"
-        : "absolute top-10 right-0 mt-2"
-    }
-  `}
-  ref={modalRef}
+      className={`bg-white w-[400px] rounded-xl shadow-xl p-5 z-50 space-y-5 ${
+        mode === "tengah"
+          ? "fixed top-90 left-160 -translate-x-1/2 -translate-y-1/2"
+          : "absolute top-10 right-0 mt-2"
+      }`}
+      ref={modalRef}
     >
-      <h2 className="text-lg font-bold">
-        Tambahkan Member
-      </h2>
+      <h2 className="text-lg font-bold">Tambahkan Member</h2>
 
       <div className="space-y-3">
         <div>
-          <label className="block text-sm font-medium mb-1">Nama</label>
+          <label className="block text-sm font-medium mb-1">
+            Nama<span className="text-red-500">*</span>
+          </label>
           <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full border border-gray-300 outline-none rounded-md px-3 py-2 text-sm"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            className={`w-full outline-none rounded-md px-3 py-2 text-sm ${
+              errors.name ? "border border-red-500" : "border border-gray-300"
+            }`}
             placeholder="Nama lengkap"
           />
+          {errors.name && (
+            <p className="text-red-500 text-xs mt-1">{errors.name[0]}</p>
+          )}
         </div>
 
         <div>
           <label className="block text-sm font-medium mb-1">Email</label>
           <input
             value={email}
+            type="email"
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full border border-gray-300 outline-none rounded-md px-3 py-2 text-sm"
+            className={`w-full outline-none rounded-md px-3 py-2 text-sm ${
+              errors.email ? "border border-red-500" : "border border-gray-300"
+            }`}
             placeholder="Email aktif"
           />
+          {errors.email && (
+            <p className="text-red-500 text-xs mt-1">{errors.email[0]}</p>
+          )}
         </div>
 
         <div>
@@ -102,13 +162,12 @@ const MemberFormModal = ({
               +62
             </span>
             <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
               className="w-full border border-gray-300 outline-none rounded-md px-3 py-2 text-sm"
-              placeholder="08****"
-                  onKeyDown={(e) => {
-              if (
-                [
+              placeholder="0812345678910"
+              onKeyDown={(e) => {
+                const allowedKeys = [
                   "Backspace",
                   "Delete",
                   "Tab",
@@ -116,18 +175,22 @@ const MemberFormModal = ({
                   "Enter",
                   "ArrowLeft",
                   "ArrowRight",
-                ].includes(e.key) ||
-                (e.ctrlKey &&
-                  ["a", "c", "v", "x"].includes(e.key.toLowerCase()))
-              )
-                return;
-              if (!/[0-9]/.test(e.key)) e.preventDefault();
-            }}
+                ];
+                const ctrlCommands = ["a", "c", "v", "x"];
+
+                if (
+                  allowedKeys.includes(e.key) ||
+                  (e.ctrlKey && ctrlCommands.includes(e.key.toLowerCase()))
+                )
+                  return;
+
+                if (!/[0-9]/.test(e.key)) e.preventDefault();
+              }}
             />
           </div>
         </div>
 
-        <div>
+        {/* <div>
           <label className="block text-sm font-medium mb-1">Alamat</label>
           <textarea
             value={address}
@@ -136,16 +199,21 @@ const MemberFormModal = ({
             rows={3}
             placeholder="Alamat lengkap"
           />
-        </div>
+        </div> */}
       </div>
 
       <div className="flex justify-between items-center pt-4 border-t border-t-slate-300">
         <button
-        type="button"
+          type="button"
+          disabled={loading}
           onClick={handleSubmit}
-          className="ml-auto bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-md cursor-pointer"
+          className={`ml-auto ${
+            loading
+              ? "cursor-not-allowed bg-blue-100 text-blue-200"
+              : "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+          } text-sm px-4 py-2 rounded-md`}
         >
-          Submit
+          {loading ? "membuat member.." : "Buat Member"}
         </button>
       </div>
     </div>

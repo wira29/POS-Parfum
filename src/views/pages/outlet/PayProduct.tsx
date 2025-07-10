@@ -195,11 +195,15 @@ const PayProduct = ({ totalHarga }: { totalHarga: number }) => {
           isOpen={isOpenModalListMember}
           onClose={() => setIsOpenListMosdal(false)}
           onSelectMember={(member) => {
+            const cleanPhone =
+              member.phone && member.phone !== "-"
+                ? member.phone.replace("+62", "")
+                : "-";
+
             setValue("customerName", member.name);
-            setValue("customerPhone", member.phone.replace("+62", ""));
+            setValue("customerPhone", cleanPhone);
             setIsMemberMode(true);
           }}
-          members={members}
         />
 
         <MemberFormModal

@@ -226,9 +226,6 @@ export function SearchProduct({
         isOpen={isOpenModalAdd}
         onClose={() => setIsOpenModalAdd(false)}
         mode="tengah"
-        onSubmit={(data) => {
-          console.log(data);
-        }}
       />
 
       {showAddModal && (
