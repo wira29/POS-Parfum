@@ -1,22 +1,22 @@
-import { useState, useMemo, useRef, useEffect } from "react";
-import { Breadcrumb } from "@/views/components/Breadcrumb";
-import { ChevronDown, ChevronUp, Search, X } from "lucide-react";
-import DeleteIcon from "@/views/components/DeleteIcon";
-import { useNavigate } from "react-router-dom";
 import { useApiClient } from "@/core/helpers/ApiClient";
-import Swal from "sweetalert2";
+import { Toaster } from "@/core/helpers/BaseAlert";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
 import {
+  ApiResponse,
   Product,
-  Variant,
-  Unit,
-  Warehouse,
   SelectedProduct,
   SelectedVariant,
-  ApiResponse,
+  Unit,
+  Variant,
+  Warehouse,
 } from "@/types/types";
-import { Toaster } from "@/core/helpers/BaseAlert";
+import { Breadcrumb } from "@/views/components/Breadcrumb";
+import DeleteIcon from "@/views/components/DeleteIcon";
+import { ChevronDown, ChevronUp, Search, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { IoAddCircle, IoCloseCircle } from "react-icons/io5";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const PRODUCTS_PER_PAGE = 10;
 
@@ -144,6 +144,7 @@ export const RestockCreate = () => {
   };
 
   const handleAddVariants = (variants: Variant[]) => {
+    console.log("Selected: ", variants[0].unit_id)
     if (!selectedProduct) return;
     setSelectedProducts((prev) => [
       ...prev,
@@ -152,7 +153,8 @@ export const RestockCreate = () => {
         variants: variants.map((v) => ({
           ...v,
           qty: "",
-          unit: units[0]?.id || "",
+          // unit: units[0]?.id || "",
+          unit: v.unit_id
         })),
         showTable: false,
       },
@@ -501,7 +503,9 @@ export const RestockCreate = () => {
           </div>
         )}
 
-        {selectedProducts.map((item: SelectedProduct) => (
+        {selectedProducts.map((item: SelectedProduct) => {
+          console.log(item)
+          return (
           <div
             key={item.product.id}
             className="mt-6 border border-gray-300 rounded-md p-5"
@@ -593,10 +597,11 @@ export const RestockCreate = () => {
                             type="text"
                             readOnly
                             className="w-full max-w-[150px] border outline-none border-gray-300 rounded-lg px-3 py-2 bg-gray-100 text-gray-600"
-                            value={
-                              units.find((unit) => unit.id === variant.unit)
-                                ?.name || "-"
-                            }
+                            // value={
+                            //   units.find((unit) => unit.id === variant.unit)
+                            //     ?.name || "-"
+                            // }
+                            value={variant.unit_code}
                             name="unit_name"
                           />
                           <input
@@ -619,7 +624,8 @@ export const RestockCreate = () => {
               </div>
             )}
           </div>
-        ))}
+        )
+        })}
 
         {showVariantModal && selectedProduct && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
