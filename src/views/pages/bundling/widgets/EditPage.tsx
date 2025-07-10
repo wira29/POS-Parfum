@@ -78,12 +78,14 @@ export default function BundlingEdit() {
           category: p.category,
           details_sum_stock: p.details_sum_stock,
           is_bundling: p.is_bundling,
+          unit_id: p.unit_id,
           variants: (p.product_detail || []).map((v) => ({
             id: v.id,
             name: v.variant_name,
             stock: v.stock,
             price: v.price,
             unit_code: v.unit_code,
+            unit_id: v.unit_id,
             product_code: v.product_code,
             product_image: v.product_image,
           })),
@@ -133,17 +135,17 @@ export default function BundlingEdit() {
       try {
         const res = await apiClient.get(`/product-bundling/${id}`);
         const data = res.data?.data;
+        console.log("data", data)
 
         setProductName(data.name || "");
         setPrice(data.price || 0);
         setStock(data.stock || 0);
         setDescription(data.description || "");
         setCategory(
-          categories.find((cat) => cat.label === data.category)?.value || ""
+          categories.find((cat) => cat.id === data.category_id)?.value || ""
         );
 
         if (data.bundling_material && data.bundling_material.length > 0) {
-          console.log(data)
           const newComposition = data.bundling_material.map(
             (mat) => `${mat.product_name} - ${mat.variant_name}`
           );
@@ -263,6 +265,7 @@ export default function BundlingEdit() {
     const isQtyInvalid = filteredMaterials.some(
       (mat) => !mat.quantity || !mat.unit_id
     );
+    console.log("filteredMaterials", filteredMaterials, materials)
     if (isQtyInvalid) {
       Toaster("error", "Semua varian harus memiliki quantity dan unit.");
       setLoading(false);
@@ -557,7 +560,6 @@ export default function BundlingEdit() {
                             const variant = prod?.variants.find(
                               (v) => v.id === variantId
                             );
-                            console.log(productId, variantId)
                             const quantity = materials.find(
                               (mat) => mat.product_detail_id === variant?.id
                             )?.quantity;
@@ -831,6 +833,7 @@ export default function BundlingEdit() {
           setActiveQtyId(null);
         }}
         onSubmit={(qty) => {
+          console.log("mat", materials)
           setMaterials((prev) =>
             prev.map((mat) =>
               mat.product_detail_id === activeQtyId
