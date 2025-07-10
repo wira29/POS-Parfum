@@ -44,7 +44,12 @@ export const ProductEdit = () => {
 
     const selectedUnitData = units.find((u) => u.id === selectedUnit);
     const selectedUnitCode = selectedUnitData?.code?.toUpperCase();
-    const hasVariant = variantMatrix.length >= 1 && variantMatrix[0].volumes.length > 1;
+    const hasVariant = () => {
+        if ((variantMatrix.length == 1 && variantMatrix[0].volumes.length == 1) ) return false;
+        if (variantMatrix.length == 1 && variantMatrix[0].volumes.length > 1) return true;
+        if (variantMatrix.length > 1) return true;
+        return false;
+    }
 
     const handleOptionChange = (variationIndex, optionIndex, value) => {
         const updated = [...variations];
@@ -283,7 +288,7 @@ export const ProductEdit = () => {
                 }
 
                 const hasVariants = details.filter(detail => detail.variant_name);
-
+                console.log(hasVariants)
                 if (hasVariants.length == 1) {
                     productDetailId.current = hasVariants[0].id;
                     const mainDetail = details[0];
@@ -669,7 +674,7 @@ export const ProductEdit = () => {
                         </div>
                     </div>
 
-                    {!hasVariant && (
+                    {!hasVariant() && (
                         <div className="bg-white shadow rounded-2xl p-4 md:p-6">
                             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-blue-600">
                                 <DollarSign size={18} /> Harga & Stok Produk
@@ -836,7 +841,7 @@ export const ProductEdit = () => {
 
                         </div>
 
-                        {variantMatrix.length > 0 && hasVariant && (
+                        {variantMatrix.length > 0 && hasVariant() && (
                             <>
                                 <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
                                     <div className="flex flex-col sm:flex-row border rounded-lg overflow-hidden divide-y sm:divide-y-0 sm:divide-x w-full max-w-3xl">
@@ -982,9 +987,9 @@ export const ProductEdit = () => {
                 <div className="lg:col-span-4">
                     <PreviewCard
                         images={images}
-                        price={hasVariant ? variantMatrix?.[0]?.prices?.[0] : price}
-                        stock={hasVariant ? variantMatrix?.[0]?.stocks?.[0] : stock}
-                        productCode={hasVariant ? variantMatrix?.[0]?.codes?.[0] : productCode}
+                        price={hasVariant() ? variantMatrix?.[0]?.prices?.[0] : price}
+                        stock={hasVariant() ? variantMatrix?.[0]?.stocks?.[0] : stock}
+                        productCode={hasVariant() ? variantMatrix?.[0]?.codes?.[0] : productCode}
                         category={selectedCategoryName}
                         productName={productName}
                         variantImages={variantImages}
