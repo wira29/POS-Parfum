@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { Search } from "lucide-react";
 import { useApiClient } from "@/core/helpers/ApiClient";
+import { Search } from "lucide-react";
+import { useEffect, useState } from "react";
 
 type Product = {
   id: number;
@@ -8,6 +8,7 @@ type Product = {
   product_code: string;
   product_image?: string;
   variant_name?: string;
+  unit_code: string;
   stock: number;
 };
 
@@ -33,6 +34,7 @@ const ProductSelectionModal = ({ openModalvariant, closeModal, onSelectProduct }
     setLoading(true);
     try {
       const response = await ApiClient.get<{ data: Product[] }>("/product-details/no-paginate");
+      console.log("produks", response.data)
       if (response.data) {
         setProducts(response.data.data);
         setFilteredProducts(response.data.data);
@@ -137,7 +139,7 @@ const ProductSelectionModal = ({ openModalvariant, closeModal, onSelectProduct }
                   </div>
 
                   <div className="text-right">
-                    <div className="text-sm font-medium text-gray-800">{formatPrice(product.stock)} G</div>
+                    <div className="text-sm font-medium text-gray-800">{formatPrice(product.stock)} {product.unit_code}</div>
                   </div>
                 </div>
               ))}
