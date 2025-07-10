@@ -1,8 +1,8 @@
-import { FiMenu, FiLogOut } from "react-icons/fi";
 import { useAuthStore } from "@/core/stores/AuthStore";
-import { useState, useRef, useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Mail } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { FiLogOut, FiMenu } from "react-icons/fi";
 
 export const Header = ({
   onToggleSidebar,
@@ -33,6 +33,7 @@ export const Header = ({
       className={`h-16 bg-white shadow-md fixed top-0 left-0 right-0 z-10 flex items-center justify-between transition-all duration-300 ${sidebar === "full" ? "pl-64" : "pl-16"
         } pr-6`}
     >
+      <div className="flex items-start">
       <button
         onClick={onToggleSidebar}
         className={`text-gray-600 px-4 transition-all duration-300 cursor-pointer ${sidebar === "mini-sidebar" ? "ml-2" : ""
@@ -40,6 +41,10 @@ export const Header = ({
       >
         <FiMenu size={24} />
       </button>
+      <div className="p-1 px-2 bg-blue-600 text-white rounded-lg flex items-center gap-2">
+        {role.join(", ") || "super admin"}
+      </div>
+      </div>
 
       <div className="relative" ref={profileRef}>
         <div

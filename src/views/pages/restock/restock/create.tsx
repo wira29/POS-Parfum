@@ -1,5 +1,6 @@
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Toaster } from "@/core/helpers/BaseAlert";
+import { formatNum } from "@/core/helpers/FormatNumber";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
 import {
   ApiResponse,
@@ -38,7 +39,8 @@ export const RestockCreate = () => {
   const [units, setUnits] = useState<Unit[]>([]);
   const variantModalRef = useRef<HTMLDivElement | null>(null);
   const productModalRef = useRef<HTMLDivElement | null>(null);
-  const [totalPrice, setTotalPrice] = useState("");
+  const [totalPrice, setTotalPrice] = useState(1);
+  const [ excahangeRate, setExcahangeRate ] = useState(15000);
   const [storeName, setStoreName] = useState("");
   const [storeLocation, setStoreLocation] = useState("");
   const navigate = useNavigate();
@@ -335,23 +337,51 @@ export const RestockCreate = () => {
                     />
                   </div>
                   <div className="mb-4 relative overflow-hidden">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Total Harga
-                    </label>
-                    <div className="mt-1 relative">
-                      <span className="absolute bg-slate-200 w-10 inset-y-0 left-0 flex items-center pl-3 text-gray-500 text-sm z-10">
-                        Rp
-                      </span>
-                      <input
-                        type="text"
-                        value={totalPrice}
-                        onChange={(e) => {
-                          let val = e.target.value.replace(/[^0-9]/g, "");
-                          setTotalPrice(val);
-                        }}
-                        className="block w-full pl-12 pr-3 py-2 border border-gray-300 rounded-md shadow-sm outline-none focus:ring-blue-500"
-                        placeholder="Masukan Total Harga"
-                      />
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Kurs Dollar
+                        </label>
+                        <div className="mt-1 relative">
+                          <span className="absolute bg-slate-200 w-10 inset-y-0 left-0 flex items-center pl-3 text-gray-500 text-sm z-10">
+                            Rp
+                          </span>
+                          <input
+                            type="text"
+                            value={excahangeRate}
+                            onChange={(e) => {
+                              let val = e.target.value.replace(/[^0-9]/g, "");
+                              setExcahangeRate(parseInt(val));
+                            }}
+                            className="block w-full pl-12 pr-3 py-2 border border-gray-300 rounded-md shadow-sm outline-none focus:ring-blue-500"
+                            placeholder="Masukan Kurs Dollar "
+                          />
+                        </div>
+                      </div>
+                      <div className="flex flex-col">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Total Harga
+                          </label>
+                          <div className="mt-1 relative">
+                            <span className="absolute bg-slate-200 w-10 inset-y-0 left-0 flex items-center pl-3 text-gray-500 text-sm z-10">
+                              $
+                            </span>
+                            <input
+                              type="text"
+                              value={totalPrice}
+                              onChange={(e) => {
+                                let val = e.target.value;
+                                setTotalPrice(val);
+                              }}
+                              className="block w-full pl-12 pr-3 py-2 border border-gray-300 rounded-md shadow-sm outline-none focus:ring-blue-500"
+                              placeholder="Masukan Total Harga"
+                            />
+                          </div>
+                        </div>
+                        <span className="text-sm text-gray-600">Total harga Rp.{formatNum(parseFloat(totalPrice) * excahangeRate)}</span>
+                      </div>
+                      
                     </div>
                   </div>
                 </div>
