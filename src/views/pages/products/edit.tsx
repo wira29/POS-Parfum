@@ -144,6 +144,7 @@ export const ProductEdit = () => {
             const prices = [...(variant.prices || Array(optionCount).fill(""))];
             const stocks = [...(variant.stocks || Array(optionCount).fill(""))];
             const codes = [...(variant.codes || Array(optionCount).fill(""))];
+            const productDetailId = [...(variant.productDetailId || Array(optionCount).fill(""))];
 
             for (let idx = 0; idx < optionCount; idx++) {
                 if (globalPrice !== "") prices[idx] = Math.max(0, globalPrice);
@@ -156,6 +157,7 @@ export const ProductEdit = () => {
                 prices,
                 stocks,
                 codes,
+                productDetailId
             };
         });
         setVariantMatrix(updated);
@@ -212,7 +214,6 @@ export const ProductEdit = () => {
 
     useEffect(() => {
         if (variations.length === 0) return setVariantMatrix([]);
-
         const matrix = variations.map((variation, i) => {
             const filteredOptions = (variation.options || []).filter(opt => opt && opt.trim() !== "");
             const optionCount = filteredOptions.length;
@@ -229,6 +230,7 @@ export const ProductEdit = () => {
                     ? variantMatrix[i].codes
                     : Array(optionCount).fill(""),
                 volumes: filteredOptions,
+                productDetailId: variantMatrix?.[i]?.product_detail_id
             };
         });
         setVariantMatrix(matrix);
@@ -540,7 +542,7 @@ export const ProductEdit = () => {
                     detailIdx++;
                 } else {
                     options.forEach((option, j) => {
-                        formData.append(`product_details[${detailIdx}][product_detail_id]`, category);
+                        formData.append(`product_details[${detailIdx}][product_detail_id]`, variant.productDetailId?.[j] || "");
                         formData.append(`product_details[${detailIdx}][category_id]`, category);
                         formData.append(`product_details[${detailIdx}][variant]`, aroma);
                         formData.append(`product_details[${detailIdx}][opsi]`, option || "");
