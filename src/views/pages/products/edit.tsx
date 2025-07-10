@@ -288,7 +288,7 @@ export const ProductEdit = () => {
                 }
 
                 const hasVariants = details.filter(detail => detail.variant_name);
-                console.log(hasVariants)
+                
                 if (hasVariants.length == 1) {
                     productDetailId.current = hasVariants[0].id;
                     const mainDetail = details[0];
