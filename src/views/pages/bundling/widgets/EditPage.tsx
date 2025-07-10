@@ -1,14 +1,14 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { Breadcrumb } from "@/views/components/Breadcrumb";
 import { useApiClient } from "@/core/helpers/ApiClient";
 import { Toaster } from "@/core/helpers/BaseAlert";
-import { Plus, X, Info, Image as ImageIcon } from "lucide-react";
-import VariantSelectModal from "./modal/VariantSelectModal";
-import InputOneImage from "@/views/components/Input-v2/InputOneImage";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
-import ModalQuantity from "./modal/ModalQuantity";
+import { Breadcrumb } from "@/views/components/Breadcrumb";
+import InputOneImage from "@/views/components/Input-v2/InputOneImage";
 import { LoadingForm } from "@/views/components/Loading";
+import { Image as ImageIcon, Info } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import ModalQuantity from "./modal/ModalQuantity";
+import VariantSelectModal from "./modal/VariantSelectModal";
 
 function Skeleton({ className = "" }) {
   return <div className={`animate-pulse bg-gray-200 rounded ${className}`} />;
@@ -29,6 +29,7 @@ export default function BundlingEdit() {
   const [stock, setStock] = useState(0);
   const [errors, setErrors] = useState({});
   const [composition, setComposition] = useState([]);
+  const [compositionId, setCompositionId] = useState([]);
   const [description, setDescription] = useState("");
   const [materials, setMaterials] = useState([]);
   const [deletedMaterials, setDeletedMaterials] = useState<string[]>([]);
@@ -142,8 +143,12 @@ export default function BundlingEdit() {
         );
 
         if (data.bundling_material && data.bundling_material.length > 0) {
+          console.log(data)
           const newComposition = data.bundling_material.map(
             (mat) => `${mat.product_name} - ${mat.variant_name}`
+          );
+          const newCompositionId = data.bundling_material.map(
+            (mat) => `${mat.product_id} / ${mat.product_detail_id}`
           );
           const newMaterials = data.bundling_material.map((mat) => ({
             product_detail_id: mat.product_detail_id,
@@ -155,6 +160,7 @@ export default function BundlingEdit() {
           }));
 
           setComposition(newComposition);
+          setCompositionId(newCompositionId);
           setMaterials(newMaterials);
 
           const variants = newMaterials.map((mat) => ({
@@ -216,14 +222,17 @@ export default function BundlingEdit() {
 
   const handleRemoveComposition = (index) => {
     const item = composition[index];
+    const itemId = compositionId[index];
     const [productName, variantName] = item.split(" - ");
-    const prod = products.find((p) => p.name === productName);
-    const variant = prod?.variants.find((v) => v.name === variantName);
+    const [productId, variantId] = itemId.split(" / ");
+    const prod = products.find((p) => p.id === productId);
+    const variant = prod?.variants.find((v) => v.id === variantId);
 
     if (variant?.id) {
       setDeletedMaterials((prev) => [...prev, variant.id]);
     }
     setComposition((prev) => prev.filter((_, i) => i !== index));
+    setCompositionId((prev) => prev.filter((_, i) => i !== index))
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -342,6 +351,9 @@ export default function BundlingEdit() {
       setComposition((prev) =>
         prev.filter((item) => item !== `${productName} - ${variantName}`)
       );
+      setCompositionId((prev) =>
+        prev.filter((item) => item !== `${productId}-${variantId}`)
+      );
       setSelectedVariants((prev) =>
         prev.filter(
           (v) => !(v.productId === productId && v.variantId === variantId)
@@ -358,6 +370,7 @@ export default function BundlingEdit() {
         },
       ]);
       setComposition((prev) => [...prev, `${productName} - ${variantName}`]);
+      setCompositionId((prev) => [...prev, `${productId} / ${variantId}`]);
       setSelectedVariants((prev) => [
         ...prev,
         { productId, productName, variantId, variantName },
@@ -538,12 +551,13 @@ export default function BundlingEdit() {
                           {composition.map((item, index) => {
                             const [productName, variantName] =
                               item.split(" - ");
-                            const prod = products.find(
-                              (p) => p.name === productName
-                            );
+                              const [productId, variantId] =
+                              compositionId[index].split(" / ");
+                            const prod = products.find((p) => p.id === productId);
                             const variant = prod?.variants.find(
-                              (v) => v.name === variantName
+                              (v) => v.id === variantId
                             );
+                            console.log(productId, variantId)
                             const quantity = materials.find(
                               (mat) => mat.product_detail_id === variant?.id
                             )?.quantity;
