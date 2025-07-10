@@ -44,7 +44,7 @@ export const ProductEdit = () => {
 
     const selectedUnitData = units.find((u) => u.id === selectedUnit);
     const selectedUnitCode = selectedUnitData?.code?.toUpperCase();
-    const hasVariant = variantMatrix.length > 1;
+    const hasVariant = variantMatrix.length >= 1 && variantMatrix[0].volumes.length > 1;
 
     const handleOptionChange = (variationIndex, optionIndex, value) => {
         const updated = [...variations];
@@ -226,7 +226,6 @@ export const ProductEdit = () => {
                 volumes: filteredOptions,
             };
         });
-
         setVariantMatrix(matrix);
     }, [variations]);
 
@@ -243,7 +242,6 @@ export const ProductEdit = () => {
                 }
 
                 const data = res.data.data;
-                console.log(data)
 
                 setProductName(data.name || "");
                 setDescription(data.description || "");
@@ -298,7 +296,6 @@ export const ProductEdit = () => {
                     setVariantUnits([]);
                     return;
                 }
-
                 const variantGroups = {};
 
                 details.forEach((detail) => {
@@ -322,7 +319,7 @@ export const ProductEdit = () => {
 
                     variantGroups[mainName].options.push(option);
                     variantGroups[mainName].prices.push(String(detail.price || ""));
-                    variantGroups[mainName].stocks.push(String(detail.stock || ""));
+                    variantGroups[mainName].stocks.push(detail.stock.toString());
                     variantGroups[mainName].codes.push(detail.product_code || "");
                     variantGroups[mainName].units.push(String(detail.unit_id || ""));
                     variantGroups[mainName].images.push(detail.product_image || "");
