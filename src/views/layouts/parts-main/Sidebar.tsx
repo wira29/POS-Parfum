@@ -1,20 +1,28 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import {
-  FiHome, FiBox, FiPercent, FiCoffee, FiTag, FiUsers, FiLayers,
-  FiChevronDown, FiChevronUp,
-} from "react-icons/fi";
+import { Toaster } from "@/core/helpers/BaseAlert";
+import { useAuthStore } from "@/core/stores/AuthStore";
 import {
   ContainerIcon, LayoutGrid, Repeat, Store, Wallet2Icon,
 } from "lucide-react";
-import {
-  FaMoneyBillTransfer, FaUserTag, FaBoxesPacking, FaShop,
-} from "react-icons/fa6";
-import { TbShoppingCart } from "react-icons/tb";
-import { AiOutlineFileSearch } from "react-icons/ai";
+import { useEffect, useState } from "react";
 import { ShoppingCart } from "react-feather";
-import { Toaster } from "@/core/helpers/BaseAlert";
-import { useAuthStore } from "@/core/stores/AuthStore"; 
+import { AiOutlineFileSearch } from "react-icons/ai";
+import {
+  FaBoxesPacking,
+  FaMoneyBillTransfer,
+  FaShop,
+  FaUserTag,
+} from "react-icons/fa6";
+import {
+  FiBox,
+  FiChevronDown, FiChevronUp,
+  FiCoffee,
+  FiHome,
+  FiLayers,
+  FiPercent,
+  FiTag, FiUsers,
+} from "react-icons/fi";
+import { TbShoppingCart } from "react-icons/tb";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const getMenuItems = (userRoles: string[]) => [
   {
@@ -49,7 +57,7 @@ const getMenuItems = (userRoles: string[]) => [
       { label: "Produk", icon: <FiBox />, path: "/products", roles: ["owner", "warehouse", "outlet"] },
       { label: "Bundling", icon: <ShoppingCart size={16} />, path: "/bundlings", roles: [ "warehouse", "outlet"] },
       { label: "Blending Produk", icon: <FiCoffee />, path: "/blendings", roles: ["warehouse"] },
-      { label: "Request Stock", icon: <FaBoxesPacking />, path: "/requeststock", roles: ["outlet", "owner"] },
+      { label: "Request Stock", icon: <FaBoxesPacking />, path: "/requeststock", roles: ["outlet"] },
       { label: "Restock", icon: <ContainerIcon />, path: "/restock", roles: ["warehouse"] },
       { label: "Unit", icon: <LayoutGrid />, path: "/units", roles: ["admin", "warehouse", "outlet"] },
       { label: "Audit", icon: <AiOutlineFileSearch />, path: "/audit", roles: ["admin", "outlet"] },
