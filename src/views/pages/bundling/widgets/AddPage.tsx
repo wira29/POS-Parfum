@@ -248,10 +248,13 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   const handleRemoveComposition = (index) => {
     const item = composition[index];
+    const itemId = compositionId[index];
     const [productName, variantName] = item.split(" - ");
-    const prod = products.find((p) => p.name === productName);
-    const variant = prod?.variants.find((v) => v.name === variantName);
+    const [productId, variantId] = itemId.split(" / ");
+    const prod = products.find((p) => p.id === productId);
+    const variant = prod?.variants.find((v) => v.id === variantId);
     setComposition((prev) => prev.filter((_, i) => i !== index));
+    setCompositionId((prev) => prev.filter((_, i) => i !== index))
     setMaterials((prev) =>
       prev.filter((mat) => mat.product_detail_id !== variant?.id)
     );
