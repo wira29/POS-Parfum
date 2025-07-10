@@ -8,7 +8,7 @@ import InputSelect from "@/views/components/Input-v2/InputSelect";
 import InputText from "@/views/components/Input-v2/InputText";
 import { LoadingCards } from "@/views/components/Loading";
 import { ArrowLeftRight, Barcode, DollarSign, GitCompareArrows, ImageIcon, Info, Plus, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 export const ProductEdit = () => {
@@ -22,6 +22,7 @@ export const ProductEdit = () => {
     const [images, setImages] = useState([]);
     const [productName, setProductName] = useState("");
     const [productCode, setProductCode] = useState("");
+    const productDetailId = useRef(null);
     const [category, setCategory] = useState("");
     const [price, setPrice] = useState();
     const [stock, setStock] = useState("0");
@@ -43,7 +44,7 @@ export const ProductEdit = () => {
 
     const selectedUnitData = units.find((u) => u.id === selectedUnit);
     const selectedUnitCode = selectedUnitData?.code?.toUpperCase();
-    const hasVariant = variantMatrix.length > 0;
+    const hasVariant = variantMatrix.length > 1;
 
     const handleOptionChange = (variationIndex, optionIndex, value) => {
         const updated = [...variations];
@@ -283,9 +284,10 @@ export const ProductEdit = () => {
                     return;
                 }
 
-                const hasVariants = details.some(detail => detail.variant_name);
+                const hasVariants = details.filter(detail => detail.variant_name);
 
-                if (!hasVariants) {
+                if (hasVariants.length == 1) {
+                    productDetailId.current = hasVariants[0].id;
                     const mainDetail = details[0];
                     setProductCode(mainDetail.product_code || "");
                     setPrice(mainDetail.price || 0);
@@ -313,7 +315,8 @@ export const ProductEdit = () => {
                             stocks: [],
                             codes: [],
                             units: [],
-                            images: []
+                            images: [],
+                            product_detail_id: []
                         };
                     }
 
@@ -323,6 +326,8 @@ export const ProductEdit = () => {
                     variantGroups[mainName].codes.push(detail.product_code || "");
                     variantGroups[mainName].units.push(String(detail.unit_id || ""));
                     variantGroups[mainName].images.push(detail.product_image || "");
+                    variantGroups[mainName].product_detail_id.push(detail.id || null);
+
                 });
 
                 const newVariations = [];
@@ -337,6 +342,7 @@ export const ProductEdit = () => {
                     });
 
                     newVariantMatrix.push({
+                        product_detail_id: group.product_detail_id,
                         aroma: mainName,
                         prices: group.prices,
                         stocks: group.stocks,
@@ -438,6 +444,7 @@ export const ProductEdit = () => {
                 return;
             }
 
+            formData.append("product_details[0][product_detail_id]", productDetailId.current ?? "");
             formData.append("product_details[0][category_id]", category);
             formData.append("product_details[0][stock]", String(stock));
             formData.append("product_details[0][price]", String(price));
@@ -531,6 +538,7 @@ export const ProductEdit = () => {
                     detailIdx++;
                 } else {
                     options.forEach((option, j) => {
+                        formData.append(`product_details[${detailIdx}][product_detail_id]`, category);
                         formData.append(`product_details[${detailIdx}][category_id]`, category);
                         formData.append(`product_details[${detailIdx}][variant]`, aroma);
                         formData.append(`product_details[${detailIdx}][opsi]`, option || "");
