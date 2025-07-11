@@ -1,7 +1,11 @@
 import { Toaster } from "@/core/helpers/BaseAlert";
 import { useAuthStore } from "@/core/stores/AuthStore";
 import {
-  ContainerIcon, LayoutGrid, Repeat, Store, Wallet2Icon,
+  ContainerIcon,
+  LayoutGrid,
+  Repeat,
+  Store,
+  Wallet2Icon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ShoppingCart } from "react-feather";
@@ -14,12 +18,14 @@ import {
 } from "react-icons/fa6";
 import {
   FiBox,
-  FiChevronDown, FiChevronUp,
+  FiChevronDown,
+  FiChevronUp,
   FiCoffee,
   FiHome,
   FiLayers,
   FiPercent,
-  FiTag, FiUsers,
+  FiTag,
+  FiUsers,
 } from "react-icons/fi";
 import { TbShoppingCart } from "react-icons/tb";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -37,10 +43,20 @@ const getMenuItems = (userRoles: string[]) => [
     icon: <TbShoppingCart />,
     path: "/outlets",
     isDropdown: true,
-    roles: ["warehouse", "owner", "outlet","cashier"],
+    roles: ["warehouse", "owner", "outlet", "cashier"],
     children: [
-      { label: "Kasir", icon: <TbShoppingCart />, path: "/outlets", roles: ["cashier"] },
-      { label: "Riwayat Penjualan", icon: <FiTag />, path: "/riwayat-penjualan", roles: ["warehouse", "owner", "outlet"] },
+      {
+        label: "Kasir",
+        icon: <TbShoppingCart />,
+        path: "/outlets",
+        roles: ["cashier"],
+      },
+      {
+        label: "Riwayat Penjualan",
+        icon: <FiTag />,
+        path: "/riwayat-penjualan",
+        roles: ["warehouse", "owner", "outlet","cashier"],
+      },
     ],
   },
   {
@@ -48,32 +64,124 @@ const getMenuItems = (userRoles: string[]) => [
     label: "Request Pembelian",
     icon: <FiTag />,
     path: "/request-pembelian",
-    roles: ["warehouse", "cashier"],
+    roles: ["warehouse"],
   },
   {
     label: "Produk",
     children: [
-      { label: "Kategori", icon: <FiLayers />, path: "/categories", roles: ["warehouse", "outlet"] },
-      { label: "Produk", icon: <FiBox />, path: "/products", roles: ["owner", "warehouse", "outlet"] },
-      { label: "Bundling", icon: <ShoppingCart size={16} />, path: "/bundlings", roles: [ "warehouse", "outlet"] },
-      { label: "Blending Produk", icon: <FiCoffee />, path: "/blendings", roles: ["warehouse"] },
-      { label: "Request Stock", icon: <FaBoxesPacking />, path: "/requeststock", roles: ["outlet"] },
-      { label: "Restock", icon: <ContainerIcon />, path: "/restock", roles: ["warehouse"] },
-      { label: "Unit", icon: <LayoutGrid />, path: "/units", roles: ["admin", "warehouse", "outlet"] },
-      { label: "Audit", icon: <AiOutlineFileSearch />, path: "/audit", roles: ["admin", "outlet"] },
-      { label: "Diskon", icon: <FiPercent />, path: "/discounts", roles: ["owner", "warehouse", "outlet"] },
+      {
+        label: "Kategori",
+        icon: <FiLayers />,
+        path: "/categories",
+        roles: ["warehouse", "outlet"],
+      },
+      {
+        label: "Produk",
+        icon: <FiBox />,
+        path: "/products",
+        roles: ["owner", "warehouse", "outlet"],
+      },
+      {
+        label: "Bundling",
+        icon: <ShoppingCart size={16} />,
+        path: "/bundlings",
+        roles: ["warehouse", "outlet"],
+      },
+      {
+        label: "Blending Produk",
+        icon: <FiCoffee />,
+        path: "/blendings",
+        roles: ["warehouse"],
+      },
+      {
+        label: "Request Stock",
+        icon: <FaBoxesPacking />,
+        path: "/requeststock",
+        roles: ["outlet"],
+      },
+      {
+        label: "Restock",
+        icon: <ContainerIcon />,
+        path: "/restock",
+        roles: ["warehouse"],
+      },
+      {
+        label: "Unit",
+        icon: <LayoutGrid />,
+        path: "/units",
+        roles: ["admin", "warehouse", "outlet"],
+      },
+      {
+        label: "Audit",
+        icon: <AiOutlineFileSearch />,
+        path: "/audit",
+        roles: ["admin", "outlet"],
+      },
+      {
+        label: "Diskon",
+        icon: <FiPercent />,
+        path: "/discounts",
+        roles: ["owner", "warehouse", "outlet"],
+      },
     ],
   },
   {
     label: "Lainnya",
     children: [
-      { label: "Warehouse", icon: <FaShop />, path: "/warehouses", roles: ["owner", "admin"] },
-      { label: "Retail", icon: <Store size={16} />, path: "/retails", roles: ["owner", "warehouse"] },
-      { label: "Laporan Laba Rugi", icon: <FaMoneyBillTransfer />, path: "/laba-rugi", roles: ["owner", "outlet", "warehouse"] },
-      { label: "Shift", icon: <Repeat size={16} />, path: "/shift", roles: ["outlet"] },
-      { label: "Tambah Pengguna", icon: <FiUsers />, path: "/users", roles: ["owner", "warehouse", "outlet"] },
+      {
+        label: "Warehouse",
+        icon: <FaShop />,
+        path: "/warehouses",
+        roles: ["owner", "admin"],
+      },
+      {
+        label: "Retail",
+        icon: <Store size={16} />,
+        path: "/retails",
+        roles: ["owner", "warehouse"],
+      },
+      {
+        label: "Laporan Laba Rugi",
+        icon: <FaMoneyBillTransfer />,
+        path: "/laba-rugi",
+        roles: ["owner", "outlet", "warehouse"],
+      },
+      {
+        label: "Shift",
+        icon: <Repeat size={16} />,
+        path: "/shift",
+        roles: ["outlet"],
+      },
+      // { label: "Tambah Pengguna", icon: <FiUsers />, path: "/users", roles: ["owner", "warehouse", "outlet"] },
       { label: "Role", icon: <FaUserTag />, path: "/roles", roles: ["admin"] },
-      { label: "Pengeluaran", icon: <Wallet2Icon />, path: "/pengeluaran", roles: ["outlet"] },
+      {
+        label: "Pengeluaran",
+        icon: <Wallet2Icon />,
+        path: "/pengeluaran",
+        roles: ["outlet"],
+      },
+    ],
+  },
+  {
+    group: "Akun",
+    label: "Pengguna",
+    icon: <FiUsers />,
+    isDropdown: true,
+    path: "/users",
+    roles: ["owner", "warehouse", "outlet", "admin"],
+    children: [
+      {
+        label: "Karyawan",
+        icon: <FiUsers />,
+        path: "/users",
+        roles: ["owner", "warehouse", "outlet"],
+      },
+      {
+        label: "Customer",
+        icon: <FiUsers />,
+        path: "/customers",
+        roles: ["owner", "warehouse", "outlet"],
+      }
     ],
   },
 ];
@@ -83,9 +191,11 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
   const navigate = useNavigate();
   const isCollapsed = sidebar === "mini-sidebar";
 
-  const { role: roles, updateUser } = useAuthStore(); 
+  const { role: roles, updateUser } = useAuthStore();
   const [menuItems, setMenuItems] = useState<any[]>([]);
-  const [openDropdowns, setOpenDropdowns] = useState<{ [key: string]: boolean }>({});
+  const [openDropdowns, setOpenDropdowns] = useState<{
+    [key: string]: boolean;
+  }>({});
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -106,7 +216,10 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
 
       const allPaths = newMenu.flatMap((item) => {
         if (!item.roles && item.children) {
-          return item.children.map((child) => ({ path: child.path, roles: child.roles ?? [] }));
+          return item.children.map((child) => ({
+            path: child.path,
+            roles: child.roles ?? [],
+          }));
         } else if (item.children) {
           return item.children.map((child) => ({
             path: child.path,
@@ -118,11 +231,18 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
       });
 
       const currentPath = location.pathname;
-      const match = allPaths.find((route) => currentPath.startsWith(route.path));
-      const isAllowed = !match || match.roles.length === 0 || match.roles.some((role) => roles.includes(role));
+      const match = allPaths.find((route) =>
+        currentPath.startsWith(route.path)
+      );
+      const isAllowed =
+        !match ||
+        match.roles.length === 0 ||
+        match.roles.some((role) => roles.includes(role));
 
       if (!isAllowed) {
-        const redirectPath = roles.includes("owner") ? "/dashboard-owner" : "/dashboard";
+        const redirectPath = roles.includes("owner")
+          ? "/dashboard-owner"
+          : "/dashboard";
         navigate(redirectPath, { replace: true });
         Toaster("error", "User tidak memiliki role yang sesuai.");
       }
@@ -138,7 +258,9 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
     .map((item) => {
       if (!hasAccess(item.roles)) return null;
       if (item.children) {
-        const filteredChildren = item.children.filter((child) => hasAccess(child.roles));
+        const filteredChildren = item.children.filter((child) =>
+          hasAccess(child.roles)
+        );
         if (filteredChildren.length === 0) return null;
         return { ...item, children: filteredChildren };
       }
@@ -148,15 +270,32 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
 
   if (loading) {
     return (
-      <aside className={`h-screen fixed left-0 top-0 shadow-md z-20 transition-all duration-300 ${isCollapsed ? "w-20" : "w-64"} bg-white`}>
+      <aside
+        className={`h-screen fixed left-0 top-0 shadow-md z-20 transition-all duration-300 ${
+          isCollapsed ? "w-20" : "w-64"
+        } bg-white`}
+      >
         <div className="flex py-3 px-4">
           <div className="flex items-center justify-center mx-auto">
-            <div className={`bg-gray-200 rounded ${isCollapsed ? "w-16 h-11" : "w-full h-12"} animate-pulse`} />
+            <div
+              className={`bg-gray-200 rounded ${
+                isCollapsed ? "w-16 h-11" : "w-full h-12"
+              } animate-pulse`}
+            />
           </div>
         </div>
-        <nav className={`p-4 space-y-4 ${isCollapsed ? "overflow-visible" : "overflow-y-auto"} h-[calc(100vh-4rem)]`}>
+        <nav
+          className={`p-4 space-y-4 ${
+            isCollapsed ? "overflow-visible" : "overflow-y-auto"
+          } h-[calc(100vh-4rem)]`}
+        >
           {Array.from({ length: 6 }).map((_, idx) => (
-            <div key={idx} className={`h-10 rounded-lg bg-gray-200 animate-pulse ${isCollapsed ? "w-10 mx-auto" : "w-full"}`} />
+            <div
+              key={idx}
+              className={`h-10 rounded-lg bg-gray-200 animate-pulse ${
+                isCollapsed ? "w-10 mx-auto" : "w-full"
+              }`}
+            />
           ))}
         </nav>
       </aside>
@@ -164,29 +303,44 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
   }
 
   return (
-    <aside className={`h-screen fixed left-0 top-0 shadow-md z-20 transition-all duration-300 ${isCollapsed ? "w-20" : "w-64"} bg-white`}>
+    <aside
+      className={`h-screen fixed left-0 top-0 shadow-md z-20 transition-all duration-300 ${
+        isCollapsed ? "w-20" : "w-64"
+      } bg-white`}
+    >
       <div className="flex py-3 px-4">
         <div className="flex items-center justify-center mx-auto">
           <img
             src={
               isCollapsed
-                ? import.meta.env.VITE_BASE_SERVER+"logo-new.png"
-                : import.meta.env.VITE_BASE_SERVER+"logo-new.png"
+                ? import.meta.env.VITE_BASE_SERVER + "logo-new.png"
+                : import.meta.env.VITE_BASE_SERVER + "logo-new.png"
             }
             alt="Logo"
-            className={`transition-all duration-300 ${isCollapsed ? "w-18 h-9" : "w-full h-12"}`}
+            className={`transition-all duration-300 ${
+              isCollapsed ? "w-18 h-9" : "w-full h-12"
+            }`}
           />
         </div>
       </div>
 
-      <nav className={`p-4 space-y-2.5 ${isCollapsed ? "overflow-visible" : "overflow-y-auto"} h-[calc(100vh-4rem)]`}>
+      <nav
+        className={`p-4 space-y-2.5 ${
+          isCollapsed ? "overflow-visible" : "overflow-y-auto"
+        } h-[calc(100vh-4rem)]`}
+      >
         {filteredMenuItems.map((item, i) => (
           <div key={i}>
             {item.group ? (
               <>
                 {!isCollapsed &&
-                  i === filteredMenuItems.findIndex((m: any) => m.group === item.group) && (
-                    <p className="text-xs font-bold uppercase mb-2 text-gray-400">{item.group}</p>
+                  i ===
+                    filteredMenuItems.findIndex(
+                      (m: any) => m.group === item.group
+                    ) && (
+                    <p className="text-xs font-bold uppercase mb-2 text-gray-400">
+                      {item.group}
+                    </p>
                   )}
                 {item.isDropdown ? (
                   <div>
@@ -201,7 +355,9 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                       className={`w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${
                         location.pathname.startsWith(item.path) ||
                         (item.children &&
-                          item.children.some((child: any) => location.pathname.startsWith(child.path)))
+                          item.children.some((child: any) =>
+                            location.pathname.startsWith(child.path)
+                          ))
                           ? "bg-blue-600 text-white hover:bg-blue-600"
                           : "text-gray-700"
                       } ${isCollapsed ? "justify-center" : "justify-between"}`}
@@ -212,7 +368,11 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                       </div>
                       {!isCollapsed && (
                         <span className="text-lg">
-                          {openDropdowns[item.label] ? <FiChevronUp /> : <FiChevronDown />}
+                          {openDropdowns[item.label] ? (
+                            <FiChevronUp />
+                          ) : (
+                            <FiChevronDown />
+                          )}
                         </span>
                       )}
                     </button>
@@ -220,18 +380,24 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                     {!isCollapsed && openDropdowns[item.label] && (
                       <ul className="mt-2 space-y-1 ml-4">
                         {item.children?.map((child: any, idx: number) => {
-                          const isActive = location.pathname.startsWith(child.path);
+                          const isActive = location.pathname.startsWith(
+                            child.path
+                          );
                           return (
                             <li key={idx}>
                               <Link
                                 to={child.path}
                                 className={`flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-blue-50 text-sm transition-all duration-300 ${
-                                  isActive ? "bg-blue-100 text-blue-600" : "text-gray-600"
+                                  isActive
+                                    ? "bg-blue-100 text-blue-600"
+                                    : "text-gray-600"
                                 }`}
                               >
                                 <span
                                   className={`w-2.5 h-2.5 rounded-full ${
-                                    isActive ? "bg-blue-500" : "bg-white border-2 border-blue-300"
+                                    isActive
+                                      ? "bg-blue-500"
+                                      : "bg-white border-2 border-blue-300"
                                   }`}
                                 ></span>
                                 {child.label}
@@ -258,7 +424,13 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
               </>
             ) : (
               <div>
-                <p className={`text-xs font-bold uppercase mb-2 ${isCollapsed ? "text-gray-400 text-center text-[10px]" : "text-gray-400"}`}>
+                <p
+                  className={`text-xs font-bold uppercase mb-2 ${
+                    isCollapsed
+                      ? "text-gray-400 text-center text-[10px]"
+                      : "text-gray-400"
+                  }`}
+                >
                   {item.label}
                 </p>
                 <ul className="space-y-1">
@@ -269,7 +441,9 @@ export const Sidebar = ({ sidebar }: { sidebar: string }) => {
                         <Link
                           to={child.path}
                           className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-100 text-sm font-medium transition-all duration-300 ${
-                            isActive ? "bg-blue-600 text-white hover:bg-blue-600" : "text-gray-700"
+                            isActive
+                              ? "bg-blue-600 text-white hover:bg-blue-600"
+                              : "text-gray-700"
                           } ${isCollapsed ? "justify-center" : ""}`}
                         >
                           <span className="text-lg">{child.icon}</span>

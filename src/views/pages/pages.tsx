@@ -14,6 +14,7 @@ export { default as WarehouseDetail } from './warehouse/detail';
 export { default as WarehouseCreate } from './warehouse/widgets/AddPage';
 export { default as WarehouseEdit } from './warehouse/widgets/EditPage';
 export { default as UserPage} from './users'
+export { default as Customers} from './customers/index'
 export { default as UserDetail } from './users/detail';
 export { default as UserCreate } from './users/widgets/AddPage';
 export { default as UserEdit } from './users/widgets/EditPage';
