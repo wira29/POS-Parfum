@@ -1,3 +1,4 @@
+import { DataRoleSelect } from "@/core/data/data_role";
 import { useAuthStore } from "@/core/stores/AuthStore";
 import { AnimatePresence, motion } from "framer-motion";
 import { Mail } from "lucide-react";
@@ -42,7 +43,12 @@ export const Header = ({
         <FiMenu size={24} />
       </button>
       <div className="p-1 px-2 bg-blue-600 text-white rounded-lg flex items-center gap-2">
-        {role.join(", ") || "super admin"}
+        {/* {role.join(", ") || "super admin"} */}
+        {
+          role.map((r: string) => (
+            DataRoleSelect.find((item: any) => item.value === r)?.label
+          )).join(", ")
+        }
       </div>
       </div>
 

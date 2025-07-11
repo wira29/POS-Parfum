@@ -1,16 +1,15 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { FiPlus, FiMoreHorizontal } from "react-icons/fi";
-import { Breadcrumb } from "@/views/components/Breadcrumb";
-import { SearchInput } from "@/views/components/SearchInput";
 import { useApiClient } from "@/core/helpers/ApiClient";
-import Swal from "sweetalert2";
-import { ReactNode } from "react";
-import { UserFilterModal } from "@/views/components/filter/UserFilter";
-import { Filter } from "@/views/components/Filter";
-import { LoadingCards } from "@/views/components/Loading";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
 import { IsRole } from "@/core/middlewares/is-role";
+import { Breadcrumb } from "@/views/components/Breadcrumb";
+import { Filter } from "@/views/components/Filter";
+import { UserFilterModal } from "@/views/components/filter/UserFilter";
+import { LoadingCards } from "@/views/components/Loading";
+import { SearchInput } from "@/views/components/SearchInput";
+import { ReactNode, useEffect, useRef, useState } from "react";
+import { FiMoreHorizontal, FiPlus } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 type User = {
   [x: string]: ReactNode;

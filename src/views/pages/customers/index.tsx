@@ -1,16 +1,14 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { FiPlus, FiMoreHorizontal } from "react-icons/fi";
-import { Breadcrumb } from "@/views/components/Breadcrumb";
-import { SearchInput } from "@/views/components/SearchInput";
 import { useApiClient } from "@/core/helpers/ApiClient";
-import Swal from "sweetalert2";
-import { ReactNode } from "react";
-import { UserFilterModal } from "@/views/components/filter/UserFilter";
-import { Filter } from "@/views/components/Filter";
-import { LoadingCards } from "@/views/components/Loading";
 import { ImageHelper } from "@/core/helpers/ImageHelper";
 import { IsRole } from "@/core/middlewares/is-role";
+import { Breadcrumb } from "@/views/components/Breadcrumb";
+import { Filter } from "@/views/components/Filter";
+import { UserFilterModal } from "@/views/components/filter/UserFilter";
+import { LoadingCards } from "@/views/components/Loading";
+import { SearchInput } from "@/views/components/SearchInput";
+import { ReactNode, useEffect, useRef, useState } from "react";
+import { FiMoreHorizontal } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 
 type User = {
   [x: string]: ReactNode;
@@ -67,7 +65,7 @@ export default function Customers() {
     setLoading(true);
     try {
       const response = await apiClient.get(
-        `/users?page=${page}&per_page=8&role=member}`
+        `/users?page=${page}&per_page=8&role=member`
       );
       const usersData = response.data.data;
       const mappedUsers: User[] = usersData.map((item: any) => ({
