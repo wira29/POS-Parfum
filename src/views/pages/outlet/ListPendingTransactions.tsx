@@ -181,7 +181,7 @@ export function ListPendingTransactions({ items, onTotalChange }: Props) {
     }
     acc[parentId].variants.push(product);
     return acc;
-  }, {} as Record<string, {
+ }, {} as Record<string, {
     parentName: string;
     parentId: string;
     isBundling: boolean;

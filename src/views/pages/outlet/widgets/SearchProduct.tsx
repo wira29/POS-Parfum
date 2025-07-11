@@ -519,7 +519,7 @@ const SearchProduct = ({
   return (
     <div className="p-3">
       <div className="mb-3">
-        <div className="flex justify-start items-center gap-5">
+        <div className="flex items-center gap-5">
           <button
             onClick={() => setShowAddModal(true)}
             className="bg-blue-600 text-white px-4 py-2.5 rounded-lg cursor-pointer hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors shadow-sm"
@@ -529,7 +529,7 @@ const SearchProduct = ({
           </button>
           <button
             onClick={() => setIsOpenModalAdd(true)}
-            className="bg-blue-600 text-white px-4 py-2.5 rounded-lg cursor-pointer hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors shadow-sm"
+            className="bg-blue-600 text-sm text-white px-4 py-2.5 rounded-lg cursor-pointer hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors shadow-sm"
           >
             <Users className="h-5 w-5" />
             Add Member
@@ -550,7 +550,7 @@ const SearchProduct = ({
         isOpen={isOpenModalAdd}
         onClose={() => setIsOpenModalAdd(false)}
         mode="tengah"
-        onSubmit={(data) => console.log(data)}
+         onSubmit={(data) => console.log(data)}
       />
 
       {showAddModal && (
