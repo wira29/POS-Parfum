@@ -135,7 +135,6 @@ export default function BundlingEdit() {
       try {
         const res = await apiClient.get(`/product-bundling/${id}`);
         const data = res.data?.data;
-        console.log("data", data)
 
         setProductName(data.name || "");
         setPrice(data.price || 0);
@@ -265,7 +264,6 @@ export default function BundlingEdit() {
     const isQtyInvalid = filteredMaterials.some(
       (mat) => !mat.quantity || !mat.unit_id
     );
-    console.log("filteredMaterials", filteredMaterials, materials)
     if (isQtyInvalid) {
       Toaster("error", "Semua varian harus memiliki quantity dan unit.");
       setLoading(false);
@@ -783,7 +781,7 @@ export default function BundlingEdit() {
             <div className="bg-gray-100 rounded-lg p-4 mb-4 min-h-48 flex items-center justify-center">
               {images.length > 0 ? (
                 <img
-                  src={URL.createObjectURL(images[0])}
+                  src={images[0] instanceof File ? URL.createObjectURL(images[0]) : ImageHelper(images[0])}
                   alt="Product preview"
                   className="max-w-full max-h-full object-contain"
                 />
@@ -833,7 +831,6 @@ export default function BundlingEdit() {
           setActiveQtyId(null);
         }}
         onSubmit={(qty) => {
-          console.log("mat", materials)
           setMaterials((prev) =>
             prev.map((mat) =>
               mat.product_detail_id === activeQtyId
