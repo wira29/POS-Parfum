@@ -53,7 +53,7 @@ interface Props {
   onRemoveItem?: (id: string) => void;
 }
 
-export function ListPendingTransactions({ items, onTotalChange }: Props) {
+export function ListPendingTransactions({ items, onTotalChange, onRemoveItem }: Props) {
   const [transformedProducts, setTransformedProducts] = useState<TransformedProduct[]>([]);
   const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
 
@@ -81,7 +81,7 @@ export function ListPendingTransactions({ items, onTotalChange }: Props) {
           density: 1,
         });
       } else if (product.product_detail && product.product_detail.length > 0) {
-        product.product_detail.filter((variant) => variant.selected).forEach((variant) => {
+        product.product_detail.forEach((variant) => {
           result.push({
             id: variant.id,
             name: variant.variant_name,
@@ -131,11 +131,7 @@ export function ListPendingTransactions({ items, onTotalChange }: Props) {
     setTransformedProducts(transformed);
   }, [items]);
 
-  const updateProduct = (
-    id: string,
-    field: "qty" | "price",
-    value: number
-  ) => {
+  const updateProduct = (id: string, field: "qty" | "price", value: number) => {
     setTransformedProducts((prev) =>
       prev.map((p) => {
         if (p.id !== id) return p;
@@ -165,7 +161,7 @@ export function ListPendingTransactions({ items, onTotalChange }: Props) {
   const removeProduct = (id: string) => {
     setTransformedProducts((prev) => prev.filter((x) => x.id !== id));
     if (onRemoveItem) {
-      onRemoveItem(id); 
+      onRemoveItem(id);
     }
   };
 
@@ -181,12 +177,7 @@ export function ListPendingTransactions({ items, onTotalChange }: Props) {
     }
     acc[parentId].variants.push(product);
     return acc;
- }, {} as Record<string, {
-    parentName: string;
-    parentId: string;
-    isBundling: boolean;
-    variants: TransformedProduct[]
-  }>);
+  }, {} as Record<string, { parentName: string; parentId: string; isBundling: boolean; variants: TransformedProduct[] }>);
 
   useEffect(() => {
     const total = transformedProducts.reduce((acc, item) => acc + (item.totalPrice || 0), 0);
@@ -200,11 +191,9 @@ export function ListPendingTransactions({ items, onTotalChange }: Props) {
       <div className="p-4 border-b border-gray-200">
         <h2 className="text-lg font-semibold text-gray-900">Pending Transactions</h2>
       </div>
-
       {Object.entries(groupedProducts).map(([parentId, group]) => {
-        const isExpanded = expandedProducts.has(parentId);
+        const isExpanded = expandedProducts.has(parentId) || group.variants.length === 1;
         const firstVariant = group.variants[0];
-
         return (
           <div key={parentId} className="border-b border-gray-100 last:border-b-0">
             <div className="p-4 bg-gray-50 hover:bg-gray-100 transition-colors">
@@ -230,42 +219,29 @@ export function ListPendingTransactions({ items, onTotalChange }: Props) {
                           <span className="font-medium">Category:</span>
                           <span>{firstVariant.category}</span>
                         </div>
-                        {!group.isBundling && (
-                          <div className="flex items-center space-x-2">
-                            <span className="font-medium">Varian Dipilih:</span>
-                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
-                              {group.variants.length} Varian
-                            </span>
-                          </div>
-                        )}
-                        {group.isBundling && (
-                          <div className="flex items-center space-x-2">
-                            <span className="font-medium">Tipe:</span>
-                            <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
-                              Bundling
-                            </span>
-                          </div>
-                        )}
+                        <div className="flex items-center space-x-2">
+                          <span className="font-medium">Tipe:</span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${group.isBundling ? "bg-yellow-100 text-yellow-800" : "bg-blue-100 text-blue-800"}`}>
+                            {group.isBundling ? "Bundling" : `${group.variants.length} Varian`}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                {!group.isBundling && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleExpanded(parentId);
-                    }}
-                    className="flex items-center space-x-2 px-4 cursor-pointer py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-colors"
-                  >
-                    <span>Detail</span>
-                    {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                  </button>
-                )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleExpanded(parentId);
+                  }}
+                  className="flex items-center space-x-2 px-4 cursor-pointer py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-colors"
+                >
+                  <span>Detail</span>
+                  {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
               </div>
             </div>
-
-            {isExpanded && !group.isBundling && (
+            {isExpanded && (
               <div className="bg-white">
                 <div className="px-4 py-2 bg-gray-25 border-b border-gray-200">
                   <div className="grid grid-cols-6 gap-4 text-sm font-medium text-gray-700">
@@ -277,7 +253,6 @@ export function ListPendingTransactions({ items, onTotalChange }: Props) {
                     <div className="text-center">Actions</div>
                   </div>
                 </div>
-
                 {group.variants.map((variant) => (
                   <div key={variant.id} className="px-4 py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50">
                     <div className="grid grid-cols-6 gap-4 items-center">
@@ -344,88 +319,18 @@ export function ListPendingTransactions({ items, onTotalChange }: Props) {
                 ))}
               </div>
             )}
-
-            {group.isBundling && (
-              <div className="px-4 py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50">
-                <div className="grid grid-cols-6 gap-4 items-center">
-                  <div>
-                    <div className="font-medium text-gray-900">{group.parentName}</div>
-                  </div>
-                  <div>
-                    <div className="flex">
-                      <input
-                        type="text"
-                        value={firstVariant.qty?.toString() || ""}
-                        onChange={(e) => {
-                          let onlyNumbers = e.target.value.replace(/[^0-9]/g, "");
-                          let qtyValue = onlyNumbers === "" ? 0 : Number(onlyNumbers);
-                          if (qtyValue > firstVariant.stock) qtyValue = firstVariant.stock;
-                          updateProduct(firstVariant.id, "qty", qtyValue);
-                        }}
-                        className="w-16 px-2 py-1.5 text-sm border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        maxLength={10}
-                      />
-                      <div className="w-12 px-2 py-1.5 text-sm border border-l-0 border-gray-300 rounded-r-md bg-gray-100 text-gray-700">
-                        {firstVariant.unit_code}
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <input
-                      type="text"
-                      value={firstVariant.price?.toLocaleString("id-ID") || ""}
-                      onChange={(e) => {
-                        const rawValue = e.target.value.replace(/[^0-9]/g, "");
-                        const numericValue = rawValue === "" ? 0 : Number(rawValue);
-                        updateProduct(firstVariant.id, "price", numericValue);
-                      }}
-                      className="w-24 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      maxLength={15}
-                    />
-                  </div>
-                  <div className="text-sm font-medium text-gray-900">
-                    Rp {firstVariant.totalPrice.toLocaleString("id-ID")}
-                  </div>
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-sm text-gray-600">{firstVariant.stock} {firstVariant.unit_code}</span>
-                    </div>
-                  </div>
-                  <div className="flex justify-center">
-                    <button
-                      onClick={() => removeProduct(firstVariant.id)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors group"
-                      title="Hapus produk"
-                    >
-                      <Trash2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         );
       })}
-
       {Object.keys(groupedProducts).length === 0 && (
         <div className="p-8 text-center">
           <div className="text-gray-400 mb-2">
             <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2 2v-5m16 0h-2M4 13h2m0 0V9a2 2 0 012-2h2m0 0V6a2 2 0 012-2h2.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V9a2 2 0 012 2v2m0 0v2a2 2 0 01-2 2h-2m0 0H9a2 2 0 01-2-2V9a2 2 0 012-2h2m0 0V6a2 2 0 012-2h1.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V9a2 2 0 012 2v2"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2 2v-5m16 0h-2M4 13h2m0 0V9a2 2 0 012-2h2m0 0V6a2 2 0 012-2h2.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V9a2 2 0 012 2v2m0 0v2a2 2 0 01-2 2h-2m0 0H9a2 2 0 01-2-2V9a2 2 0 012-2h2m0 0V6a2 2 0 012-2h1.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V9a2 2 0 012 2v2" />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-1">Tidak ada product yang di pilih</h3>
-          <p className="text-gray-500">pilih produk , maka data akan muncuk disini</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-1">Tidak ada produk yang dipilih</h3>
+          <p className="text-gray-500">Pilih produk, maka data akan muncul di sini</p>
         </div>
       )}
     </div>

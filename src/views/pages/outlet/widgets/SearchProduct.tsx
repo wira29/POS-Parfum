@@ -191,9 +191,9 @@ const SearchProduct = ({
       if (!product.is_bundling && product.product_detail?.length === 1) {
         const singleVariant = product.product_detail[0];
         toggleVariantSelect(singleVariant.id);
-      } else {
-        toggleProductSelect(product.id);
       }
+
+      toggleProductSelect(product.id);
       return;
     }
 
@@ -314,8 +314,8 @@ const SearchProduct = ({
     return (
       <div
         className={`group bg-white rounded-xl p-3 relative cursor-pointer transition-all duration-200 ${selectedProducts.includes(product.id)
-            ? "border-2 border-dashed border-blue-500 bg-blue-50"
-            : "border border-gray-200 hover:border-gray-300"
+          ? "border-2 border-dashed border-blue-500 bg-blue-50"
+          : "border border-gray-200 hover:border-gray-300"
           }`}
         onClick={(e) => {
           if (!(e.target as HTMLElement).closest('input[type="checkbox"]')) {
@@ -340,8 +340,8 @@ const SearchProduct = ({
           {shouldShowCheckbox && (
             <div className="absolute top-2 right-2 flex items-center justify-center">
               <div className={`w-5 h-5 rounded border flex items-center justify-center ${selectedProducts.includes(product.id)
-                  ? "bg-blue-500 border-blue-500"
-                  : "bg-white border-gray-300"
+                ? "bg-blue-500 border-blue-500"
+                : "bg-white border-gray-300"
                 }`}>
                 {selectedProducts.includes(product.id) && <Check className="w-4 h-4 text-white" />}
               </div>
@@ -387,8 +387,8 @@ const SearchProduct = ({
     return (
       <div
         className={`group bg-white rounded-xl p-3 relative cursor-pointer transition-all duration-200 ${isSelected
-            ? "border-2 border-dashed border-blue-500 bg-blue-50"
-            : "border border-gray-200 hover:border-gray-300"
+          ? "border-2 border-dashed border-blue-500 bg-blue-50"
+          : "border border-gray-200 hover:border-gray-300"
           }`}
         onClick={(e) => {
           if (!(e.target as HTMLElement).closest('input[type="checkbox"]')) {
@@ -411,8 +411,8 @@ const SearchProduct = ({
           />
           <div className="absolute top-2 right-2 flex items-center justify-center">
             <div className={`w-5 h-5 rounded border flex items-center justify-center ${isSelected
-                ? "bg-blue-500 border-blue-500"
-                : "bg-white border-gray-300"
+              ? "bg-blue-500 border-blue-500"
+              : "bg-white border-gray-300"
               }`}>
               {isSelected && <Check className="w-4 h-4 text-white" />}
             </div>
@@ -550,7 +550,7 @@ const SearchProduct = ({
         isOpen={isOpenModalAdd}
         onClose={() => setIsOpenModalAdd(false)}
         mode="tengah"
-         onSubmit={(data) => console.log(data)}
+        onSubmit={(data) => console.log(data)}
       />
 
       {showAddModal && (
