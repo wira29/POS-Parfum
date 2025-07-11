@@ -32,7 +32,7 @@ type Pagination = {
   to: number;
 };
 
-export default function Customers() {
+export default function UserPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [dropdownOpenId, setDropdownOpenId] = useState<string | null>(null);
   const [users, setUsers] = useState<User[]>([]);
@@ -66,9 +66,7 @@ export default function Customers() {
 
     setLoading(true);
     try {
-      const response = await apiClient.get(
-        `/users?page=${page}&per_page=8&role=member}`
-      );
+      const response = await apiClient.get(`/users?page=${page}&per_page=8&role=member`);
       const usersData = response.data.data;
       const mappedUsers: User[] = usersData.map((item: any) => ({
         id: item.id,
@@ -134,6 +132,37 @@ export default function Customers() {
     setDropdownOpenId(dropdownOpenId === id ? null : id);
   };
 
+  const handleDetail = (user: User) => {
+    navigate(`/users/${user.id}/detail`);
+  };
+
+  const handleEdit = (user: User) => {
+    navigate(`/users/${user.id}/edit`);
+  };
+
+  const confirmDelete = (id: string) => {
+    Swal.fire({
+      title: "Apakah anda yakin?",
+      text: "Data User akan dihapus!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, hapus!",
+      cancelButtonText: "Batal",
+    }).then((result) => {
+      if (result.isConfirmed) deleteUser(id);
+    });
+  };
+
+  const deleteUser = async (id: string) => {
+    try {
+      await apiClient.delete(`/users/${id}`);
+      Swal.fire("Terhapus!", "User berhasil dihapus.", "success");
+      fetchUsers(1);
+    } catch (error) {
+      Swal.fire("Gagal!", "Gagal menghapus User.", "error");
+    }
+  };
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -181,7 +210,7 @@ export default function Customers() {
 
   return (
     <div className="p-6 space-y-6">
-      <Breadcrumb title="Customers" desc="Kelola daftar akun Customers pada sistem." />
+      <Breadcrumb title="Daftar Pengguna" desc="Kelola daftar akun pengguna pada sistem." />
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
         <div className="flex items-center gap-2 mb-4 w-full sm:w-auto max-w-lg">
@@ -211,7 +240,7 @@ export default function Customers() {
                   <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
                     <img src={ImageHelper(user.image)} alt={user.name} className="w-full h-full object-cover" />
                   </div>
-                  <div ref={dropdownOpenId === user.id ? dropdownRef : null}>
+                  {/*<div ref={dropdownOpenId === user.id ? dropdownRef : null}>
                     <IsRole role={["warehouse", "outlet"]}>
                       <button
                         className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-100 cursor-pointer"
@@ -233,7 +262,7 @@ export default function Customers() {
                         </button>
                       </div>
                     )}
-                  </div>
+                  </div>*/}
                 </div>
                 <div className="text-center mt-4">
                   <h3 className="font-medium">{user.name}</h3>
