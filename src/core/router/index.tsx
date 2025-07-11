@@ -35,6 +35,7 @@ import {
   LabaRugiIndex,
   DetailRiwayatTransaksi,
   DashboardOwner,
+  Customers,
   // BlendingEdit
 } from "@/views/pages/pages";
 import { RequestStockIndex } from "@/views/pages/request-stock";
@@ -199,6 +200,10 @@ export const router = createBrowserRouter([
           {
             path: "users/:id/Detail",
             element: <UserDetail />,
+          },
+          {
+            path: "customers",
+            element: <Customers />,
           },
           {
             path: "roles",

@@ -66,7 +66,9 @@ export const LoginPage = () => {
 
       if (role_lists.includes("owner")) {
         navigate("/dashboard-owner");
-      } else {
+      }else if (role_lists.includes("cashier")) {
+        navigate("/outlets");
+      }else {
         navigate("/dashboard");
       }
     } catch (err: any) {
