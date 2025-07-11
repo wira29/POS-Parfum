@@ -5,17 +5,20 @@ import { Filter } from "@/views/components/Filter";
 import { Pagination } from "@/views/components/Pagination";
 import { SearchInput } from "@/views/components/SearchInput";
 import ViewIcon from "@/views/components/ViewIcon";
+import { Printer, PrinterCheck } from "lucide-react";
 import moment from "moment";
 import React, { useEffect } from "react";
+import { BsPrinterFill } from "react-icons/bs";
 
 export const RiwayatPenjualan: React.FC = () => {
-  const { items, getAll, search, page, setState, pagination } = useTransactionStore();
+  const { items, getAll, search, page, setState, pagination } =
+    useTransactionStore();
 
-  const handlePageChange = (page: number) => setState('page', page)
+  const handlePageChange = (page: number) => setState("page", page);
 
   useEffect(() => {
-    getAll(true)
-  }, [])
+    getAll(true);
+  }, []);
 
   return (
     <div className="py-3 sm:py-5 px-2 sm:px-6 bg-gray-50 min-h-screen">
@@ -23,7 +26,10 @@ export const RiwayatPenjualan: React.FC = () => {
       <Card className="mt-3 sm:mt-5">
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-5">
           <div className="w-full sm:w-1/3 md:w-1/4">
-            <SearchInput onChange={(val) => setState("search", val)} value={search} />
+            <SearchInput
+              onChange={(val) => setState("search", val)}
+              value={search}
+            />
           </div>
           <div className="w-full sm:w-auto">
             <Filter />
@@ -67,7 +73,7 @@ export const RiwayatPenjualan: React.FC = () => {
                   className="bg-white text-slate-500 border-b border-slate-200 even:bg-gray-100"
                 >
                   <td className="px-2 sm:px-4 py-2 sm:py-4 text-left font-normal hidden sm:table-cell">
-                    {data.cashier_name ?? '-'}
+                    {data.cashier_name ?? "-"}
                   </td>
                   <td className="px-2 sm:px-4 py-2 sm:py-4 text-left font-normal hidden sm:table-cell">
                     {data.buyer_name}
@@ -76,13 +82,14 @@ export const RiwayatPenjualan: React.FC = () => {
                     {data.quantity} Produk
                   </td>
                   <td className="px-2 sm:px-4 py-2 sm:py-4 text-left font-normal hidden sm:table-cell">
-                    Rp {data.amount_price.toLocaleString('id-ID')}
+                    Rp {data.amount_price.toLocaleString("id-ID")}
                   </td>
                   <td className="px-2 sm:px-4 py-2 sm:py-4 text-left font-normal hidden sm:table-cell">
-                    {moment(data.payment_time).format('DD MMMM YYYY')}
+                    {moment(data.payment_time).format("DD MMMM YYYY")}
                   </td>
                   <td className="px-2 sm:px-4 py-2 sm:py-4">
                     <div className="flex justify-center gap-2">
+                      <button className="bg-green-600 p-2 rounded text-white flex items-center gap-1  hover:bg-green-800"><BsPrinterFill className="cursor-pointer"/></button>
                       <ViewIcon to={`/riwayat-penjualan/${data.id}/detail`} />
                     </div>
                   </td>

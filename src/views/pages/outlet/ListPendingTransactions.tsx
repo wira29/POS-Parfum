@@ -164,10 +164,10 @@ export function ListPendingTransactions({ items, onTotalChange }: Props) {
     return acc;
   }, {} as Record<number, { parentName: string; parentId: number; variants: TransformedProduct[] }>);
 
-  const totalHargaKeseluruhan = transformedProducts.reduce(
-    (acc, item) => acc + (item.totalPrice || 0),
-    0
-  );
+  // const totalHargaKeseluruhan = transformedProducts.reduce(
+  //   (acc, item) => acc + (item.totalPrice || 0),
+  //   0
+  // );
 
   useEffect(() => {
     const total = transformedProducts.reduce(
