@@ -78,12 +78,14 @@ export default function BundlingEdit() {
           category: p.category,
           details_sum_stock: p.details_sum_stock,
           is_bundling: p.is_bundling,
+          unit_id: p.unit_id,
           variants: (p.product_detail || []).map((v) => ({
             id: v.id,
             name: v.variant_name,
             stock: v.stock,
             price: v.price,
             unit_code: v.unit_code,
+            unit_id: v.unit_id,
             product_code: v.product_code,
             product_image: v.product_image,
           })),
@@ -139,11 +141,10 @@ export default function BundlingEdit() {
         setStock(data.stock || 0);
         setDescription(data.description || "");
         setCategory(
-          categories.find((cat) => cat.label === data.category)?.value || ""
+          categories.find((cat) => cat.id === data.category_id)?.value || ""
         );
 
         if (data.bundling_material && data.bundling_material.length > 0) {
-          console.log(data)
           const newComposition = data.bundling_material.map(
             (mat) => `${mat.product_name} - ${mat.variant_name}`
           );
@@ -557,7 +558,6 @@ export default function BundlingEdit() {
                             const variant = prod?.variants.find(
                               (v) => v.id === variantId
                             );
-                            console.log(productId, variantId)
                             const quantity = materials.find(
                               (mat) => mat.product_detail_id === variant?.id
                             )?.quantity;
@@ -781,7 +781,7 @@ export default function BundlingEdit() {
             <div className="bg-gray-100 rounded-lg p-4 mb-4 min-h-48 flex items-center justify-center">
               {images.length > 0 ? (
                 <img
-                  src={URL.createObjectURL(images[0])}
+                  src={images[0] instanceof File ? URL.createObjectURL(images[0]) : ImageHelper(images[0])}
                   alt="Product preview"
                   className="max-w-full max-h-full object-contain"
                 />

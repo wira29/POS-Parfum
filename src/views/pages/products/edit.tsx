@@ -44,7 +44,12 @@ export const ProductEdit = () => {
 
     const selectedUnitData = units.find((u) => u.id === selectedUnit);
     const selectedUnitCode = selectedUnitData?.code?.toUpperCase();
-    const hasVariant = variantMatrix.length > 1;
+    const hasVariant = () => {
+        if ((variantMatrix.length == 1 && variantMatrix[0].volumes.length == 1) ) return false;
+        if (variantMatrix.length == 1 && variantMatrix[0].volumes.length > 1) return true;
+        if (variantMatrix.length > 1) return true;
+        return false;
+    }
 
     const handleOptionChange = (variationIndex, optionIndex, value) => {
         const updated = [...variations];
@@ -139,6 +144,7 @@ export const ProductEdit = () => {
             const prices = [...(variant.prices || Array(optionCount).fill(""))];
             const stocks = [...(variant.stocks || Array(optionCount).fill(""))];
             const codes = [...(variant.codes || Array(optionCount).fill(""))];
+            const productDetailId = [...(variant.productDetailId || Array(optionCount).fill(""))];
 
             for (let idx = 0; idx < optionCount; idx++) {
                 if (globalPrice !== "") prices[idx] = Math.max(0, globalPrice);
@@ -151,6 +157,7 @@ export const ProductEdit = () => {
                 prices,
                 stocks,
                 codes,
+                productDetailId
             };
         });
         setVariantMatrix(updated);
@@ -207,7 +214,6 @@ export const ProductEdit = () => {
 
     useEffect(() => {
         if (variations.length === 0) return setVariantMatrix([]);
-
         const matrix = variations.map((variation, i) => {
             const filteredOptions = (variation.options || []).filter(opt => opt && opt.trim() !== "");
             const optionCount = filteredOptions.length;
@@ -224,9 +230,9 @@ export const ProductEdit = () => {
                     ? variantMatrix[i].codes
                     : Array(optionCount).fill(""),
                 volumes: filteredOptions,
+                productDetailId: variantMatrix?.[i]?.product_detail_id
             };
         });
-
         setVariantMatrix(matrix);
     }, [variations]);
 
@@ -243,7 +249,6 @@ export const ProductEdit = () => {
                 }
 
                 const data = res.data.data;
-                console.log(data)
 
                 setProductName(data.name || "");
                 setDescription(data.description || "");
@@ -285,7 +290,7 @@ export const ProductEdit = () => {
                 }
 
                 const hasVariants = details.filter(detail => detail.variant_name);
-
+                
                 if (hasVariants.length == 1) {
                     productDetailId.current = hasVariants[0].id;
                     const mainDetail = details[0];
@@ -298,7 +303,6 @@ export const ProductEdit = () => {
                     setVariantUnits([]);
                     return;
                 }
-
                 const variantGroups = {};
 
                 details.forEach((detail) => {
@@ -322,7 +326,7 @@ export const ProductEdit = () => {
 
                     variantGroups[mainName].options.push(option);
                     variantGroups[mainName].prices.push(String(detail.price || ""));
-                    variantGroups[mainName].stocks.push(String(detail.stock || ""));
+                    variantGroups[mainName].stocks.push(detail.stock.toString());
                     variantGroups[mainName].codes.push(detail.product_code || "");
                     variantGroups[mainName].units.push(String(detail.unit_id || ""));
                     variantGroups[mainName].images.push(detail.product_image || "");
@@ -538,7 +542,7 @@ export const ProductEdit = () => {
                     detailIdx++;
                 } else {
                     options.forEach((option, j) => {
-                        formData.append(`product_details[${detailIdx}][product_detail_id]`, category);
+                        formData.append(`product_details[${detailIdx}][product_detail_id]`, variant.productDetailId?.[j] || "");
                         formData.append(`product_details[${detailIdx}][category_id]`, category);
                         formData.append(`product_details[${detailIdx}][variant]`, aroma);
                         formData.append(`product_details[${detailIdx}][opsi]`, option || "");
@@ -672,7 +676,7 @@ export const ProductEdit = () => {
                         </div>
                     </div>
 
-                    {!hasVariant && (
+                    {!hasVariant() && (
                         <div className="bg-white shadow rounded-2xl p-4 md:p-6">
                             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-blue-600">
                                 <DollarSign size={18} /> Harga & Stok Produk
@@ -839,7 +843,7 @@ export const ProductEdit = () => {
 
                         </div>
 
-                        {variantMatrix.length > 0 && hasVariant && (
+                        {variantMatrix.length > 0 && hasVariant() && (
                             <>
                                 <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
                                     <div className="flex flex-col sm:flex-row border rounded-lg overflow-hidden divide-y sm:divide-y-0 sm:divide-x w-full max-w-3xl">
@@ -985,9 +989,9 @@ export const ProductEdit = () => {
                 <div className="lg:col-span-4">
                     <PreviewCard
                         images={images}
-                        price={hasVariant ? variantMatrix?.[0]?.prices?.[0] : price}
-                        stock={hasVariant ? variantMatrix?.[0]?.stocks?.[0] : stock}
-                        productCode={hasVariant ? variantMatrix?.[0]?.codes?.[0] : productCode}
+                        price={hasVariant() ? variantMatrix?.[0]?.prices?.[0] : price}
+                        stock={hasVariant() ? variantMatrix?.[0]?.stocks?.[0] : stock}
+                        productCode={hasVariant() ? variantMatrix?.[0]?.codes?.[0] : productCode}
                         category={selectedCategoryName}
                         productName={productName}
                         variantImages={variantImages}
