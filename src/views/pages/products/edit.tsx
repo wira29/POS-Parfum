@@ -433,7 +433,7 @@ export const ProductEdit = () => {
             formData.append("density", density);
         }
 
-        if (!hasVariant) {
+        if (!hasVariant()) {
             if (!price || isNaN(price)) {
                 setErrors({ message: ["Harga produk wajib diisi"] });
                 Toaster("error", "Harga produk wajib diisi");
