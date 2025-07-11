@@ -1,7 +1,8 @@
+import { ConfirmAlert, ToasterCustom } from "@/core/helpers/BaseAlert";
 import Card from "@/views/components/Card/Card";
 import MemberFormModal from "@/views/components/MemberFormModal";
 import MemberListModal from "@/views/components/MemberListModal";
-import { CheckCircle, Ellipsis, User, UserPlus, X } from "lucide-react";
+import { Ellipsis, User, UserPlus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 
@@ -56,10 +57,15 @@ const PayProduct = ({ totalHarga }: { totalHarga: number }) => {
   const [isOpenModalListMember, setIsOpenListMosdal] = useState(false);
   const [isOpenModalAdd, setIsOpenModalAdd] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [animateModal, setAnimateModal] = useState(false);
   const [isMemberMode, setIsMemberMode] = useState(false);
   const [members, setMembers] = useState<{ name: string; phone: string }[]>([]);
+  const [toast, setToast] = useState({
+    show: false,
+    type: "success" as "success" | "error",
+    title: "",
+    message: "",
+  });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -93,18 +99,21 @@ const PayProduct = ({ totalHarga }: { totalHarga: number }) => {
       currentMethod === m ? "bg-green-500" : "bg-green-200"
     }`;
 
-  useEffect(() => {
-    if (showSuccessModal) {
-      const timeout = setTimeout(() => setAnimateModal(true), 10);
-      return () => clearTimeout(timeout);
-    } else {
-      setAnimateModal(false);
-    }
-  }, [showSuccessModal]);
+  const onSubmit: SubmitHandler<FormData> = async (data) => {
+    const confirmed = await ConfirmAlert(
+      "Apakah anda yakin melanjutkan transaksi?",
+      "Transaksi akan diproses"
+    );
 
-  const onSubmit: SubmitHandler<FormData> = (data) => {
-    console.log("DATA DUMMY:", data);
-    setShowSuccessModal(true);
+    if (confirmed) {
+      setToast({
+        show: true,
+        type: "success",
+        title: "Pembayaran Berhasil!",
+        message: "Transaksi Anda telah diproses dengan sukses.",
+      });
+      console.log("DATA DUMMY:", data);
+    }
   };
 
   return (
@@ -195,11 +204,15 @@ const PayProduct = ({ totalHarga }: { totalHarga: number }) => {
           isOpen={isOpenModalListMember}
           onClose={() => setIsOpenListMosdal(false)}
           onSelectMember={(member) => {
+            const cleanPhone =
+              member.phone && member.phone !== "-"
+                ? member.phone.replace("+62", "")
+                : "-";
+
             setValue("customerName", member.name);
-            setValue("customerPhone", member.phone.replace("+62", ""));
+            setValue("customerPhone", cleanPhone);
             setIsMemberMode(true);
           }}
-          members={members}
         />
 
         <MemberFormModal
@@ -378,41 +391,13 @@ const PayProduct = ({ totalHarga }: { totalHarga: number }) => {
           </div>
         </div>
 
-        {showSuccessModal && (
-          <div className="fixed top-25 right-4 z-[9999]">
-            <div
-              className={`bg-white border-l-4 border-green-500 rounded-lg p-5 shadow-lg max-w-xl w-full
-      transform transition-all duration-300 ease-out
-      ${
-        animateModal
-          ? "opacity-100 translate-x-0"
-          : "opacity-0 translate-x-full"
-      }`}
-            >
-              <div className="flex items-start">
-                <div className="flex-shrink-0">
-                  <CheckCircle className="text-green-500" size={24} />
-                </div>
-                <div className="ml-3 flex-1">
-                  <h3 className="text-sm font-medium text-gray-900">
-                    Pembayaran Berhasil!
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Transaksi Anda telah diproses dengan sukses.
-                  </p>
-                </div>
-                <div className="ml-4 flex-shrink-0">
-                  <button
-                    onClick={() => setShowSuccessModal(false)}
-                    className="inline-flex text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 transition-colors"
-                  >
-                    <X size={20} className="cursor-pointer" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        <ToasterCustom
+          show={toast.show}
+          type={toast.type}
+          title={toast.title}
+          message={toast.message}
+          onClose={() => setToast({ ...toast, show: false })}
+        />
 
         <button
           type="submit"

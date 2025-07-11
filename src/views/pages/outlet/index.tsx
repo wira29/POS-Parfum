@@ -35,7 +35,7 @@ export function CheckoutPreview() {
   }
 
   return (
-    <div className="flex w-full gap-5 py-5">
+    <div className="flex flex-col lg:flex-row w-full gap-5 py-5">
       <div className="flex-[8]">
         <Card>
           <SearchProduct
