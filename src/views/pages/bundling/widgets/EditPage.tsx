@@ -152,6 +152,7 @@ export default function BundlingEdit() {
             (mat) => `${mat.product_id} / ${mat.product_detail_id}`
           );
           const newMaterials = data.bundling_material.map((mat) => ({
+            product_id: mat.product_id,
             product_detail_id: mat.product_detail_id,
             quantity: mat.quantity,
             unit_id: mat.unit_id,
@@ -165,7 +166,7 @@ export default function BundlingEdit() {
           setMaterials(newMaterials);
 
           const variants = newMaterials.map((mat) => ({
-            productId: "",
+            productId: mat.product_id,
             productName: mat.product_name,
             variantId: mat.product_detail_id,
             variantName: mat.variant_name,
@@ -360,6 +361,7 @@ export default function BundlingEdit() {
           (v) => !(v.productId === productId && v.variantId === variantId)
         )
       );
+      
     } else {
       setMaterials((prev) => [
         ...prev,
@@ -376,6 +378,7 @@ export default function BundlingEdit() {
         ...prev,
         { productId, productName, variantId, variantName },
       ]);
+      
     }
   };
 
